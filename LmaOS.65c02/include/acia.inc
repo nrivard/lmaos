@@ -1,0 +1,97 @@
+; LmaOS
+;
+; Copyright Nate Rivard 2020
+
+;;; ACIA Addresses
+
+;;; transmission in progress
+;;; TODO: this feels like we could also use it as a bitfield for: transmission in progress, but also recv mode. xmodem vs monitor!
+ACIATransmitInProgress: .res 1
+
+ACIA_BASE := $7F80
+
+ACIA_DATA := (ACIA_BASE + $0)
+ACIA_STATUS := (ACIA_BASE + $1)
+ACIA_COMMAND := (ACIA_BASE + $2)
+ACIA_CONTROL := (ACIA_BASE + $3)
+
+;;; Masks and constants
+
+ACIA_STATUS_MASK_IRQ = $80
+ACIA_STATUS_MASK_DSR = $40
+ACIA_STATUS_MASK_DCD = $20
+ACIA_STATUS_MASK_TDR_EMPTY = $10
+ACIA_STATUS_MASK_RDR_FULL = $08
+ACIA_STATUS_MASK_OVERRUN = $04
+ACIA_STATUS_MASK_FRAME_ERROR = $02
+ACIA_STATUS_MASK_PARITY_ERROR = $01
+
+;; parity is disabled
+ACIA_PARITY_MODE_DISABLED = $0
+;; receiver echo mode is normal
+ACIA_ECHO_MODE_NORMAL = $0
+;; disables receiver interrupts
+ACIA_RECEIVER_MODE_IRQ_DISABLED = %00000010
+;; enables receiver interrupts
+ACIA_RECEIVER_MODE_IRQ_ENABLED = $0
+;; data terminal is ready. `0` means data terminal is not ready
+ACIA_DATA_TERMINAL_READY = %00000001
+
+;; TIC modes
+ACIA_TRANSMITTER_MODE_DISABLED = ($0 << 2)
+ACIA_TRANSMITTER_MODE_IRQ_ENABLED = ($1 << 2)
+ACIA_TRANSMITTER_MODE_IRQ_DISABLED = ($2 << 2)
+ACIA_TRANSMITTER_MODE_IRQ_DISABLED_BREAK_ON_TXD = ($3 << 2)
+
+ACIA_COMMAND_MASK_PARITY_MODE = $C0
+ACIA_COMMAND_MASK_PARITY_ENABLED = $20
+ACIA_COMMAND_MASK_ECHO_MODE = $10
+ACIA_COMMAND_MASK_TRANSMITTER_IRQ_MODE = $0C
+ACIA_COMMAND_MASK_RECEIVER_IRQ_MODE = $02
+ACIA_COMMAND_MASK_DTR = $01
+
+;; sets stop bits to 1 with no parity
+ACIA_STOP_BITS_SINGLE_NO_PARITY = $0
+;; sets word length to the full 8 bits
+ACIA_WORD_LENGTH_FULL = $0
+;; sets the clock source to an external clock
+ACIA_CLOCK_SOURCE_EXTERNAL = $0
+;; sets the clock source to the internal baud generator
+ACIA_CLOCK_SOURCE_INTERNAL = ($1 << 4)
+;; sets baud rate to 1/16th of an external clock
+ACIA_BAUD_RATE_16X = $0
+;; sets baud rate to 19200
+ACIA_BAUD_RATE_19200 = $0F
+
+ACIA_CONTROL_MASK_STOP_BIT_NUMBER = $80
+ACIA_CONTROL_MASK_WORD_LENGTH = $60
+ACIA_CONTROL_MASK_RCS = $10
+ACIA_CONTROL_MASK_BAUD_RATE = $0F
+
+.macro UPD_TXD_IRQ TransmitIRQMode
+  LDA ACIA_COMMAND
+  AND #(ACIA_COMMAND_MASK_TRANSMITTER_IRQ_MODE ^ $FF) ; clear previous transmitter mode irq
+  ORA #(TransmitIRQMode)
+  STA ACIA_COMMAND
+.endmacro
+
+.macro UPD_DTR DTRMode
+  LDA ACIA_COMMAND
+  AND #(ACIA_COMMAND_MASK_DTR ^ $FF)  ; clear previous DTR mode
+  ORA #(DTRMode)
+  STA ACIA_COMMAND
+.endmacro
+
+.zeropage
+
+;;; Y-index offset on ACIAReceiveBuffer for the read and writer offsets respectively
+ACIAReceiveReadOffset: .res 1
+ACIAReceiveWriteOffset: .res 1
+
+;;; offset of the writer pointer
+ACIATransmitOffset: .res 1
+
+.bss
+
+ACIAReceiveBuffer: .res $100
+ACIATransmitBuffer: .res $100

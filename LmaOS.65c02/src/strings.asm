@@ -1,0 +1,195 @@
+; LmaOS
+;
+; Copyright Nate Rivard 2020
+
+.code
+
+ASCII_CARRIAGE_RETURN = $0A
+
+;;; finds length of a null-terminated string
+;;;
+;;;	Params
+;;; r0: pointer to null-terminated string
+;;; r7: length of the string, excluding the null-terminator
+StringLength:
+    LDY #$00
+@Loop:
+    LDA (r0), Y
+    BEQ @Done
+    INY
+    ;; TODO: if Y is zero again, add $100 to r1, add $100 to r3, and start again
+    JMP @Loop
+@Done:
+    STY r7
+    RTS
+
+;;; compares 2 strings for up to N characters
+;;;
+;;; Params
+;;;  Y: count of chars to compare
+;;; r0: pointer to first null-terminated string
+;;; r1: pointer to second null-terminated string
+;;;
+;;; Results
+;;; Flags: Zero flag set if strings are equal
+StringCompareN:
+    LDY #$00
+@Loop:
+	CPY #$00			;; char count reached?
+	BEQ @Done
+    LDA (r0), Y
+    CMP (r1), Y
+    BEQ @CheckEOS
+    RTS                 ;; unequal characters. Z is already clear
+@CheckEOS:
+    CMP #$00            ;; we know chars are the same, so check if they're both null-terminators
+    BEQ @Done
+    DEY
+    ;; TODO: if Y is zero again, then we _could_ add $100 to the values in r1 & r2 and keep going, 
+    ;; not limited to 255 + `0` anymore
+    JMP @Loop
+@Done:
+    RTS
+
+;;; compares 2 null-terminated strings
+;;; 
+;;; Params:
+;;; r0: pointer to first null-terminated string
+;;; r1: pointer to second null-terminated string
+;;;
+;;; Results
+;;; Flags: Zero flag set if strings are equal, 
+StringCompare:
+	JSR StringLength
+	LDY r7
+	PHY					;; save length
+	SWAP16 r0, r1		;; swap pointers
+	JSR StringLength
+	PLY					;; restore length
+	CPY r7
+	BEQ @Compare
+@Fail:
+	LDA $00				;; clear zero
+	JMP @Done
+@Compare:
+	JSR StringCompareN
+@Done:
+	RTS
+    
+;;; copies a string to another memory location
+;;;
+;;; Params:
+;;; r0 - pointer to null-terminated string to copy
+;;; r1 - pointer to destination of copied string
+;;;
+;;; Returns:
+;;; Y will contain the length of the copied string
+StringCopy:
+	LDY #$00
+@Loop:
+	LDA (r0), Y
+	BEQ @Done
+	STA (r1), Y
+	INY
+	JMP @Loop
+@Done:
+	RTS
+    
+;;; converts a hex numeric null-terminated string to a 16-bit native unsigned integer
+;;;
+;;; Params
+;;; r0: pointer to ascii numeric null-terminated string.
+;;;	    This string cannot be longer than 4 digits!.
+;;;
+;;; Results
+;;; r7: unsigned 16-bit integer value of the string
+;;; Flags: Carry will be set if error encountered
+HexStringToWord:
+@DigitCount:
+	JSR StringLength	;; find out the length of the string (already in r0)
+@Preamble:
+	LDX r7				;; X: nibble index
+	COPYADDR $00, r7	;; reset our return value
+	CPX #$05			;; too many digits! only 4 supported (16-bit)
+	BCS @Done
+	DEX
+	LDY #$00			;; Y: index into string
+@LoadDigit:
+	LDA (r0), Y
+	BEQ @Done			;; null-terminator
+@ExtractByte:
+	SEC
+	SBC #'0'
+	CMP #$0A			;; check 0…9
+	BCC @NibbleShift
+	SBC #('A' - '9' - 1)
+	CMP #$10			;; check A…F
+	BCC @NibbleShift
+	SBC #('a' - 'A')
+	CMP #$10
+	BCC @NibbleShift	;; check a…f though no one should write it lowercase, it's dumb A…F (lolz)
+	JMP @Done			;; Error, not a digit
+@NibbleShift:
+	STX r4
+	BBR0 r4, @StoreNibble ;; odd index need to be shifted
+	ASL A				;; shift 4 times to promote to upper nibble
+	ASL A
+	ASL A
+	ASL A
+@StoreNibble:
+	CPX #$02			;; check if upper byte
+	BCC	@LowerByte
+@UpperByte:
+	ORA r7 + 1
+	STA r7 + 1
+	JMP @NextDigit
+@LowerByte:
+	ORA r7
+	STA r7
+@NextDigit:
+	DEX
+	INY
+	JMP @LoadDigit
+@Done:
+	RTS
+
+;;; converts a native byte to 2 ascii bytes (not null-terminated!)
+;;;
+;;; Params
+;;; r0: the byte to convert to a string
+;;;
+;;; Results
+;;; r7: the converted 2 ascii bytes, in big endian order (ie, string order)
+;;; ex: `$1F` will be returned as `r7: '1', r7+1: 'F'`
+ByteToHexString:
+@Preamble:
+	LDX #$00
+@ExtractNibble:
+	LDA r0
+	CPX #$00
+	BNE @LowerNibble
+@UpperNibble:
+	LSR A				;; shift right 4 times to demote upper nibble
+	LSR A
+	LSR A
+	LSR A
+	JMP @Convert
+@LowerNibble:
+	AND #$0F
+@Convert:
+	CMP #$0A			;; check if 0…9
+	BCC @Numeral
+@Alpha:
+	CLC
+	ADC #('A' - $0A)	;; we could get rid of prev CLC by accounting for it always being set here
+	JMP @NextNibble
+@Numeral:
+	ADC #'0'			;; carry is already clear from previous CMP
+@NextNibble:
+	STA r7, X
+	INX
+	CPX #$02
+	BCS @Done
+	JMP @ExtractNibble
+@Done:
+	RTS

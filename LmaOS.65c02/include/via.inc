@@ -1,0 +1,51 @@
+; LmaOS
+;
+; Copyright Nate Rivard 2020
+
+;;; VIA Addresses
+
+VIA1_BASE := $7F00
+VIA2_BASE := $7F40
+
+VIA1_PORT_B := (VIA1_BASE + $0)
+VIA1_PORT_A := (VIA1_BASE + $1)
+VIA1_DDRB := (VIA1_BASE + $2)
+VIA1_DDRA := (VIA1_BASE + $3)
+
+VIA1_TIMER1_COUNTER_LOW := (VIA1_BASE + $4)
+VIA1_TIMER1_COUNTER_HIGH := (VIA1_BASE + $5)
+VIA1_TIMER1_LATCH_LOW := (VIA1_BASE + $6)
+VIA1_TIMER1_LATCH_HIGH := (VIA1_BASE + $7)
+
+VIA1_TIMER2_COUNTER_LOW := (VIA1_BASE + $8)
+VIA1_TIMER2_COUNTER_HIGH := (VIA1_BASE + $9)
+
+VIA1_SHIFT := (VIA1_BASE + $A)
+
+VIA1_AUX_CONTROL := (VIA1_BASE + $B)
+VIA1_PERIPHERAL_CONTROL := (VIA1_BASE + $C)
+
+;;; reading counter-low or writing latch-high will reset the interrupt
+VIA1_INTERRUPT_FLAG := (VIA1_BASE + $D)
+VIA1_INTERRUPT_ENABLE := (VIA1_BASE + $E)
+
+VIA1_PORT_A_HANDSHAKE_FREE := (VIA1_BASE + $F)
+
+;;; Masks and constants
+
+;; enables continuous output. if `0`, timer is in one-shot mode
+VIA_TIMER1_CONTROL_MASK_CONTINUOUS = %01000000
+;; enables output on PB7. `0` means interrupt-only
+VIA_TIMER1_CONTROL_MASK_PB7_ENABLE = %10000000
+;; enables continuous output on PB6. `0` means interrupt-only one-shot mode
+VIA_TIMER2_CONTROL_MASK_CONTINUOUS = %00100000
+
+VIA_INTERRUPT_MASK_IRQ = $80     ; same as below but for use with INTERRUPT_FLAG
+VIA_INTERRUPT_MASK_SET = $80     ; same as above but for use with INTERRUPT_ENABLE
+VIA_INTERRUPT_MASK_TIMER1 = $40
+VIA_INTERRUPT_MASK_TIMER2 = $20
+VIA_INTERRUPT_MASK_CB1 = $10
+VIA_INTERRUPT_MASK_CB2 = $08
+VIA_INTERRUPT_MASK_SHIFT = $04
+VIA_INTERRUPT_MASK_CA1 = $02
+VIA_INTERRUPT_MASK_CA2 = $01
