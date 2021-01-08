@@ -67,31 +67,3 @@ ACIA_CONTROL_MASK_STOP_BIT_NUMBER = $80
 ACIA_CONTROL_MASK_WORD_LENGTH = $60
 ACIA_CONTROL_MASK_RCS = $10
 ACIA_CONTROL_MASK_BAUD_RATE = $0F
-
-.macro UPD_TXD_IRQ TransmitIRQMode
-  LDA ACIA_COMMAND
-  AND #(ACIA_COMMAND_MASK_TRANSMITTER_IRQ_MODE ^ $FF) ; clear previous transmitter mode irq
-  ORA #(TransmitIRQMode)
-  STA ACIA_COMMAND
-.endmacro
-
-.macro UPD_DTR DTRMode
-  LDA ACIA_COMMAND
-  AND #(ACIA_COMMAND_MASK_DTR ^ $FF)  ; clear previous DTR mode
-  ORA #(DTRMode)
-  STA ACIA_COMMAND
-.endmacro
-
-.zeropage
-
-;;; Y-index offset on ACIAReceiveBuffer for the read and writer offsets respectively
-ACIAReceiveReadOffset: .res 1
-ACIAReceiveWriteOffset: .res 1
-
-;;; offset of the writer pointer
-ACIATransmitOffset: .res 1
-
-.bss
-
-ACIAReceiveBuffer: .res $100
-ACIATransmitBuffer: .res $100

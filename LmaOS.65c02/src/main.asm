@@ -31,7 +31,7 @@ ClockInit:
 	CLI
 	
 	;;; on startup, we jump into the monitor
-	JSR MonitorStart
+	;JSR MonitorStart
     
     STP
     
@@ -51,4 +51,4 @@ String2: .asciiz "12345"
 .include "via.asm"
 .include "strings.asm"
 .include "interrupt.asm"
-.include "monitor.asm"
+;.include "monitor.asm"

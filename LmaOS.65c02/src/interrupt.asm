@@ -11,8 +11,6 @@ InterruptRouter:
 	PHA
   	LDA VIA1_INTERRUPT_FLAG
   	BMI @InterruptClock
-  	LDA ACIA_STATUS
-  	BMI @InterruptACIA
   	JMP @Done
 @InterruptClock:
   	BIT VIA1_TIMER1_COUNTER_LOW     ; ACK the interrupt
@@ -21,9 +19,6 @@ InterruptRouter:
   	LDA #ClockRateHz
   	STA SystemClockJiffies          ; reset jiffies
   	INC16 SystemClockUptime
-  	JMP @Done
-@InterruptACIA:
-  	JSR ACIAHandleInterrupt
 @Done:
   	PLA
   	RTI

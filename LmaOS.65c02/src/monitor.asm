@@ -26,7 +26,7 @@ MonitorNewConnection:
 	
 ;;; the main loop where we show a prompt, wait for input, echo, and process
 MonitorPromptLoop:
-	COPYADDR LMAOS_PROMPT, r0
+	COPYADDR MONITOR_PROMPT, r0
 	JSR ACIASendString
 @ResetCommandOffset:
 	LDA ACIAReceiveReadOffset
@@ -59,25 +59,21 @@ MonitorSyncTransmit:
 	RTS
 	
 MonitorProcessCommand:
-	COPYADDR LMAOS_ILLEGAL_COMMAND, r0
-	JSR ACIASendString
-	JSR MonitorSyncTransmit
-@NullTerminateCommand:				;; TODO: this should really be first step since not every command will be illegal lol
-	LDY ACIAReceiveReadOffset
-	DEY								;; we've already incremented the offset, we wnat to overwrite the last one
-	;;STZ ACIAReceiveBuffer, Y		;; null-terminate the string
-;; TODO:
+	LDY #(MONITOR_COMMAND_MEM_END - MONITOR_COMMAND_MEM)
 	RTS
 	
 .segment "RODATA"
 
 LMAOS_VERSION_STRING: .asciiz "LmaOS v1.0\n"
 LMAOS_GREETING: .asciiz "Unauthorized access of this N8 Bit Special computer will result in prosecution!\n"
-LMAOS_PROMPT: .asciiz "> "
-LMAOS_NEWLINE: .asciiz "\n"
-LMAOS_ILLEGAL_COMMAND: .asciiz "Illegal command\n"
+MONITOR_PROMPT: .asciiz "> "
+LMAOS_NEWLINE: .byte "\n"
+
+MONITOR_ILLEGAL_COMMAND: .asciiz "Illegal command\n"
 
 ;;; start of commands lookup table
 ;;MonitorCommands: .word 
 
-MONITOR_COMMAND_MEM: .asciiz "mem $"
+;; these do not end in `\0`
+MONITOR_COMMAND_MEM: .byte "mem $"
+MONITOR_COMMAND_MEM_END:
