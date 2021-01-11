@@ -4,10 +4,6 @@
 
 ;;; ACIA Addresses
 
-;;; transmission in progress
-;;; TODO: this feels like we could also use it as a bitfield for: transmission in progress, but also recv mode. xmodem vs monitor!
-ACIATransmitInProgress: .res 1
-
 ACIA_BASE := $7F80
 
 ACIA_DATA := (ACIA_BASE + $0)

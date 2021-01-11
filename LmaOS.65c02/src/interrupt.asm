@@ -10,8 +10,6 @@
 InterruptRouter:
 	PHA
   	LDA VIA1_INTERRUPT_FLAG
-  	BMI @InterruptClock
-  	JMP @Done
 @InterruptClock:
   	BIT VIA1_TIMER1_COUNTER_LOW     ; ACK the interrupt
   	DEC SystemClockJiffies

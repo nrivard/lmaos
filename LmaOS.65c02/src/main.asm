@@ -17,6 +17,9 @@ Main:
     JSR VIA1Init
     JSR ACIAInit
     
+	LDA #$01
+	STA VIA1_PORT_A
+    
     ;;; initializes the system clock @100Hz (10 msec)
 ClockInit:
     LDA #ClockRateHz
@@ -25,30 +28,35 @@ ClockInit:
     STZ SystemClockUptime + 1
 
     JSR VIA1SetupSystemClock
-
+    
+    LDA VIA1_PORT_A
+    ORA #$02
+    STA VIA1_PORT_A
+    
 	;;; system clock is setup, turn on interrupts so they
 	;;; they start firing
 	CLI
 	
+	;; debug crap
+	LDA #$69
+	STA $4000
+	
 	;;; on startup, we jump into the monitor
-	;JSR MonitorStart
+	JSR MonitorStart
     
     STP
     
 UnitTests:
-	COPYADDR String1, r0
-	COPYADDR String2, r1
-	LDY #$04
-	JSR StringCompareN
+	LDA #$FB
+	JSR ByteToHexString
 	STP
 	
 .segment "RODATA"
 
-String1: .asciiz "1234"
-String2: .asciiz "12345"
+String1: .byte "rd 4", $00
 
 .include "acia.asm"
 .include "via.asm"
 .include "strings.asm"
 .include "interrupt.asm"
-;.include "monitor.asm"
+.include "monitor.asm"

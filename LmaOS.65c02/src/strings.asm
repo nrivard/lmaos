@@ -4,6 +4,7 @@
 
 .code
 
+ASCII_LINE_FEED = $0D
 ASCII_CARRIAGE_RETURN = $0A
 
 ;;; finds length of a null-terminated string
@@ -27,26 +28,21 @@ StringLength:
 ;;;
 ;;; Params
 ;;;  Y: count of chars to compare
-;;; r0: pointer to first null-terminated string
-;;; r1: pointer to second null-terminated string
+;;; r0: pointer to first string
+;;; r1: pointer to second string
 ;;;
 ;;; Results
 ;;; Flags: Zero flag set if strings are equal
 StringCompareN:
-    LDY #$00
+	DEY					;; work backwards but we need to dec Y so we're at correct index
 @Loop:
-	CPY #$00			;; char count reached?
+	CPY #$FF			;; char count reached?
 	BEQ @Done
     LDA (r0), Y
     CMP (r1), Y
-    BEQ @CheckEOS
-    RTS                 ;; unequal characters. Z is already clear
+    BNE @Done			;; not equal, z already clear
 @CheckEOS:
-    CMP #$00            ;; we know chars are the same, so check if they're both null-terminators
-    BEQ @Done
     DEY
-    ;; TODO: if Y is zero again, then we _could_ add $100 to the values in r1 & r2 and keep going, 
-    ;; not limited to 255 + `0` anymore
     JMP @Loop
 @Done:
     RTS
@@ -154,42 +150,41 @@ HexStringToWord:
 	RTS
 
 ;;; converts a native byte to 2 ascii bytes (not null-terminated!)
+;;; Lifted from Wozmon. Thanks Woz!
 ;;;
 ;;; Params
-;;; r0: the byte to convert to a string
+;;; A: the byte to convert to a string
 ;;;
 ;;; Results
 ;;; r7: the converted 2 ascii bytes, in big endian order (ie, string order)
 ;;; ex: `$1F` will be returned as `r7: '1', r7+1: 'F'`
 ByteToHexString:
-@Preamble:
-	LDX #$00
-@ExtractNibble:
-	LDA r0
-	CPX #$00
-	BNE @LowerNibble
+	PHA
 @UpperNibble:
-	LSR A				;; shift right 4 times to demote upper nibble
-	LSR A
-	LSR A
-	LSR A
-	JMP @Convert
+	LSR
+	LSR
+	LSR
+	LSR
+	JSR NibbleToHexString
+	STA r7
 @LowerNibble:
-	AND #$0F
-@Convert:
-	CMP #$0A			;; check if 0…9
-	BCC @Numeral
-@Alpha:
-	CLC
-	ADC #('A' - $0A)	;; we could get rid of prev CLC by accounting for it always being set here
-	JMP @NextNibble
-@Numeral:
-	ADC #'0'			;; carry is already clear from previous CMP
-@NextNibble:
-	STA r7, X
-	INX
-	CPX #$02
-	BCS @Done
-	JMP @ExtractNibble
+	PLA
+	JSR NibbleToHexString
+	STA r7 + 1
 @Done:
 	RTS
+
+; Params
+; A: the nibble to convert
+;
+; Results
+; A: ascii code for the nibble
+NibbleToHexString:
+	AND #$0F
+	ORA #'0'
+	CMP #('9' + 1) 		; digit?
+	BCC @Done
+	ADC #$06			; "A"-"9"
+@Done:
+	RTS
+	
