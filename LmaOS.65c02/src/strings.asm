@@ -34,10 +34,10 @@ StringLength:
 ;;; Results
 ;;; Flags: Zero flag set if strings are equal
 StringCompareN:
-	DEY					;; work backwards but we need to dec Y so we're at correct index
+    DEY					;; work backwards but we need to dec Y so we're at correct index
 @Loop:
-	CPY #$FF			;; char count reached?
-	BEQ @Done
+    CPY #$FF			;; char count reached?
+    BEQ @Done
     LDA (r0), Y
     CMP (r1), Y
     BNE @Done			;; not equal, z already clear
@@ -56,21 +56,21 @@ StringCompareN:
 ;;; Results
 ;;; Flags: Zero flag set if strings are equal, 
 StringCompare:
-	JSR StringLength
-	LDY r7
-	PHY					;; save length
-	SWAP16 r0, r1		;; swap pointers
-	JSR StringLength
-	PLY					;; restore length
-	CPY r7
-	BEQ @Compare
+    JSR StringLength
+    LDY r7
+    PHY					;; save length
+    SWAP16 r0, r1		;; swap pointers
+    JSR StringLength
+    PLY					;; restore length
+    CPY r7
+    BEQ @Compare
 @Fail:
-	LDA $00				;; clear zero
-	JMP @Done
+    LDA $00				;; clear zero
+    JMP @Done
 @Compare:
-	JSR StringCompareN
+    JSR StringCompareN
 @Done:
-	RTS
+    RTS
     
 ;;; copies a string to another memory location
 ;;;
@@ -81,15 +81,15 @@ StringCompare:
 ;;; Returns:
 ;;; Y will contain the length of the copied string
 StringCopy:
-	LDY #$00
+    LDY #$00
 @Loop:
-	LDA (r0), Y
-	BEQ @Done
-	STA (r1), Y
-	INY
-	JMP @Loop
+    LDA (r0), Y
+    BEQ @Done
+    STA (r1), Y
+    INY
+    JMP @Loop
 @Done:
-	RTS
+    RTS
     
 ;;; converts a hex numeric null-terminated string to a 16-bit native unsigned integer
 ;;;
@@ -102,52 +102,52 @@ StringCopy:
 ;;; Flags: Carry will be set if error encountered
 HexStringToWord:
 @DigitCount:
-	JSR StringLength	;; find out the length of the string (already in r0)
+    JSR StringLength	;; find out the length of the string (already in r0)
 @Preamble:
-	LDX r7				;; X: nibble index
-	COPYADDR $00, r7	;; reset our return value
-	CPX #$05			;; too many digits! only 4 supported (16-bit)
-	BCS @Done
-	DEX
-	LDY #$00			;; Y: index into string
+    LDX r7				;; X: nibble index
+    COPYADDR $00, r7	;; reset our return value
+    CPX #$05			;; too many digits! only 4 supported (16-bit)
+    BCS @Done
+    DEX
+    LDY #$00			;; Y: index into string
 @LoadDigit:
-	LDA (r0), Y
-	BEQ @Done			;; null-terminator
+    LDA (r0), Y
+    BEQ @Done			;; null-terminator
 @ExtractByte:
-	SEC
-	SBC #'0'
-	CMP #$0A			;; check 0…9
-	BCC @NibbleShift
-	SBC #('A' - '9' - 1)
-	CMP #$10			;; check A…F
-	BCC @NibbleShift
-	SBC #('a' - 'A')
-	CMP #$10
-	BCC @NibbleShift	;; check a…f though no one should write it lowercase, it's dumb A…F (lolz)
-	JMP @Done			;; Error, not a digit
+    SEC
+    SBC #'0'
+    CMP #$0A			;; check 0…9
+    BCC @NibbleShift
+    SBC #('A' - '9' - 1)
+    CMP #$10			;; check A…F
+    BCC @NibbleShift
+    SBC #('a' - 'A')
+    CMP #$10
+    BCC @NibbleShift	;; check a…f though no one should write it lowercase, it's dumb A…F (lolz)
+    JMP @Done			;; Error, not a digit
 @NibbleShift:
-	STX r4
-	BBR0 r4, @StoreNibble ;; odd index need to be shifted
-	ASL A				;; shift 4 times to promote to upper nibble
-	ASL A
-	ASL A
-	ASL A
+    STX r4
+    BBR0 r4, @StoreNibble ;; odd index need to be shifted
+    ASL A				;; shift 4 times to promote to upper nibble
+    ASL A
+    ASL A
+    ASL A
 @StoreNibble:
-	CPX #$02			;; check if upper byte
-	BCC	@LowerByte
+    CPX #$02			;; check if upper byte
+    BCC	@LowerByte
 @UpperByte:
-	ORA r7 + 1
-	STA r7 + 1
-	JMP @NextDigit
+    ORA r7 + 1
+    STA r7 + 1
+    JMP @NextDigit
 @LowerByte:
-	ORA r7
-	STA r7
+    ORA r7
+    STA r7
 @NextDigit:
-	DEX
-	INY
-	JMP @LoadDigit
+    DEX
+    INY
+    JMP @LoadDigit
 @Done:
-	RTS
+    RTS
 
 ;;; converts a native byte to 2 ascii bytes (not null-terminated!)
 ;;; Lifted from Wozmon. Thanks Woz!
@@ -159,20 +159,20 @@ HexStringToWord:
 ;;; r7: the converted 2 ascii bytes, in big endian order (ie, string order)
 ;;; ex: `$1F` will be returned as `r7: '1', r7+1: 'F'`
 ByteToHexString:
-	PHA
+    PHA
 @UpperNibble:
-	LSR
-	LSR
-	LSR
-	LSR
-	JSR NibbleToHexString
-	STA r7
+    LSR
+    LSR
+    LSR
+    LSR
+    JSR NibbleToHexString
+    STA r7
 @LowerNibble:
-	PLA
-	JSR NibbleToHexString
-	STA r7 + 1
+    PLA
+    JSR NibbleToHexString
+    STA r7 + 1
 @Done:
-	RTS
+    RTS
 
 ; Params
 ; A: the nibble to convert
@@ -180,11 +180,11 @@ ByteToHexString:
 ; Results
 ; A: ascii code for the nibble
 NibbleToHexString:
-	AND #$0F
-	ORA #'0'
-	CMP #('9' + 1) 		; digit?
-	BCC @Done
-	ADC #$06			; "A"-"9"
+    AND #$0F
+    ORA #'0'
+    CMP #('9' + 1) 		; digit?
+    BCC @Done
+    ADC #$06			; "A"-"9"
 @Done:
-	RTS
-	
+    RTS
+    

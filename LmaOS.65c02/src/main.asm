@@ -10,15 +10,15 @@
 .code
 
 Main:
-  	LDX #$FF
-	TXS
+    LDX #$FF
+    TXS
 
-	;;; initializes hardware
+    ;;; initializes hardware
     JSR VIA1Init
     JSR ACIAInit
     
-	LDA #$01
-	STA VIA1_PORT_A
+    LDA #$01
+    STA VIA1_PORT_A
     
     ;;; initializes the system clock @100Hz (10 msec)
 ClockInit:
@@ -33,24 +33,24 @@ ClockInit:
     ORA #$02
     STA VIA1_PORT_A
     
-	;;; system clock is setup, turn on interrupts so they
-	;;; they start firing
-	CLI
-	
-	;; debug crap
-	LDA #$69
-	STA $4000
-	
-	;;; on startup, we jump into the monitor
-	JSR MonitorStart
+    ;;; system clock is setup, turn on interrupts so they
+    ;;; they start firing
+    CLI
+    
+    ;; debug crap
+    LDA #$69
+    STA $4000
+    
+    ;;; on startup, we jump into the monitor
+    JSR MonitorStart
     
     STP
     
 UnitTests:
-	LDA #$FB
-	JSR ByteToHexString
-	STP
-	
+    LDA #$FB
+    JSR ByteToHexString
+    STP
+    
 .segment "RODATA"
 
 String1: .byte "rd 4", $00

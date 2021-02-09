@@ -120,5 +120,5 @@
 ;; -A (negate accumulator)
 .macro NEG
     EOR #$FF
-    INA
+    INC A
 .endmacro
