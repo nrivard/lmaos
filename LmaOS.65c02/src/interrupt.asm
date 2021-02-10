@@ -2,6 +2,11 @@
 ;
 ; Copyright Nate Rivard 2020
 
+.include "pseudoinstructions.inc"
+.include "registers.inc"
+.include "system.inc"
+.include "via.inc"
+
 .code
 
 ;;; interrupt router. This routine uses A but not any other registers, so subroutines 

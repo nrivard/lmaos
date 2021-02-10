@@ -3,6 +3,7 @@
 ; Copyright Nate Rivard 2020
 
 .include "acia.inc"
+.include "registers.inc"
 
 .code
 

@@ -2,6 +2,9 @@
 ;
 ; Copyright Nate Rivard 2020
 
+.ifndef VIA_INC
+.define VIA_INC
+
 ;;; VIA Addresses
 
 VIA1_BASE := $7F00
@@ -49,3 +52,5 @@ VIA_INTERRUPT_MASK_CB2 = $08
 VIA_INTERRUPT_MASK_SHIFT = $04
 VIA_INTERRUPT_MASK_CA1 = $02
 VIA_INTERRUPT_MASK_CA2 = $01
+
+.endif

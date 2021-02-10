@@ -3,6 +3,8 @@
 ; Copyright Nate Rivard 2020
 
 ;;; Monitor Addresses
+.ifndef MONITOR_INC
+.define MONITOR_INC
 
 .zeropage
 
@@ -29,3 +31,5 @@ MonitorCommandBuffer: .res $80
 	JSR ACIASendByte
 	JSR ACIASendByte
 .endmacro
+
+.endif

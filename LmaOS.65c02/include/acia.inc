@@ -2,6 +2,9 @@
 ;
 ; Copyright Nate Rivard 2020
 
+.ifndef ACIA_INC
+.define ACIA_INC
+
 ;;; ACIA Addresses
 
 ACIA_BASE := $7F80
@@ -63,3 +66,5 @@ ACIA_CONTROL_MASK_STOP_BIT_NUMBER = $80
 ACIA_CONTROL_MASK_WORD_LENGTH = $60
 ACIA_CONTROL_MASK_RCS = $10
 ACIA_CONTROL_MASK_BAUD_RATE = $0F
+
+.endif

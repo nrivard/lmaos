@@ -2,6 +2,9 @@
 ;
 ; Copyright Nate Rivard 2020
 
+.ifndef PSEUDOINSTRUCTIONS_INC
+.define PSEUDOINSTRUCTIONS_INC
+
 ;; 1 byte copy from one address to another
 ;;
 ;; {PARAM} address of source value
@@ -122,3 +125,5 @@
     EOR #$FF
     INC A
 .endmacro
+
+.endif
