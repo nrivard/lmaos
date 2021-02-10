@@ -4,7 +4,7 @@
 
 ;;; Monitor Addresses
 .ifndef MONITOR_INC
-.define MONITOR_INC
+MONITOR_INC = 1
 
 .zeropage
 

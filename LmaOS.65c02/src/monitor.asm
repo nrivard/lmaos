@@ -3,6 +3,10 @@
 ; Copyright Nate Rivard 2020
 
 .include "monitor.inc"
+.include "pseudoinstructions.inc"
+
+.include "acia.asm"
+.include "strings.asm"
 
 .code
 

@@ -3,7 +3,7 @@
 ; Copyright Nate Rivard 2020
 
 .ifndef VECTORS_INC
-.define VECTORS_INC
+VECTORS_INC = 1
 
 .segment "VECTORS"
 

@@ -3,7 +3,7 @@
 ; Copyright Nate Rivard 2020
 
 .ifndef ACIA_INC
-.define ACIA_INC
+ACIA_INC = 1
 
 ;;; ACIA Addresses
 

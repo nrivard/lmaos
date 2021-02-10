@@ -5,7 +5,7 @@
 ;;; Synthetic 16-bit registers in ZP
 
 .ifndef REGISTERS_INC
-.define REGISTERS_INC
+REGISTERS_INC = 1
 
 .zeropage
 

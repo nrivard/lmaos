@@ -3,7 +3,7 @@
 ; Copyright Nate Rivard 2020
 
 .ifndef PSEUDOINSTRUCTIONS_INC
-.define PSEUDOINSTRUCTIONS_INC
+PSEUDOINSTRUCTIONS_INC = 1
 
 ;; 1 byte copy from one address to another
 ;;

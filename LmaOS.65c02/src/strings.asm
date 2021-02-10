@@ -2,6 +2,12 @@
 ;
 ; Copyright Nate Rivard 2020
 
+.ifndef STRINGS_ASM
+STRINGS_ASM = 1
+
+.include "pseudoinstructions.inc"
+.include "registers.inc"
+
 .code
 
 ASCII_LINE_FEED = $0D
@@ -188,3 +194,4 @@ NibbleToHexString:
 @Done:
     RTS
     
+.endif

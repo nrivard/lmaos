@@ -2,6 +2,9 @@
 ;
 ; Copyright Nate Rivard 2020
 
+.ifndef ACIA_ASM
+ACIA_ASM = 1
+
 .include "acia.inc"
 .include "registers.inc"
 
@@ -62,3 +65,5 @@ ACIASendString:
 @Done:
     PLY
     RTS
+
+.endif

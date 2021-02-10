@@ -3,7 +3,7 @@
 ; Copyright Nate Rivard 2020
 
 .ifndef VIA_INC
-.define VIA_INC
+VIA_INC = 1
 
 ;;; VIA Addresses
 

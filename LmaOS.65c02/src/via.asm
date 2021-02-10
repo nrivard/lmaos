@@ -2,7 +2,11 @@
 ;
 ; Copyright Nate Rivard 2020
 
+.ifndef VIA_ASM
+VIA_ASM = 1
+
 .include "via.inc"
+.include "system.inc"
 
 .code
 
@@ -29,3 +33,5 @@ VIA1SetupSystemClock:
     STA VIA1_TIMER1_COUNTER_HIGH
 
     RTS
+
+.endif
