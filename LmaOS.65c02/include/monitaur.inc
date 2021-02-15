@@ -3,13 +3,10 @@
 ; Copyright Nate Rivard 2020
 
 ;;; Monitor Addresses
-.ifndef MONITOR_INC
-MONITOR_INC = 1
+.ifndef MONITAUR_INC
+MONITAUR_INC = 1
 
 .zeropage
-
-; offset to put the next recv'd char
-MonitorCommandBufferOffset: .res 1
 
 .bss
 
@@ -19,17 +16,28 @@ MonitorCommandBuffer: .res $80
 .macro DUMP addr, length
 .local @Loop
 .local @Send
+.local @SendASCII
+    PHA
+    PHY
 	LDY #$00
 @Loop:
 	LDA addr, Y
-	JSR ACIASendByte
+@SendASCII:
+    JSR ByteToHexString
+    LDA r7
+    JSR ACIASendByte
+    LDA r7 + 1
+    JSR ACIASendByte
+    LDA #' '
+    JSR ACIASendByte
 	INY
 	CPY #(length)
 	BNE @Loop
 @Send:
 	LDA #(ASCII_CARRIAGE_RETURN)
 	JSR ACIASendByte
-	JSR ACIASendByte
+    PLY
+    PLA
 .endmacro
 
 .endif

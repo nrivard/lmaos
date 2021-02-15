@@ -54,6 +54,7 @@ ACIASendByte:
 ;;; Params
 ;;; r0: pointer to the null-terminated that should be sent.
 ACIASendString:
+    PHA
     PHY
     LDY #$00
 @SendChar:
@@ -61,9 +62,10 @@ ACIASendString:
     BEQ @Done
     JSR ACIASendByte
     INY
-    JMP @SendChar
+    BRA @SendChar
 @Done:
     PLY
+    PLA
     RTS
 
 .endif

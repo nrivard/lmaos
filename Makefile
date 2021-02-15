@@ -295,7 +295,7 @@ $(TARGETOBJDIR)/%.o: %.s | $(TARGETOBJDIR)
 vpath %.asm $(SRCDIR)/$(TARGETLIST) $(SRCDIR)
 
 $(TARGETOBJDIR)/%.o: %.asm | $(TARGETOBJDIR)
-	cl65 -t $(CC65TARGET) -c --create-dep $(@:.o=.d) $(ASFLAGS) -o $@ $<
+	cl65 -t $(CC65TARGET) -c --create-dep $(@:.o=.d) $(ASFLAGS) --listing $@.list -o $@ $<
 
 vpath %.a65 $(SRCDIR)/$(TARGETLIST) $(SRCDIR)
 
@@ -333,6 +333,10 @@ zap:
 
 love:
 	@echo "Not war, eh?"
+
+.PHONY: install
+install: $(PROGRAM)
+	minipro -p AT28C256 -w $(PROGRAM)
 
 ###################################################################
 ###  Place your additional targets in the additional Makefiles  ###

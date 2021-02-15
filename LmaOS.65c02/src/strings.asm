@@ -17,7 +17,7 @@ ASCII_CARRIAGE_RETURN = $0A
 ;;;
 ;;;	Params
 ;;; r0: pointer to null-terminated string
-;;; r7: length of the string, excluding the null-terminator
+;;;  Y: length of the string, excluding the null-terminator
 StringLength:
     LDY #$00
 @Loop:
@@ -27,7 +27,6 @@ StringLength:
     ;; TODO: if Y is zero again, add $100 to r1, add $100 to r3, and start again
     JMP @Loop
 @Done:
-    STY r7
     RTS
 
 ;;; compares 2 strings for up to N characters
@@ -63,11 +62,9 @@ StringCompareN:
 ;;; Flags: Zero flag set if strings are equal, 
 StringCompare:
     JSR StringLength
-    LDY r7
-    PHY					;; save length
+    STA r7				;; save length
     SWAP16 r0, r1		;; swap pointers
     JSR StringLength
-    PLY					;; restore length
     CPY r7
     BEQ @Compare
 @Fail:
@@ -110,7 +107,8 @@ HexStringToWord:
 @DigitCount:
     JSR StringLength	;; find out the length of the string (already in r0)
 @Preamble:
-    LDX r7				;; X: nibble index
+    TYA				    ;; X: nibble index
+    TAX
     COPYADDR $00, r7	;; reset our return value
     CPX #$05			;; too many digits! only 4 supported (16-bit)
     BCS @Done
@@ -190,7 +188,7 @@ NibbleToHexString:
     ORA #'0'
     CMP #('9' + 1) 		; digit?
     BCC @Done
-    ADC #$06			; "A"-"9"
+    ADC #$06			; = 'A'-'9'
 @Done:
     RTS
     
