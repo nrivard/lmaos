@@ -4,17 +4,22 @@
 
 .include "monitaur.inc"
 .include "pseudoinstructions.inc"
-
 .include "via.inc"
 
 .include "acia.asm"
 .include "strings.asm"
+.include "xmodem.asm"
 
 .code
 
 .feature string_escapes
 
 MonitorStart:
+@FlushLine:
+    JSR ACIAGetByte
+    LDA #(ASCII_CARRIAGE_RETURN)
+    JSR ACIASendByte
+@SendGreeting:
     COPYADDR LMAOS_VERSION_STRING, r0
     JSR ACIASendString
     COPYADDR LMAOS_GREETING, r0
@@ -164,8 +169,11 @@ MonitorProcessWriteCommand:
     JMP MonitorProcessCommandDone
 
 MonitorProcessTransferCommand:
-    COPYADDR MONITAUR_TRANSFER_RESPONSE, r0
-    JSR ACIASendString
+    COPY16 r5, r0
+    JSR HexStringToWord
+    LDA r7
+    LDX r7 + 1
+    JSR XModemReceive
     JMP MonitorProcessCommandDone
 
 MonitorProcessExecuteCommand:

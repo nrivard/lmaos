@@ -1,0 +1,19 @@
+; LmaOS
+;
+; Copyright Nate Rivard 2020
+
+.ifndef XMODEM_INC
+XMODEM_INC = 1
+
+XMODEM_START_OF_HEADER := $01
+XMODEM_END_TRANSMISSION := $04
+XMODEM_ACK := $06
+XMODEM_NACK := $15
+XMODEM_END_TRANSMISSION_BLOCK := $17
+XMODEM_CANCEL := $18
+
+.bss
+
+XModemPacketBuffer: .res $80
+
+.endif
