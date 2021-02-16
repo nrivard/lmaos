@@ -26,16 +26,14 @@ MonitorStart:
 @WaitForInput:
     JSR ACIAGetByte
     JSR ACIASendByte				; echo received byte (already in A)
-    STA MonitorCommandBuffer, Y
     CMP #(ASCII_CARRIAGE_RETURN)
     BEQ @ProcessCommand
+    STA MonitorCommandBuffer, Y
     INY
     BRA @WaitForInput
 @ProcessCommand:
     JSR MonitorTokenizeCommandBuffer
     JSR MonitorProcessCommand
-    LDA #(ASCII_CARRIAGE_RETURN)
-    JSR ACIASendByte
 @Done:
     BRA @MonitorGetCommandLoop
 
@@ -46,14 +44,12 @@ MonitorStart:
 ; '\0' is stored for unused args
 MonitorTokenizeCommandBuffer:
 @Preamble:
-    PHA
-    PHX
-    STZ r4                                  ; clear all args
-    STZ r4 + 1
-    STZ r5
-    STZ r5 + 1
-    STZ r6
-    STZ r6 + 1
+    LDX #0
+@ClearArgs:
+    STZ r4, X
+    INX
+    CPX #6
+    BNE @ClearArgs
     COPYADDR r4, r0                         ; copy r4 (base pointer addr) into r0 as incrementable pointer
     LDX #0                                  ; index into monitor command buffer
 @WritePointerToRegister:
@@ -81,15 +77,10 @@ MonitorTokenizeCommandBuffer:
     BRA @WritePointerToRegister
 @Done:
     STZ MonitorCommandBuffer, X
-    PLX
-    PLA
     RTS
 
 MonitorProcessCommand:
 @Preamble:
-    PHA
-    PHX
-    PHY
     LDX #0                                  ; index into command lookup table
 @CommandLoop:
     CPX #(MonitorCommandLookupTableEnd - MonitorCommandLookupTable) ; are we past the end?
@@ -121,9 +112,6 @@ MonitorProcessCommand:
 @JmpNextCommand:
     JMP (MonitorCommandJumpTable, X)        ; no JSR (<addr>, X) :(
 MonitorProcessCommandDone:
-    PLY
-    PLX
-    PLA
     RTS
 
 MonitorProcessReadCommand:
@@ -159,6 +147,8 @@ MonitorProcessReadCommand:
     BEQ @Done
     BRA @SendLoop
 @Done:
+    LDA #(ASCII_CARRIAGE_RETURN)
+    JSR ACIASendByte
     JMP MonitorProcessCommandDone
 
 MonitorProcessWriteCommand:
@@ -171,13 +161,11 @@ MonitorProcessWriteCommand:
     LDA r7                              ; can only write a byte so load lower byte of r7
     STA (r5)
 @Done:
-    COPYADDR MONITAUR_OK_RESPONSE, r0
-    JSR ACIASendString
     JMP MonitorProcessCommandDone
 
 MonitorProcessTransferCommand:
-    LDA #'t'
-    JSR ACIASendByte
+    COPYADDR MONITAUR_TRANSFER_RESPONSE, r0
+    JSR ACIASendString
     JMP MonitorProcessCommandDone
 
 MonitorProcessExecuteCommand:
@@ -205,7 +193,6 @@ MonitorProcessIllegalCommand:
 SampleProgram:
     LDA #$AA
     STA VIA1_PORT_A
-    LDA #$55
     STA VIA1_PORT_B
     RTS
     
@@ -215,8 +202,8 @@ LMAOS_VERSION_STRING: 			.asciiz "LmaOS v1.0\n"
 LMAOS_GREETING: 				.asciiz "Unauthorized access of this N8 Bit Special computer will result in prosecution!\n"
 
 MONITAUR_ILLEGAL_COMMAND_START: .asciiz "Illegal command: \""
-MONITAUR_ILLEGAL_COMMAND_END: 	.asciiz "\""
-MONITAUR_OK_RESPONSE:           .asciiz "Done."
+MONITAUR_ILLEGAL_COMMAND_END: 	.asciiz "\"\n"
+MONITAUR_TRANSFER_RESPONSE:     .asciiz "Coming soon.\n"
 
 MonitorCommandLookupTable: .byte "rd", "wr", "tx", "ex"
 MonitorCommandLookupTableEnd:

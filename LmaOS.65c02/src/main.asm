@@ -18,7 +18,7 @@ Main:
     JSR ACIAInit
     
     LDA #$01
-    STA VIA1_PORT_A
+    STA VIA1_PORT_B
     
     ;;; initializes the system clock @100Hz (10 msec)
 ClockInit:
@@ -29,17 +29,13 @@ ClockInit:
 
     JSR VIA1SetupSystemClock
     
-    LDA VIA1_PORT_A
+    LDA VIA1_PORT_B
     ORA #$02
-    STA VIA1_PORT_A
+    STA VIA1_PORT_B
     
     ;;; system clock is setup, turn on interrupts so they
     ;;; they start firing
     CLI
-    
-    ;; debug crap
-    LDA #$69
-    STA $4000
     
     ;;; on startup, we jump into the monitor
     JSR MonitorStart
