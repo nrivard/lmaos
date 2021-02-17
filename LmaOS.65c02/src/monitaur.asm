@@ -169,11 +169,15 @@ MonitorProcessWriteCommand:
     JMP MonitorProcessCommandDone
 
 MonitorProcessTransferCommand:
+    COPYADDR MONITAUR_TRANSFER_WAITING, r0
+    JSR ACIASendString
+@StartTransfer:
     COPY16 r5, r0
     JSR HexStringToWord
     LDA r7
     LDX r7 + 1
     JSR XModemReceive
+@Done:
     JMP MonitorProcessCommandDone
 
 MonitorProcessExecuteCommand:
@@ -211,7 +215,7 @@ LMAOS_GREETING: 				.asciiz "Unauthorized access of this N8 Bit Special computer
 
 MONITAUR_ILLEGAL_COMMAND_START: .asciiz "Illegal command: \""
 MONITAUR_ILLEGAL_COMMAND_END: 	.asciiz "\"\n"
-MONITAUR_TRANSFER_RESPONSE:     .asciiz "Coming soon.\n"
+MONITAUR_TRANSFER_WAITING:      .asciiz "Waiting for XModem transfer...\n"
 
 MonitorCommandLookupTable: .byte "rd", "wr", "tx", "ex"
 MonitorCommandLookupTableEnd:
