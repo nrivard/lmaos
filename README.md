@@ -2,8 +2,6 @@
 
 LmaOS is a 65C02 system kernal for the n8 Bit Special Computer, a homebrew breadboard computer.
 
-![n8 bit special computer](n8bit.HEIC)
-
 ## Hardware Support
 
 The n8 Bit Special computer is a homebrew breadboard computer built around a WDC 65C02 8 bit CPU operating at 2Mhz. 
@@ -14,10 +12,24 @@ This is connected to:
 * Rockwell 65C51 for RS232 @ 19200 baud, 8.N.1 (8 bit, no parity, 1 stop bit) for serial communication
 * GAL22V10 for address decoding and multi-device interrupt handling
 * DS1813 for reset circuitry
+* FT232 breakout board to connect to an external system via USB
+
+<img src="n8bit.png" alt="n8 bit special computer" width="300"/>
 
 ## Software Support
 
 LmaOS is a small kernal that provides a system monitor, software support for the ACIA and VIA, interrupts, and some system library utilities.
+
+### Conventions
+
+LmaOS has a few conventions to consider.
+First, LmaOS uses 16 bit pseudo-registers for passing data between system subroutines: `r0` through `r7` (see `registers.inc`.)
+These registers should be considered volatile and if you use them in your program and call system functions, they could be mutated.
+
+Second, register values at this time should _also_ be considered volatile (with the exception of interrupt handling) so if you care about these values, push them onto the stack or store them elsewhere before calling system routines.
+Exactly what is used should be in the documentation for each subroutine.
+
+Lastly, constants are always in an `.inc` file and code and storage is always in an `.asm` file.
 
 ### Monitaur
 
@@ -114,11 +126,15 @@ _Note: You should always start writing your program after address $0400, as ther
 
 LmaOS provides some system support for the ACIA and the VIA as well as some built-in strings utilities.
 
+#### VIA
+
 The VIA provides system timer support from Timer 1. 
 If you want to take advantage of system uptime and jiffies, do not use Timer 1 and do not disable interrupts. 
 At this time, GPIO is connected to 2 8-bit LED banks, providing a full 16 bits of information!
 In the future, VIA1 will be entirely dedicated to system tasks and a second VIA will be provided for program use.
 See `via.inc` and `via.asm` for more details.
+
+#### ACIA
 
 Basic ACIA functions are provided: `ACIAGetByte`, `ACIASendByte`, and `ACIASendString`.
 All of these routines are synchronous, meaning they could lock up the system if there is no response from a connected system.
@@ -127,3 +143,21 @@ See `acia.inc` and `acia.asm` for more details.
 
 The XModem receive subroutine used by `tx` is provided for program use as well.
 See `xmodem.inc` and `xmodem.asm` for more details.
+
+#### Strings
+
+Some C lib like string utilities are provided including: `StringLength`, `StringCompareN`, `StringCompare`, `StringCopy`, `HexStringToWord`, `ByteToHexString`, and `NibbleToHexString`. See `strings.asm` for more details.
+
+## Future Support
+
+Planned improvements the n8 Bit Special Computer include:
+* SD card reader
+* 2nd VIA for program use
+* Connected display(s): 2 line LCD and a [mini-OLED display](https://www.digikey.nl/product-detail/nl/newhaven-display-intl/NHD-1.69-160128UGC3/NHD-1.69-160128UGC3-ND/4756379)
+* More RAM, less ROM
+
+Planned improvements for LmaOS include:
+* FAT filesystem support
+* bootstrapping Monitaur and other system utilities from FAT storage
+* 2 line LCD and OLED display routines
+* standalone input (keyboard, controller, etc.)
