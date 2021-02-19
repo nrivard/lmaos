@@ -2,10 +2,32 @@
 
 LmaOS is a 65C02 system kernal for the n8 Bit Special Computer, a homebrew breadboard computer.
 
+## Getting Started
+
+To build LmaOS, you will need `make` and the [CC65 suite](https://cc65.github.io) or my unreleased 65C02 IDE for macOS, System On Chip (how did you get this? It's unreleased!)
+
+```bash
+$ make
+/usr/local/bin/cl65 -t none -C LmaOS.65c02/memorymap.cfg --asm-include-dir LmaOS.65c02/include -l lmaos.rom.listing -vm --mapfile lmaos.rom.map --cpu 65C02 -o ./lmaos.rom  LmaOS.65c02/src/main.asm
+```
+
+To install LmaOS on an EEPROM for use in your n8 Bit Special Computer, you will need [minipro](https://gitlab.com/DavidGriffith/minipro) and a TL866II Plus programmer.
+
+```bash
+$ make install
+minipro -p AT28C256 -w lmaos.rom
+Found TL866II+ 04.2.122 (0x27a)
+Erasing... 0.02Sec OK
+Protect off...OK
+Writing Code...  6.78Sec  OK
+Reading Code...  0.48Sec  OK
+```
+
 ## Hardware Support
 
 The n8 Bit Special computer is a homebrew breadboard computer built around a WDC 65C02 8 bit CPU operating at 2Mhz. 
 This is connected to:
+
 * Atmel AT28C256 for 32K of ROM
 * Cypress CY62256NL for 32K of RAM
 * WDC 65C22 VIA for system timer and GPIO
@@ -36,6 +58,7 @@ Lastly, constants are always in an `.inc` file and code and storage is always in
 At bootup, LmaOS boots into its monitor, called Monitaur. 
 Monitaur provides 4 basic commands: `rd`, `wr`, `tx`, and `ex`.
 All numeric values in Monitaur are in hexadecimal (written as `$<number>` throughout this document).
+See `monitaur.inc` and `monitaur.asm` for more details.
 
 #### Reading memory
 
@@ -138,7 +161,7 @@ See `via.inc` and `via.asm` for more details.
 
 Basic ACIA functions are provided: `ACIAGetByte`, `ACIASendByte`, and `ACIASendString`.
 All of these routines are synchronous, meaning they could lock up the system if there is no response from a connected system.
-A fully working interrupt driven was written if you want to comb the commit history but it was way too complicated.
+A fully working interrupt driven ACIA implementation was written if you want to comb the commit history but it was way too complicated for realworld use.
 See `acia.inc` and `acia.asm` for more details.
 
 The XModem receive subroutine used by `tx` is provided for program use as well.
@@ -148,15 +171,55 @@ See `xmodem.inc` and `xmodem.asm` for more details.
 
 Some C lib like string utilities are provided including: `StringLength`, `StringCompareN`, `StringCompare`, `StringCopy`, `HexStringToWord`, `ByteToHexString`, and `NibbleToHexString`. See `strings.asm` for more details.
 
+
+### Writing Programs
+
+To write programs for the n8 Bit Special Computer (and LmaOS), copy any of the relevant include (`.inc`) files for your use.
+Set an origin for your program (I like `$0400`) as there is no built-in relocation scheme yet.
+If your program just a performs a small task, remember to call `RTS` to return to Monitaur.
+If you never need to return to Monitaur, don't worry about it!
+
+_Note: When you transfer your program, the transfer location must match the origin!_
+
+Here's a very simple uploaded program that will write an alternating pattern on the connected 16 bit LED banks:
+
+```asm
+.org $0400
+
+Main:
+    LDA #$AA
+    STA VIA1_PORT_A
+    STA VIA1_PORT_B
+    RTS
+
+.include "via.inc"
+```
+
+Then transfer the program using Monitaur and execute it:
+
+```
+LmaOS v1.0
+Unauthorized access of this N8 Bit Special computer will result in prosecution!
+>tx 0400
+Waiting for XModem transfer...
+Transmission successful.
+>ex 0400
+>
+```
+
+Now, have fun!
+
 ## Future Support
 
-Planned improvements the n8 Bit Special Computer include:
+Planned improvements for the n8 Bit Special Computer include:
+
 * SD card reader
 * 2nd VIA for program use
 * Connected display(s): 2 line LCD and a [mini-OLED display](https://www.digikey.nl/product-detail/nl/newhaven-display-intl/NHD-1.69-160128UGC3/NHD-1.69-160128UGC3-ND/4756379)
 * More RAM, less ROM
 
 Planned improvements for LmaOS include:
+
 * FAT filesystem support
 * bootstrapping Monitaur and other system utilities from FAT storage
 * 2 line LCD and OLED display routines
