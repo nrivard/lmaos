@@ -2,13 +2,10 @@
 ;
 ; Copyright Nate Rivard 2020
 
-.include "monitaur.inc"
-.include "pseudoinstructions.inc"
-.include "via.inc"
+.ifndef MONITAUR_ASM
+MONITAUR_ASM = 1
 
-.include "acia.asm"
-.include "strings.asm"
-.include "xmodem.asm"
+.include "monitaur.inc"
 
 .code
 
@@ -16,6 +13,7 @@
 
 MonitorStart:
 @FlushLine:
+    INC VIA1_PORT_B
     JSR ACIAGetByte
     LDA #(ASCII_CARRIAGE_RETURN)
     JSR ACIASendByte
@@ -31,9 +29,9 @@ MonitorStart:
 @WaitForInput:
     JSR ACIAGetByte
     JSR ACIASendByte				; echo received byte (already in A)
+    STA MonitorCommandBuffer, Y
     CMP #(ASCII_CARRIAGE_RETURN)
     BEQ @ProcessCommand
-    STA MonitorCommandBuffer, Y
     INY
     BRA @WaitForInput
 @ProcessCommand:
@@ -70,7 +68,7 @@ MonitorTokenizeCommandBuffer:
     INC r0
 @TokenCharacterLoop:
     LDA MonitorCommandBuffer, X
-    CMP #(ASCII_LINE_FEED)                  ; all done!
+    CMP #(ASCII_CARRIAGE_RETURN)                  ; all done!
     BEQ @Done
     CMP #' '                                ; end of token
     BEQ @NullTerminateToken
@@ -136,7 +134,14 @@ MonitorProcessReadCommand:
     JSR HexStringToWord
     COPY16 r7, r5                           ; save the base pointer back
     LDY #0
+    LDX #$10
 @SendLoop:
+    CPX #0
+    BNE @LoadValue
+    LDA #(ASCII_CARRIAGE_RETURN)
+    JSR ACIASendByte
+    LDX #$10
+@LoadValue:
     LDA (r5), Y                             ; load value at parsed address
 @SendASCII:
     JSR ByteToHexString
@@ -150,6 +155,7 @@ MonitorProcessReadCommand:
     INY
     CPY r6
     BEQ @Done
+    DEX
     BRA @SendLoop
 @Done:
     LDA #(ASCII_CARRIAGE_RETURN)
@@ -177,7 +183,14 @@ MonitorProcessTransferCommand:
     LDA r7
     LDX r7 + 1
     JSR XModemReceive
+@CheckErrors:
+    BCS @Error
+    COPYADDR MONITAUR_TRANSFER_SUCCESS, r0
+    BRA @Done
+@Error:
+    COPYADDR MONITAUR_TRANSFER_CANCELED, r0
 @Done:
+    JSR ACIASendString
     JMP MonitorProcessCommandDone
 
 MonitorProcessExecuteCommand:
@@ -202,21 +215,28 @@ MonitorProcessIllegalCommand:
 @Done:
     JMP MonitorProcessCommandDone
 
+.include "strings.asm"
+.include "xmodem.asm"
+
 SampleProgram:
     LDA #$AA
     STA VIA1_PORT_A
     STA VIA1_PORT_B
     RTS
-    
+
 .segment "RODATA"
 
-LMAOS_VERSION_STRING: 			.asciiz "LmaOS v1.0\n"
-LMAOS_GREETING: 				.asciiz "Unauthorized access of this N8 Bit Special computer will result in prosecution!\n"
+LMAOS_VERSION_STRING: 			.asciiz "LmaOS v1.0\r"
+LMAOS_GREETING: 				.asciiz "Unauthorized access of this N8 Bit Special computer will result in prosecution!\r"
 
 MONITAUR_ILLEGAL_COMMAND_START: .asciiz "Illegal command: \""
-MONITAUR_ILLEGAL_COMMAND_END: 	.asciiz "\"\n"
-MONITAUR_TRANSFER_WAITING:      .asciiz "Waiting for XModem transfer...\n"
+MONITAUR_ILLEGAL_COMMAND_END: 	.asciiz "\"\r"
+MONITAUR_TRANSFER_WAITING:      .asciiz "Waiting for XModem transfer...\r"
+MONITAUR_TRANSFER_CANCELED:     .asciiz "Transmission canceled. Try again.\r"
+MONITAUR_TRANSFER_SUCCESS:      .asciiz "Transmission successful.\r"
 
 MonitorCommandLookupTable: .byte "rd", "wr", "tx", "ex"
 MonitorCommandLookupTableEnd:
 MonitorCommandJumpTable: .addr MonitorProcessReadCommand, MonitorProcessWriteCommand, MonitorProcessTransferCommand, MonitorProcessExecuteCommand, MonitorProcessIllegalCommand
+
+.endif

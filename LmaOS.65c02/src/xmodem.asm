@@ -5,13 +5,9 @@
 .ifndef XMODEM_ASM
 XMODEM_ASM = 1
 
-.include "acia.asm"
-.include "pseudoinstructions.inc"
-.include "registers.inc"
 .include "xmodem.inc"
 
-.include "via.inc"  ; debug
-.include "strings.asm"
+.export XModemReceive
 
 .code
 
@@ -21,6 +17,9 @@ XMODEM_ASM = 1
 ; A: low byte of destination address
 ; X: high byte of destination address
 ;
+; Returns:
+; Carry: clear if successful, set if canceled
+;
 ; Uses:
 ; r0: destination address
 ; r1: expected packet number
@@ -29,7 +28,7 @@ XModemReceive:
     STA r0                              ; set destination address
     STX r0 + 1
     LDA #1
-    STA r1                              ; packet number, starting with 1 (packet numbers are 1 byte)
+    STA XModemPacketNumberExpected      ; packet number, starting with 1 (packet numbers are 1 byte)
 @SendMode:
     JSR XModemSendNACK                  ; send a NACK to inform transmitter we're in checksum mode and ready
     LDA SystemClockUptime               ; copy lowest byte of uptime as timeout check
@@ -37,70 +36,93 @@ XModemReceive:
 @WaitForFirstPacket:
     LDA ACIA_STATUS
     BIT #(ACIA_STATUS_MASK_RDR_FULL)    ; have we received anything?
-    BNE @ReceivePacket                  ; start of first packet
+    BNE @PacketRouter                   ; start of first packet
 @CheckTimeout:
     LDA SystemClockUptime
-    STA VIA1_PORT_A             ; debug
     SEC
     SBC r2
-    CMP #3                              ; check for 3 second timeout
+    CMP #(XMODEM_TIMEOUT)               ; check for 3 second timeout
     BMI @WaitForFirstPacket
     BRA @SendMode                       ; timed-out. resend NACK
-@ReceivePacket:
+@PacketRouter:
     JSR ACIAGetByte                     ; get the header byte
-    STA VIA1_PORT_B
+    STA VIA1_PORT_B     ;debug
     CMP #(XMODEM_START_OF_HEADER)
-    BEQ @VerifyPacketNumber
+    BEQ @ReceivePacketNumber
     CMP #(XMODEM_END_TRANSMISSION)
-    BEQ @Done
-    BRA @PacketFailed                   ; not start of header
-@VerifyPacketNumber:
-    JSR ACIAGetByte
-    CMP r1                              ; same as expected packet number?
-    BNE @PacketFailed 
-@VerifyPacketNumberComplement:
-    JSR ACIAGetByte
-    CLC
-    ADC r1
-    CMP #$FF
-    BNE @PacketFailed
+    BEQ @TransmissionSuccess
+    SEC                                 ; canceled
+    JMP @Done
+@ReceivePacketNumber:
+    JSR ACIAGetByte                     ; packet number
+    STA XModemPacketNumber
+    JSR ACIAGetByte                     ; 1s complement of packet number
+    STA XModemPacketNumberComplement
+@ReceivePacketData:
     LDX #0
-    STZ r2
-@ReceivePacketLoop:
+    STZ XModemCalculatedChecksum        ; reset running checksum
+@ReceivePacketDataLoop:
     JSR ACIAGetByte
-    STA XModemPacketBuffer, X
+    STA XModemPacketData, X
+@CalculateChecksum:
     CLC
-    ADC r2                              ; add to running checksum
+    ADC XModemCalculatedChecksum        ; add to running checksum
+    STA XModemCalculatedChecksum
     INX
-    BNE @ReceivePacketLoop
-@VerifyChecksum:
+    CPX #(XMODEM_DATA_LENGTH)
+    BNE @ReceivePacketDataLoop
+@ReceiveChecksum:
     JSR ACIAGetByte
-    CMP r2
+    STA XModemPacketChecksum
+@VerifyPacketNumber:
+    LDA XModemPacketNumberExpected
+    CMP XModemPacketNumber              ; expected packet number?
+    BEQ @VerifyPacketNumberComplement
+    DEC A                               ; previous packet?
+    CMP XModemPacketNumber
+    BNE @PacketFailed                   ; this packet failed
+    BRA @SendAck                        ; already wrote this packet, send an ACK
+@VerifyPacketNumberComplement:
+    EOR #$FF                            ; 1s complement of expected packet
+    CMP XModemPacketNumberComplement
     BNE @PacketFailed
+@VerifyChecksum:
+    LDA XModemCalculatedChecksum
+    CMP XModemPacketChecksum
+    BNE @PacketFailed
+@WritePacket:
     LDY #0
     LDX #0
 @WritePacketLoop:
-    LDA XModemPacketBuffer, X
+    LDA XModemPacketData, X
     INX
     STA (r0), Y
     INY
+    CPY #(XMODEM_DATA_LENGTH)
     BNE @WritePacketLoop
 @AdvanceDestinationPointer:
-    INC r0 + 1                          ; should only have to increment the upper byte
+    ADD16 r0, XMODEM_DATA_LENGTH        ; advance destination pointer by data size
+    ; COPY16 r0, XModemDestination
+    INC XModemPacketNumberExpected      ; increment expected packet number
+@SendAck:
     LDA #(XMODEM_ACK)                   ; ACK the packet
+    STA VIA1_PORT_A
     JSR ACIASendByte
-    BRA @ReceivePacket                  ; receive the next packet
+    JMP @PacketRouter                   ; receive the next packet
 @PacketFailed:
     JSR XModemSendNACK
-    BRA @ReceivePacket
-@Done:
+    JMP @PacketRouter
+
+@TransmissionSuccess:
     LDA #(XMODEM_ACK)
     JSR ACIASendByte
+    CLC                                 ; no errors, so CLC
+@Done:
     RTS
 
 XModemSendNACK:
     LDA #(XMODEM_NACK)
-    STA VIA1_PORT_B
+    STA VIA1_PORT_A
     JSR ACIASendByte
     RTS
 

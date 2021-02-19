@@ -39,20 +39,8 @@ ClockInit:
     
     ;;; on startup, we jump into the monitor
     JSR MonitorStart
-    
-    STP
-    
-UnitTests:
-    LDA #$FB
-    JSR ByteToHexString
-    STP
-    
-.segment "RODATA"
-
-String1: .byte "rd 4", $00
 
 .include "acia.asm"
 .include "via.asm"
-.include "strings.asm"
 .include "interrupt.asm"
 .include "monitaur.asm"

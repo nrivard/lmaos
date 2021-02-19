@@ -10,8 +10,8 @@ STRINGS_ASM = 1
 
 .code
 
-ASCII_LINE_FEED = $0D
-ASCII_CARRIAGE_RETURN = $0A
+ASCII_CARRIAGE_RETURN = $0D
+ASCII_LINE_FEED = $0A
 
 ;;; finds length of a null-terminated string
 ;;;
@@ -122,10 +122,10 @@ HexStringToWord:
     SBC #'0'
     CMP #$0A			;; check 0…9
     BCC @NibbleShift
-    SBC #('A' - '9' - 1)
+    SBC #$07            ;; 'A' - '9' - 1
     CMP #$10			;; check A…F
     BCC @NibbleShift
-    SBC #('a' - 'A')
+    SBC #$20            ; 'a' - 'A'
     CMP #$10
     BCC @NibbleShift	;; check a…f though no one should write it lowercase, it's dumb A…F (lolz)
     JMP @Done			;; Error, not a digit

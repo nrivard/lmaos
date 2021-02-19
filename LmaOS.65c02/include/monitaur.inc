@@ -6,8 +6,6 @@
 .ifndef MONITAUR_INC
 MONITAUR_INC = 1
 
-.zeropage
-
 .bss
 
 ; the current command buffer. terminated by carriage return

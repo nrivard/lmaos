@@ -44,6 +44,16 @@ PSEUDOINSTRUCTIONS_INC = 1
 	SWAP lhs + 1, rhs + 1
 .endmacro
 
+.macro ADD16 addr, imm
+    CLC
+    LDA addr
+    ADC #imm
+    STA addr
+    LDA addr + 1
+    ADC #0
+    STA addr + 1
+.endmacro
+
 ;; 16 bit ADC
 ;;
 ;; { PARAM } low-byte address of 16-bit value

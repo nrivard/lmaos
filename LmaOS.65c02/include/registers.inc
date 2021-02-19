@@ -7,6 +7,8 @@
 .ifndef REGISTERS_INC
 REGISTERS_INC = 1
 
+.exportzp r0, r1, r2, r3, r4, r5, r6, r7, SystemClockJiffies, SystemClockUptime
+
 .zeropage
 
 r0: .res 2
