@@ -58,31 +58,31 @@ Lastly, constants are always in an `.inc` file and code and storage is always in
 At bootup, LmaOS boots into its monitor, called Monitaur. 
 Monitaur provides 4 basic commands: `rd`, `wr`, `tx`, and `ex`.
 All numeric values in Monitaur are in hexadecimal (written as `$<number>` throughout this document).
+Where noted, a `word` is 16 bits and a `byte` is 8 bits.
+
+In general, Monitaur parses all values as a word but a command may ignore the upper nibble if it expects a byte.
 See `monitaur.inc` and `monitaur.asm` for more details.
 
 #### Reading memory
 
-The `rd` command allows you to read system memory. You provide an address and optionally, a length.
-
-```
->rd <address> [<length>]
-```
-
-By default, if you dont specify a length, it defaults to `$1`.
+The `rd` command allows you to read system memory. You provide an address (word) and, optionally, a length (byte).
 
 ```
 >rd 0400
 A9
 ```
 
-To read blocks of memory, you can provide a length. Length is provided as a byte and so the maximum value you can read is `$100`.  
+By default, if you don't specify a length, it defaults to `$1`.
+To read blocks of memory, you can provide a length.
 
 ```
 >rd 1000 10
-AB 11 FE 6F D9 DB 2D FD 26 F4 82 FE F1 A6 95 8B 
+AB 11 FE 6F D9 DB 2D FD 26 F4 82 FE F1 A6 95 8B
 ```
-
-Monitaur will print `$10` values per line. Because of how the monitor is written, to read the full `$100` values, you provide the length as `$0`, not `$FF`.
+ 
+Monitaur will print `$10` values per line.
+Length is provided as a byte and so the maximum value you can read is `$100`. 
+To read the full `$100` values, because of how the monitor is written, you must provide the length as `$0` not `$FF`.
 
 ```
 >rd 1000 0
@@ -107,20 +107,20 @@ FF 13 BE F9 EF FA FF EE ED 27 67 E0 5F BD 11 83
 #### Writing memory
 
 The `wr` command allows you to write to system memory (provided it is writeable!)
-You provide an address and a byte to be written.
-Values can only be written 1 at a time through this command.
+You provide an address (word) and a value (byte) to be written.
 
 ```
 >wr 1000 A5
 ```
 
-There is no feedback if a write fails because you tried to write to an address this read-only (like ROM).
-You can follow up your write with a `rd` if you need to know if it succeeded.
+Values can only be written 1 at a time through this command.
+There is no feedback if a write fails because you tried to write to an address that is read-only (like ROM).
+If you need to know if your `wr` succeeded, send a `rd` command with the address and verify the value.
 
 #### Transferring data
 
-The `tx` command allows you to transfer data from the connected system to the n8 Bit Special computer.
-You provide an address to start writing the data.
+The `tx` command allows you to transfer data from the connected system to the n8 Bit Special Computer.
+You provide an address (word) to start writing the data.
 
 ```
 >tx 0400
@@ -133,7 +133,7 @@ The `tx` command will write _all_ data sent, including EOF padding (`$1A` from t
 
 #### Executing programs
 
-The `ex` command executes code starting at the provided address.
+The `ex` command executes code starting at the provided address (word).
 
 ```
 >ex 0400
@@ -164,7 +164,7 @@ All of these routines are synchronous, meaning they could lock up the system if 
 A fully working interrupt driven ACIA implementation was written if you want to comb the commit history but it was way too complicated for realworld use.
 See `acia.inc` and `acia.asm` for more details.
 
-The XModem receive subroutine used by `tx` is provided for program use as well.
+The XModem receive subroutine used by `tx` is provided for program use as well: `XModemReceive`.
 See `xmodem.inc` and `xmodem.asm` for more details.
 
 #### Strings
@@ -176,12 +176,12 @@ Some C lib like string utilities are provided including: `StringLength`, `String
 
 To write programs for the n8 Bit Special Computer (and LmaOS), copy any of the relevant include (`.inc`) files for your use.
 Set an origin for your program (I like `$0400`) as there is no built-in relocation scheme yet.
-If your program just a performs a small task, remember to call `RTS` to return to Monitaur.
+If your program just performs a small task, remember to call `RTS` to return to Monitaur.
 If you never need to return to Monitaur, don't worry about it!
 
 _Note: When you transfer your program, the transfer location must match the origin!_
 
-Here's a very simple uploaded program that will write an alternating pattern on the connected 16 bit LED banks:
+Here's a very simple uploaded program that will write an alternating pattern on the connected 16 bit LED banks (you can see the result of this program in the system photo):
 
 ```asm
 .org $0400
