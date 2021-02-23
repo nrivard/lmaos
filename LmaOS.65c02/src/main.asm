@@ -16,9 +16,11 @@ Main:
     ;;; initializes hardware
     JSR VIA1Init
     JSR ACIAInit
+    JSR LCDInit
     
-    LDA #$01
-    STA VIA1_PORT_B
+    LDA #<LmaOSBootText
+    LDX #>LmaOSBootText
+    JSR LCDPrintString
     
     ;;; initializes the system clock @100Hz (10 msec)
 ClockInit:
@@ -29,13 +31,15 @@ ClockInit:
 
     JSR VIA1SetupSystemClock
     
-    LDA VIA1_PORT_B
-    ORA #$02
-    STA VIA1_PORT_B
-    
     ;;; system clock is setup, turn on interrupts so they
     ;;; they start firing
     CLI
+
+    LDA #(LCD_LINE2_START)
+    JSR LCDMoveCursor
+    LDA #<LmaOSBootDone
+    LDX #>LmaOSBootDone
+    JSR LCDPrintString
     
     ;;; on startup, we jump into the monitor
     JSR MonitorStart
@@ -44,3 +48,9 @@ ClockInit:
 .include "via.asm"
 .include "interrupt.asm"
 .include "monitaur.asm"
+.include "lcd1602.asm"
+
+.segment "RODATA"
+
+LmaOSBootText: .asciiz "Booting up..."
+LmaOSBootDone: .asciiz "Done."

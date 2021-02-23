@@ -11,7 +11,7 @@ XMODEM_ASM = 1
 
 .code
 
-; Synchronously receive data at the specified address
+; Synchronously receive data and write to the passed in address
 ;
 ; Params:
 ; A: low byte of destination address
@@ -22,8 +22,7 @@ XMODEM_ASM = 1
 ;
 ; Uses:
 ; r0: destination address
-; r1: expected packet number
-; r2: time out (phase 1) / running checksum (phase 2)
+; r1: time out
 XModemReceive:
     STA r0                              ; set destination address
     STX r0 + 1
@@ -32,7 +31,7 @@ XModemReceive:
 @SendMode:
     JSR XModemSendNACK                  ; send a NACK to inform transmitter we're in checksum mode and ready
     LDA SystemClockUptime               ; copy lowest byte of uptime as timeout check
-    STA r2
+    STA r1
 @WaitForFirstPacket:
     LDA ACIA_STATUS
     BIT #(ACIA_STATUS_MASK_RDR_FULL)    ; have we received anything?
@@ -40,19 +39,18 @@ XModemReceive:
 @CheckTimeout:
     LDA SystemClockUptime
     SEC
-    SBC r2
+    SBC r1
     CMP #(XMODEM_TIMEOUT)               ; check for 3 second timeout
     BMI @WaitForFirstPacket
     BRA @SendMode                       ; timed-out. resend NACK
 @PacketRouter:
     JSR ACIAGetByte                     ; get the header byte
-    STA VIA1_PORT_B     ;debug
     CMP #(XMODEM_START_OF_HEADER)
     BEQ @ReceivePacketNumber
     CMP #(XMODEM_END_TRANSMISSION)
     BEQ @TransmissionSuccess
     SEC                                 ; canceled
-    JMP @Done
+    BRA @Done
 @ReceivePacketNumber:
     JSR ACIAGetByte                     ; packet number
     STA XModemPacketNumber
@@ -102,27 +100,26 @@ XModemReceive:
     BNE @WritePacketLoop
 @AdvanceDestinationPointer:
     ADD16 r0, XMODEM_DATA_LENGTH        ; advance destination pointer by data size
-    ; COPY16 r0, XModemDestination
     INC XModemPacketNumberExpected      ; increment expected packet number
 @SendAck:
-    LDA #(XMODEM_ACK)                   ; ACK the packet
-    STA VIA1_PORT_A
-    JSR ACIASendByte
-    JMP @PacketRouter                   ; receive the next packet
+    JSR XModemSendACK
+    BRA @PacketRouter                   ; receive the next packet
 @PacketFailed:
     JSR XModemSendNACK
-    JMP @PacketRouter
-
+    BRA @PacketRouter
 @TransmissionSuccess:
-    LDA #(XMODEM_ACK)
-    JSR ACIASendByte
+    JSR XModemSendACK
     CLC                                 ; no errors, so CLC
 @Done:
     RTS
 
 XModemSendNACK:
     LDA #(XMODEM_NACK)
-    STA VIA1_PORT_A
+    JSR ACIASendByte
+    RTS
+
+XModemSendACK:
+    LDA #(XMODEM_ACK)
     JSR ACIASendByte
     RTS
 

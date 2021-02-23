@@ -17,7 +17,7 @@ MonitorCommandBuffer: .res $80
 .local @SendASCII
     PHA
     PHY
-	LDY #$00
+	LDY #0
 @Loop:
 	LDA addr, Y
 @SendASCII:

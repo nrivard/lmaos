@@ -51,7 +51,28 @@ These registers should be considered volatile and if you use them in your progra
 Second, register values at this time should _also_ be considered volatile (with the exception of interrupt handling) so if you care about these values, push them onto the stack or store them elsewhere before calling system routines.
 Exactly what is used should be in the documentation for each subroutine.
 
-Lastly, constants are always in an `.inc` file and code and storage is always in an `.asm` file.
+Lastly, some programming conventions are:
+
+* constants and volatile storage (`.bss`) are in an `.inc` file
+* code and non-volatile storage (`RODATA`) are in an `.asm` file
+* Border-line excessive use of local labels in subroutines (prefixed with `@`).
+Not all of these local labels are actually used as labels (in the assembler sense) but instead are intended as self-documenting organizational tools.
+
+For example, many routines will have an immediate local label named `@Preamble` on entry to a subroutine and almost all have a `@Done` before `RTS` even when no branches jump to it.
+It's not strictly necessary, you could jump to the top-level label if necessary, but I like to organize the code this way.
+
+```asm
+RandomSubroutine:
+@Preamble:
+    PHA
+    PHX
+@GenerateRandomNumber:
+    ...
+@Done:
+    PLX
+    PLA
+    RTS
+```
 
 ### Monitaur
 
@@ -171,8 +192,7 @@ See `xmodem.inc` and `xmodem.asm` for more details.
 
 Some C lib like string utilities are provided including: `StringLength`, `StringCompareN`, `StringCompare`, `StringCopy`, `HexStringToWord`, `ByteToHexString`, and `NibbleToHexString`. See `strings.asm` for more details.
 
-
-### Writing Programs
+## Writing Programs
 
 To write programs for the n8 Bit Special Computer (and LmaOS), copy any of the relevant include (`.inc`) files for your use.
 Set an origin for your program (I like `$0400`) as there is no built-in relocation scheme yet.
@@ -205,6 +225,30 @@ Waiting for XModem transfer...
 Transmission successful.
 >ex 0400
 >
+```
+
+If you need to execute system provided (ROM) subroutines, copy `lmaos.inc` into your project.
+This file is not actually used by LmaOS; instead it is just a listing of the addresses of externally available system functionality.
+
+_Note: as of this writing, the addresses listed in`lmaos.inc` are very volatile from version to version. If you update your system ROM to a later version, this listing is likely different and you will have to recopy the include file and reassemble your program(s)._
+
+```asm
+.org $0400
+
+Main:
+@ClearScreen:
+    LDA #(LCD_INSTR_CLEAR)
+    JSR LCDSendInstruction
+@PrintMsg:
+    LDA #<WelcomeMsg
+    LDX #>WelcomeMsg
+    JSR LCDPrintString
+@Done:
+    RTS
+
+WelcomeMsg: .asciiz "Welcome to LmaOS!"
+
+.include "lmaos.inc"
 ```
 
 Now, have fun!

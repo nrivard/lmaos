@@ -218,12 +218,6 @@ MonitorProcessIllegalCommand:
 .include "strings.asm"
 .include "xmodem.asm"
 
-SampleProgram:
-    LDA #$AA
-    STA VIA1_PORT_A
-    STA VIA1_PORT_B
-    RTS
-
 .segment "RODATA"
 
 LMAOS_VERSION_STRING: 			.asciiz "LmaOS v1.0\r"
