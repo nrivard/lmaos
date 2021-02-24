@@ -2,5 +2,5 @@ obj/
 *.rom
 *.o
 *.listing
-*.map
 .DS_Store
+*.PRG

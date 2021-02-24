@@ -15,20 +15,42 @@
 .ifndef LMAOS_INC
 LMAOS_INC = 1
 
+; Zero-page reserved
+r0                 := $00
+r1                 := $02
+r2                 := $04
+r3                 := $06
+r4                 := $08
+r5                 := $0A
+r6                 := $0C
+r7                 := $0E
+SystemClockJiffies := $10
+SystemClockUptime  := $11
+
 ; ACIA
 ACIAGetByte        := $8039
-ACIASendByte       := $8044    
+ACIASendByte       := $8044
 ACIASendString     := $8051
 
 ; LCD
-LCDInit            := $8481    
+LCDInit            := $8481
 LCDMoveCursor      := $849F
-LCDPollBusy        := $84C1    
-LCDPrintByte       := $84BA
-LCDPrintString     := $84A7    
+LCDPollBusy        := $84C1
+LCDPrintString     := $84A7
+LCDSendByte        := $84BA
 LCDSendInstruction := $84C7
+LCDSendBlock       := $84CE
 
 ; XModem
 XModemReceive      := $82ED
+
+; Strings
+StringLength       := $8238
+StringCompareN     := $8243
+StringCompare      := $8253
+StringCopy         := $8278
+NibbleToHexString  := $82E2
+ByteToHexString    := $82D1
+HexStringToWord    := $8285
 
 .endif
