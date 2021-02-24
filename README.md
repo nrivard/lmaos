@@ -25,7 +25,7 @@ Reading Code...  0.48Sec  OK
 
 ## Hardware Support
 
-The n8 Bit Special computer is a homebrew breadboard computer built around a WDC 65C02 8 bit CPU operating at 2Mhz. 
+The n8 Bit Special computer is a homebrew breadboard computer built around a WDC 65C02 8 bit CPU operating at 2Mhz.
 This is connected to:
 
 * Atmel AT28C256 for 32K of ROM
@@ -37,6 +37,31 @@ This is connected to:
 * FT232 breakout board to connect to an external system via USB
 
 <img src="n8bit.png" alt="n8 bit special computer" width="300"/>
+
+### Memory Layout
+
+<img src="n8bitmemorylayout.png" alt="n8 bit memory layout graph" height="400"/>
+
+The n8 Bit Special computer has the following memory layout:
+
+| Device | Address Range |
+|--------|---------------|
+| Zero Page | `$0000...$00FF` |
+| Stack | `$0100...$01FF` |
+| RAM | `$0200...$7EFF` |
+| VIA 1 | `$7F00...$7F3F` |
+| VIA 2 | `$7F40...$7F7F` |
+| ACIA | `$7F80...$7FBF` |
+| Display | `$7FC0...$7FFF` |
+| ROM | `$8000...$FFFF` |
+
+You will notice that each I/O device gets exactly `$40` addresses, starting at `$7F00`, though your device likely won't need nearly this many. For example, the 1602a based LCD display uses 2 addresses while the VIA uses 16.
+
+### Expansion
+
+Most of the hardware is set for the system: CPU, RAM, ROM, VIA 1 (for interfacing with an SD card interface and possibly keyboard input), ACIA, and some kind of display. At present, the address decoder has carved out another I/O device for a 2nd VIA. This should be considered an additional I/O slot that can be used for whatever you want.
+
+In addition, the address decoder can process interrupts from up to 4 devices. VIA 1 and the ACIA currently use 2 of these, but a 2nd I/O device and your display can also generate interrupts. This will require changing LmaOS to provide a writable vectored interrupt handler, after which it is up to your software to determine how to respond to events from these new devices.
 
 ## Software Support
 
@@ -258,8 +283,8 @@ Now, have fun!
 Planned improvements for the n8 Bit Special Computer include:
 
 * SD card reader
-* 2nd VIA for program use
-* Connected display(s): 2 line LCD and a [mini-OLED display](https://www.digikey.nl/product-detail/nl/newhaven-display-intl/NHD-1.69-160128UGC3/NHD-1.69-160128UGC3-ND/4756379)
+* Expansion slot for 1 additinal I/O card (`VIA2_CS` signal from the address decoder)
+* Connected display: 1602a LCD or a [mini-OLED display](https://www.digikey.nl/product-detail/nl/newhaven-display-intl/NHD-1.69-160128UGC3/NHD-1.69-160128UGC3-ND/4756379)
 * More RAM, less ROM
 
 Planned improvements for LmaOS include:
