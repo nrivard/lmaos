@@ -5,8 +5,6 @@
 .ifndef STRINGS_ASM
 STRINGS_ASM = 1
 
-.include "pseudoinstructions.inc"
-.include "registers.inc"
 .include "strings.inc"
 
 .export StringLength, StringCompareN, StringCompare, StringCopy, HexStringToWord, ByteToHexString, NibbleToHexString

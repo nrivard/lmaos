@@ -6,7 +6,6 @@
 ACIA_ASM = 1
 
 .include "acia.inc"
-.include "registers.inc"
 
 .export ACIAGetByte, ACIASendByte, ACIASendString
 

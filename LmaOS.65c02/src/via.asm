@@ -11,9 +11,8 @@ VIA_ASM = 1
 .code
 
 VIA1Init:
-    LDA #$FF
-    STA VIA1_DDRA    ; make VIA_PORT_A all outputs
-    STA VIA1_DDRB    ; make VIA_PORT_B all outputs
+    STZ VIA1_DDRA    ; make VIA_PORT_A all inputs
+    STZ VIA1_DDRB    ; make VIA_PORT_B all inputs
     RTS
 
 ;;; Sets up the system clock

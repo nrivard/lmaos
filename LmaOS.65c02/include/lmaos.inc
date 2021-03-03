@@ -26,31 +26,35 @@ r6                 := $0C
 r7                 := $0E
 SystemClockJiffies := $10
 SystemClockUptime  := $11
+InterruptHandler   := $13
+
+; Interrupt Handler
+InterruptRouter    := $808B
 
 ; ACIA
-ACIAGetByte        := $8039
-ACIASendByte       := $8044
-ACIASendString     := $8051
+ACIAGetByte        := $8041
+ACIASendByte       := $804C
+ACIASendString     := $8059
 
 ; LCD
-LCDInit            := $8481
-LCDMoveCursor      := $849F
-LCDPollBusy        := $84C1
-LCDPrintString     := $84A7
-LCDSendByte        := $84BA
-LCDSendInstruction := $84C7
-LCDSendBlock       := $84CE
+LCDInit            := $848A
+LCDMoveCursor      := $84A1
+LCDPollBusy        := $84C3
+LCDPrintString     := $84A9
+LCDSendByte        := $84BC
+LCDSendInstruction := $84C9
+LCDSendBlock       := $84D0
 
 ; XModem
-XModemReceive      := $82ED
+XModemReceive      := $82F6
 
 ; Strings
-StringLength       := $8238
-StringCompareN     := $8243
-StringCompare      := $8253
-StringCopy         := $8278
-NibbleToHexString  := $82E2
-ByteToHexString    := $82D1
-HexStringToWord    := $8285
+StringLength       := $8241
+StringCompareN     := $824C
+StringCompare      := $825C
+StringCopy         := $8281
+NibbleToHexString  := $82EB
+ByteToHexString    := $82DA
+HexStringToWord    := $828E
 
 .endif

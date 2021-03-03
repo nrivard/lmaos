@@ -2,10 +2,10 @@
 ;
 ; Copyright Nate Rivard 2020
 
+.include "pseudoinstructions.inc"
 .include "system.inc"
 .include "vectors.inc"
-.include "registers.inc"
-.include "pseudoinstructions.inc"
+.include "zeropage.inc"
 
 .code
 
@@ -23,24 +23,30 @@ Main:
     JSR LCDPrintString
     
     ;;; initializes the system clock @100Hz (10 msec)
-ClockInit:
+@InitClock:
     LDA #ClockRateHz
     STA SystemClockJiffies
     STZ SystemClockUptime
     STZ SystemClockUptime + 1
 
     JSR VIA1SetupSystemClock
-    
+
+@SetupInterruptVector:
+    ;;; copy system interrupt handler into the interrupt vector
+    COPYADDR InterruptHandleSystemTimer, InterruptVector
+
     ;;; system clock is setup, turn on interrupts so they
     ;;; they start firing
     CLI
 
+@DisplayBootStatus:
     LDA #(LCD_LINE2_START)
     JSR LCDMoveCursor
     LDA #<LmaOSBootDone
     LDX #>LmaOSBootDone
     JSR LCDPrintString
     
+StartMonitor:
     ;;; on startup, we jump into the monitor
     JSR MonitorStart
 

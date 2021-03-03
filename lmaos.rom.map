@@ -1,11 +1,11 @@
 Modules list:
 -------------
 main.o:
-    CODE              Offs=000000  Size=00039F  Align=00001  Fill=0000
-    RODATA            Offs=000000  Size=00015A  Align=00001  Fill=0000
+    CODE              Offs=000000  Size=0003A8  Align=00001  Fill=0000
+    RODATA            Offs=000000  Size=000153  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000105  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
-    ZEROPAGE          Offs=000000  Size=000013  Align=00001  Fill=0000
+    ZEROPAGE          Offs=000000  Size=000015  Align=00001  Fill=0000
     NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
     VECTORS           Offs=000000  Size=000006  Align=00001  Fill=0000
 
@@ -15,72 +15,74 @@ Segment list:
 Name                   Start     End    Size  Align
 ----------------------------------------------------
 NULL                  000000  000000  000000  00001
-ZEROPAGE              000000  000012  000013  00001
+ZEROPAGE              000000  000014  000015  00001
 BSS                   000200  000304  000105  00001
 DATA                  000200  000200  000000  00001
-CODE                  008000  00839E  00039F  00001
-RODATA                00839F  0084F8  00015A  00001
+CODE                  008000  0083A7  0003A8  00001
+RODATA                0083A8  0084FA  000153  00001
 VECTORS               00FFFA  00FFFF  000006  00001
 
 
 Exports list by name:
 ---------------------
-ACIAGetByte               008039  LA    ACIASendByte              008044  LA    
-ACIASendString            008051  LA    ByteToHexString           0082D1  LA    
-HexStringToWord           008285  LA    LCDInit                   008481  LA    
-LCDMoveCursor             00849F  LA    LCDPollBusy               0084C1  LA    
-LCDPrintString            0084A7  LA    LCDSendBlock              0084CE  LA    
-LCDSendByte               0084BA  LA    LCDSendInstruction        0084C7  LA    
-NibbleToHexString         0082E2  LA    StringCompare             008253  LA    
-StringCompareN            008243  LA    StringCopy                008278  LA    
-StringLength              008238  LA    SystemClockJiffies        000010  LZ    
-SystemClockUptime         000011  LZ    XModemReceive             0082ED  LA    
-__BSS_LOAD__              000200  LA    __BSS_RUN__               000200  LA    
-__BSS_SIZE__              000105  EA    __DATA_LOAD__             008000  LA    
-__DATA_RUN__              000200  LA    __DATA_SIZE__             000000  EA    
-__IO_FILEOFFS__           000000  EA    __IO_LAST__               007F00  LA    
-__IO_SIZE__               000100  EA    __IO_START__              007F00  LA    
-__RAM_FILEOFFS__          000000  EA    __RAM_LAST__              000305  LA    
-__RAM_SIZE__              007D00  EA    __RAM_START__             000200  LA    
-__STACK_FILEOFFS__        000000  EA    __STACK_LAST__            000100  LA    
-__STACK_SIZE__            000100  EA    __STACK_START__           000100  LA    
-__ZEROPAGE_FILEOFFS__     000000  EA    __ZEROPAGE_LAST__         000013  LA    
-__ZEROPAGE_SIZE__         000100  EA    __ZEROPAGE_START__        000000  LA    
-r0                        000000  LZ    r1                        000002  LZ    
-r2                        000004  LZ    r3                        000006  LZ    
-r4                        000008  LZ    r5                        00000A  LZ    
-r6                        00000C  LZ    r7                        00000E  LZ    
-
+ACIAGetByte               008041  LA    ACIASendByte              00804C  LA    
+ACIASendString            008059  LA    ByteToHexString           0082DA  LA    
+HexStringToWord           00828E  LA    InterruptHandleSystemTimer 00808E  LA    
+InterruptRouter           00808B  LA    InterruptVector           000013  LZ    
+LCDInit                   00848A  LA    LCDMoveCursor             0084A1  LA    
+LCDPollBusy               0084C3  LA    LCDPrintString            0084A9  LA    
+LCDSendBlock              0084D0  LA    LCDSendByte               0084BC  LA    
+LCDSendInstruction        0084C9  LA    NibbleToHexString         0082EB  LA    
+StringCompare             00825C  LA    StringCompareN            00824C  LA    
+StringCopy                008281  LA    StringLength              008241  LA    
+SystemClockJiffies        000010  LZ    SystemClockUptime         000011  LZ    
+XModemReceive             0082F6  LA    __BSS_LOAD__              000200  LA    
+__BSS_RUN__               000200  LA    __BSS_SIZE__              000105  EA    
+__DATA_LOAD__             008000  LA    __DATA_RUN__              000200  LA    
+__DATA_SIZE__             000000  EA    __IO_FILEOFFS__           000000  EA    
+__IO_LAST__               007F00  LA    __IO_SIZE__               000100  EA    
+__IO_START__              007F00  LA    __RAM_FILEOFFS__          000000  EA    
+__RAM_LAST__              000305  LA    __RAM_SIZE__              007D00  EA    
+__RAM_START__             000200  LA    __STACK_FILEOFFS__        000000  EA    
+__STACK_LAST__            000100  LA    __STACK_SIZE__            000100  EA    
+__STACK_START__           000100  LA    __ZEROPAGE_FILEOFFS__     000000  EA    
+__ZEROPAGE_LAST__         000015  LA    __ZEROPAGE_SIZE__         000100  EA    
+__ZEROPAGE_START__        000000  LA    r0                        000000  LZ    
+r1                        000002  LZ    r2                        000004  LZ    
+r3                        000006  LZ    r4                        000008  LZ    
+r5                        00000A  LZ    r6                        00000C  LZ    
+r7                        00000E  LZ    
 
 
 Exports list by value:
 ----------------------
-__STACK_FILEOFFS__        000000  EA    __IO_FILEOFFS__           000000  EA    
-__DATA_SIZE__             000000  EA    __RAM_FILEOFFS__          000000  EA    
-r0                        000000  LZ    __ZEROPAGE_START__        000000  LA    
-__ZEROPAGE_FILEOFFS__     000000  EA    r1                        000002  LZ    
+__ZEROPAGE_FILEOFFS__     000000  EA    __IO_FILEOFFS__           000000  EA    
+__DATA_SIZE__             000000  EA    r0                        000000  LZ    
+__ZEROPAGE_START__        000000  LA    __RAM_FILEOFFS__          000000  EA    
+__STACK_FILEOFFS__        000000  EA    r1                        000002  LZ    
 r2                        000004  LZ    r3                        000006  LZ    
 r4                        000008  LZ    r5                        00000A  LZ    
 r6                        00000C  LZ    r7                        00000E  LZ    
 SystemClockJiffies        000010  LZ    SystemClockUptime         000011  LZ    
-__ZEROPAGE_LAST__         000013  LA    __STACK_START__           000100  LA    
-__ZEROPAGE_SIZE__         000100  EA    __IO_SIZE__               000100  EA    
-__STACK_SIZE__            000100  EA    __STACK_LAST__            000100  LA    
-__BSS_SIZE__              000105  EA    __BSS_RUN__               000200  LA    
-__DATA_RUN__              000200  LA    __BSS_LOAD__              000200  LA    
-__RAM_START__             000200  LA    __RAM_LAST__              000305  LA    
-__RAM_SIZE__              007D00  EA    __IO_LAST__               007F00  LA    
-__IO_START__              007F00  LA    __DATA_LOAD__             008000  LA    
-ACIAGetByte               008039  LA    ACIASendByte              008044  LA    
-ACIASendString            008051  LA    StringLength              008238  LA    
-StringCompareN            008243  LA    StringCompare             008253  LA    
-StringCopy                008278  LA    HexStringToWord           008285  LA    
-ByteToHexString           0082D1  LA    NibbleToHexString         0082E2  LA    
-XModemReceive             0082ED  LA    LCDInit                   008481  LA    
-LCDMoveCursor             00849F  LA    LCDPrintString            0084A7  LA    
-LCDSendByte               0084BA  LA    LCDPollBusy               0084C1  LA    
-LCDSendInstruction        0084C7  LA    LCDSendBlock              0084CE  LA    
-
+InterruptVector           000013  LZ    __ZEROPAGE_LAST__         000015  LA    
+__STACK_START__           000100  LA    __STACK_SIZE__            000100  EA    
+__STACK_LAST__            000100  LA    __ZEROPAGE_SIZE__         000100  EA    
+__IO_SIZE__               000100  EA    __BSS_SIZE__              000105  EA    
+__BSS_LOAD__              000200  LA    __BSS_RUN__               000200  LA    
+__RAM_START__             000200  LA    __DATA_RUN__              000200  LA    
+__RAM_LAST__              000305  LA    __RAM_SIZE__              007D00  EA    
+__IO_START__              007F00  LA    __IO_LAST__               007F00  LA    
+__DATA_LOAD__             008000  LA    ACIAGetByte               008041  LA    
+ACIASendByte              00804C  LA    ACIASendString            008059  LA    
+InterruptRouter           00808B  LA    InterruptHandleSystemTimer 00808E  LA    
+StringLength              008241  LA    StringCompareN            00824C  LA    
+StringCompare             00825C  LA    StringCopy                008281  LA    
+HexStringToWord           00828E  LA    ByteToHexString           0082DA  LA    
+NibbleToHexString         0082EB  LA    XModemReceive             0082F6  LA    
+LCDInit                   00848A  LA    LCDMoveCursor             0084A1  LA    
+LCDPrintString            0084A9  LA    LCDSendByte               0084BC  LA    
+LCDPollBusy               0084C3  LA    LCDSendInstruction        0084C9  LA    
+LCDSendBlock              0084D0  LA    
 
 
 Imports list:
@@ -90,6 +92,9 @@ ACIASendByte (main.o):
 ACIASendString (main.o):
 ByteToHexString (main.o):
 HexStringToWord (main.o):
+InterruptHandleSystemTimer (main.o):
+InterruptRouter (main.o):
+InterruptVector (main.o):
 LCDInit (main.o):
 LCDMoveCursor (main.o):
 LCDPollBusy (main.o):
