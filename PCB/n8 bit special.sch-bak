@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 1 2
+Sheet 1 1
 Title "n8 Bit Special Computer"
 Date "2021-02-23"
 Rev "1"
@@ -637,40 +637,189 @@ F 3 "~" H 3275 4100 50  0001 C CNN
 $EndComp
 Text GLabel 6825 3450 2    50   Input ~ 0
 ~RAM_CS
-$Comp
-L power:+5V #PWR0110
-U 1 1 604E7AE4
-P 6825 3650
-F 0 "#PWR0110" H 6825 3500 50  0001 C CNN
-F 1 "+5V" H 6925 3725 50  0000 C CNN
-F 2 "" H 6825 3650 50  0001 C CNN
-F 3 "" H 6825 3650 50  0001 C CNN
-	1    6825 3650
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	6700 3450 6825 3450
 Wire Wire Line
 	6700 3650 6825 3650
+Text GLabel 6825 3850 2    50   Input ~ 0
+R~W
+Wire Wire Line
+	950  1325 850  1325
+Wire Wire Line
+	1225 1325 1150 1325
+$Comp
+L Device:R_Small_US R?
+U 1 1 60450330
+P 1050 1325
+F 0 "R?" V 845 1325 50  0000 C CNN
+F 1 "330" V 936 1325 50  0000 C CNN
+F 2 "" H 1050 1325 50  0001 C CNN
+F 3 "~" H 1050 1325 50  0001 C CNN
+	1    1050 1325
+	0    1    1    0   
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 60450336
+P 850 1325
+F 0 "#PWR?" H 850 1075 50  0001 C CNN
+F 1 "GND" H 855 1152 50  0000 C CNN
+F 2 "" H 850 1325 50  0001 C CNN
+F 3 "" H 850 1325 50  0001 C CNN
+	1    850  1325
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1525 950  950  950 
+Connection ~ 1525 950 
+Wire Wire Line
+	1525 1325 1525 950 
+$Comp
+L Device:LED_ALT D?
+U 1 1 6045033F
+P 1375 1325
+F 0 "D?" H 1368 1542 50  0000 C CNN
+F 1 "LED_ALT" H 1368 1451 50  0000 C CNN
+F 2 "" H 1375 1325 50  0001 C CNN
+F 3 "~" H 1375 1325 50  0001 C CNN
+	1    1375 1325
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1750 1525 1625 1525
+$Comp
+L power:GND #PWR?
+U 1 1 60450346
+P 1625 1525
+F 0 "#PWR?" H 1625 1275 50  0001 C CNN
+F 1 "GND" H 1630 1352 50  0000 C CNN
+F 2 "" H 1625 1525 50  0001 C CNN
+F 3 "" H 1625 1525 50  0001 C CNN
+	1    1625 1525
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2150 950  1525 950 
+Connection ~ 2150 950 
+Wire Wire Line
+	2150 1325 2150 950 
+Wire Wire Line
+	2250 950  2150 950 
+$Comp
+L Switch:SW_Push_Dual SW?
+U 1 1 60450350
+P 1950 1325
+F 0 "SW?" H 1950 1610 50  0000 C CNN
+F 1 "SW_Push_Dual" H 1950 1519 50  0000 C CNN
+F 2 "Button_Switch_THT:SW_PUSH-12mm" H 1950 1525 50  0001 C CNN
+F 3 "~" H 1950 1525 50  0001 C CNN
+	1    1950 1325
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4525 950  4525 1125
+Wire Wire Line
+	4450 950  4525 950 
+$Comp
+L power:GND #PWR?
+U 1 1 60450358
+P 4525 1125
+F 0 "#PWR?" H 4525 875 50  0001 C CNN
+F 1 "GND" H 4530 952 50  0000 C CNN
+F 2 "" H 4525 1125 50  0001 C CNN
+F 3 "" H 4525 1125 50  0001 C CNN
+	1    4525 1125
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4450 1050 4700 1050
+$Comp
+L power:+5V #PWR?
+U 1 1 6045035F
+P 4700 1050
+F 0 "#PWR?" H 4700 900 50  0001 C CNN
+F 1 "+5V" H 4715 1223 50  0000 C CNN
+F 2 "" H 4700 1050 50  0001 C CNN
+F 3 "" H 4700 1050 50  0001 C CNN
+	1    4700 1050
+	1    0    0    -1  
+$EndComp
+Text GLabel 950  950  0    50   Output ~ 0
+~RES
+$Comp
+L DS1813-10:DS1813-10 U?
+U 1 1 60450368
+P 2250 950
+F 0 "U?" H 3350 1315 50  0000 C CNN
+F 1 "DS1813-10" H 3350 1224 50  0000 C CNN
+F 2 "" H 2250 950 50  0001 L BNN
+F 3 "" H 2250 950 50  0001 L BNN
+F 4 "MAXIM" H 2250 950 50  0001 L BNN "VENDOR"
+F 5 "ds181315+" H 2250 950 50  0001 L BNN "MANUFACTURER_PART_NUMBER"
+	1    2250 950 
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 60420A5A
+P 1475 2900
+F 0 "#PWR?" H 1475 2650 50  0001 C CNN
+F 1 "GND" H 1480 2727 50  0000 C CNN
+F 2 "" H 1475 2900 50  0001 C CNN
+F 3 "" H 1475 2900 50  0001 C CNN
+	1    1475 2900
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR?
+U 1 1 604216C0
+P 1475 2125
+F 0 "#PWR?" H 1475 1975 50  0001 C CNN
+F 1 "+5V" H 1490 2298 50  0000 C CNN
+F 2 "" H 1475 2125 50  0001 C CNN
+F 3 "" H 1475 2125 50  0001 C CNN
+	1    1475 2125
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1475 2125 1475 2225
+Wire Wire Line
+	1475 2825 1475 2900
+NoConn ~ 1175 2525
+Text GLabel 2000 2525 2    50   Output ~ 0
+CLK
+Wire Wire Line
+	1775 2525 2000 2525
+$Comp
+L Oscillator:CXO_DIP14 X?
+U 1 1 6041F292
+P 1475 2525
+F 0 "X?" H 1775 2575 50  0000 L CNN
+F 1 "2Mhz" H 1775 2475 50  0000 L CNN
+F 2 "Oscillator:Oscillator_DIP-14" H 1925 2175 50  0001 C CNN
+F 3 "http://cdn-reichelt.de/documents/datenblatt/B400/OSZI.pdf" H 1375 2525 50  0001 C CNN
+	1    1475 2525
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 6046D622
+P 7625 4250
+F 0 "#PWR?" H 7625 4000 50  0001 C CNN
+F 1 "GND" H 7475 4175 50  0000 C CNN
+F 2 "" H 7625 4250 50  0001 C CNN
+F 3 "" H 7625 4250 50  0001 C CNN
+	1    7625 4250
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
 	7750 4250 7625 4250
 Wire Wire Line
-	7625 4250 7625 4150
-Connection ~ 7625 4150
-Text GLabel 7625 4350 0    50   Input ~ 0
+	7750 4350 7750 4450
+Wire Wire Line
+	7750 4450 7675 4450
+Text GLabel 7675 4450 0    50   Input ~ 0
 ~ROM_CS
-Wire Wire Line
-	7750 4350 7625 4350
-Text GLabel 6825 3750 2    50   Input ~ 0
-R~W
-Wire Wire Line
-	6700 3750 6825 3750
-$Sheet
-S 1100 1025 1600 950 
-U 6042C4F4
-F0 "Reset" 50
-F1 "Reset.sch" 50
-$EndSheet
 Wire Bus Line
 	8850 2400 8850 3150
 Wire Bus Line
@@ -683,4 +832,15 @@ Wire Bus Line
 	7450 2400 7450 3850
 Wire Bus Line
 	4900 2400 4900 3900
+$Comp
+L power:GND #PWR?
+U 1 1 604ADFAE
+P 6825 3650
+F 0 "#PWR?" H 6825 3400 50  0001 C CNN
+F 1 "GND" H 6975 3600 50  0000 C CNN
+F 2 "" H 6825 3650 50  0001 C CNN
+F 3 "" H 6825 3650 50  0001 C CNN
+	1    6825 3650
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC

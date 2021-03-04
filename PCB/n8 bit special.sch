@@ -637,34 +637,12 @@ F 3 "~" H 3275 4100 50  0001 C CNN
 $EndComp
 Text GLabel 6825 3450 2    50   Input ~ 0
 ~RAM_CS
-$Comp
-L power:+5V #PWR0110
-U 1 1 604E7AE4
-P 6825 3650
-F 0 "#PWR0110" H 6825 3500 50  0001 C CNN
-F 1 "+5V" H 6925 3725 50  0000 C CNN
-F 2 "" H 6825 3650 50  0001 C CNN
-F 3 "" H 6825 3650 50  0001 C CNN
-	1    6825 3650
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	6700 3450 6825 3450
 Wire Wire Line
 	6700 3650 6825 3650
-Wire Wire Line
-	7750 4250 7625 4250
-Wire Wire Line
-	7625 4250 7625 4150
-Connection ~ 7625 4150
-Text GLabel 7625 4350 0    50   Input ~ 0
-~ROM_CS
-Wire Wire Line
-	7750 4350 7625 4350
-Text GLabel 6825 3750 2    50   Input ~ 0
+Text GLabel 6825 3850 2    50   Input ~ 0
 R~W
-Wire Wire Line
-	6700 3750 6825 3750
 Wire Wire Line
 	950  1325 850  1325
 Wire Wire Line
@@ -767,7 +745,7 @@ F 3 "" H 4700 1050 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Text GLabel 950  950  0    50   Output ~ 0
-~RESET
+~RES
 $Comp
 L DS1813-10:DS1813-10 U?
 U 1 1 60450368
@@ -781,6 +759,82 @@ F 5 "ds181315+" H 2250 950 50  0001 L BNN "MANUFACTURER_PART_NUMBER"
 	1    2250 950 
 	1    0    0    -1  
 $EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 60420A5A
+P 1475 2900
+F 0 "#PWR?" H 1475 2650 50  0001 C CNN
+F 1 "GND" H 1480 2727 50  0000 C CNN
+F 2 "" H 1475 2900 50  0001 C CNN
+F 3 "" H 1475 2900 50  0001 C CNN
+	1    1475 2900
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR?
+U 1 1 604216C0
+P 1475 2125
+F 0 "#PWR?" H 1475 1975 50  0001 C CNN
+F 1 "+5V" H 1490 2298 50  0000 C CNN
+F 2 "" H 1475 2125 50  0001 C CNN
+F 3 "" H 1475 2125 50  0001 C CNN
+	1    1475 2125
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1475 2125 1475 2225
+Wire Wire Line
+	1475 2825 1475 2900
+NoConn ~ 1175 2525
+Text GLabel 2000 2525 2    50   Output ~ 0
+CLK
+Wire Wire Line
+	1775 2525 2000 2525
+$Comp
+L Oscillator:CXO_DIP14 X?
+U 1 1 6041F292
+P 1475 2525
+F 0 "X?" H 1775 2575 50  0000 L CNN
+F 1 "2Mhz" H 1775 2475 50  0000 L CNN
+F 2 "Oscillator:Oscillator_DIP-14" H 1925 2175 50  0001 C CNN
+F 3 "http://cdn-reichelt.de/documents/datenblatt/B400/OSZI.pdf" H 1375 2525 50  0001 C CNN
+	1    1475 2525
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 6046D622
+P 7625 4250
+F 0 "#PWR?" H 7625 4000 50  0001 C CNN
+F 1 "GND" H 7475 4175 50  0000 C CNN
+F 2 "" H 7625 4250 50  0001 C CNN
+F 3 "" H 7625 4250 50  0001 C CNN
+	1    7625 4250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7750 4250 7625 4250
+Wire Wire Line
+	7750 4350 7750 4450
+Wire Wire Line
+	7750 4450 7675 4450
+Text GLabel 7675 4450 0    50   Input ~ 0
+~ROM_CS
+$Comp
+L power:GND #PWR?
+U 1 1 604ADFAE
+P 6825 3650
+F 0 "#PWR?" H 6825 3400 50  0001 C CNN
+F 1 "GND" H 6975 3600 50  0000 C CNN
+F 2 "" H 6825 3650 50  0001 C CNN
+F 3 "" H 6825 3650 50  0001 C CNN
+	1    6825 3650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6700 3750 6700 3850
+Wire Wire Line
+	6700 3850 6825 3850
 Wire Bus Line
 	8850 2400 8850 3150
 Wire Bus Line
