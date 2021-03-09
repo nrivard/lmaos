@@ -2935,6 +2935,18 @@ Wire Wire Line
 	2875 3975 2875 4500
 Wire Wire Line
 	2875 4500 3325 4500
+Connection ~ 3325 4500
+$Comp
+L Device:R R2
+U 1 1 6047D0F1
+P 6025 3125
+F 0 "R2" V 5925 3125 50  0000 C CNN
+F 1 "3K3" V 6025 3125 50  0000 C CNN
+F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal" H 6025 3125 50  0001 C CNN
+F 3 "~" H 6025 3125 50  0001 C CNN
+	1    6025 3125
+	0    1    1    0   
+$EndComp
 Wire Bus Line
 	6375 8950 6375 9450
 Wire Bus Line
@@ -2969,16 +2981,6 @@ Wire Bus Line
 	11175 1450 11175 2850
 Wire Bus Line
 	13625 1425 13625 2825
-Connection ~ 3325 4500
-$Comp
-L Device:R R2
-U 1 1 6047D0F1
-P 6025 3125
-F 0 "R2" V 5925 3125 50  0000 C CNN
-F 1 "3K3" V 6025 3125 50  0000 C CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal" H 6025 3125 50  0001 C CNN
-F 3 "~" H 6025 3125 50  0001 C CNN
-	1    6025 3125
-	0    1    1    0   
-$EndComp
+Text Label 8650 2825 1    50   ~ 0
+A0..15]
 $EndSCHEMATC

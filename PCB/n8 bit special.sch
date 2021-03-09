@@ -2981,4 +2981,6 @@ Wire Bus Line
 	11175 1450 11175 2850
 Wire Bus Line
 	13625 1425 13625 2825
+Text Label 8650 2825 1    50   ~ 0
+A[0..15]
 $EndSCHEMATC
