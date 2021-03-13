@@ -528,7 +528,7 @@ U 1 1 604BB5D2
 P 6675 3850
 F 0 "J3" H 6755 3842 50  0000 L CNN
 F 1 "PowerViaUSB" H 6755 3751 50  0000 L CNN
-F 2 "Connector_PinSocket_2.54mm:PinSocket_1x02_P2.54mm_Vertical" H 6675 3850 50  0001 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 6675 3850 50  0001 C CNN
 F 3 "~" H 6675 3850 50  0001 C CNN
 	1    6675 3850
 	1    0    0    -1  

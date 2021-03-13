@@ -4,12 +4,12 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title ""
-Date ""
-Rev ""
+Title "Viaduct"
+Date "2021-03-13"
+Rev "1"
 Comp ""
-Comment1 ""
-Comment2 ""
+Comment1 "GPIO n8 Bus expansion card"
+Comment2 "Uses a VIA to provide 2 ports of GPIO"
 Comment3 ""
 Comment4 ""
 $EndDescr
