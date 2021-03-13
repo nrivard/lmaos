@@ -2,7 +2,7 @@
 
   (general
     (thickness 1.6)
-    (drawings 161)
+    (drawings 162)
     (tracks 1679)
     (zones 0)
     (modules 36)
@@ -3055,6 +3055,9 @@
     )
   )
 
+  (gr_text JLCJLCJLCJLC (at 98.552 53.34) (layer F.SilkS)
+    (effects (font (size 1 1) (thickness 0.2)))
+  )
   (gr_text "by Nate Rivard\nhttps://github.com/nrivard/lmaos\nVersion 1\nMar 2021" (at 180.34 94.996 90) (layer B.SilkS) (tstamp 6046C809)
     (effects (font (size 1.5 1.5) (thickness 0.3)) (justify left mirror))
   )
@@ -5227,7 +5230,7 @@
   (segment (start 107.1223 57.2648) (end 107.1223 60.6403) (width 0.154) (layer B.Cu) (net 68))
   (segment (start 107.1223 60.6403) (end 110.49 64.008) (width 0.154) (layer B.Cu) (net 68))
 
-  (zone (net 1) (net_name GND) (layer F.Cu) (tstamp 6046C267) (hatch edge 0.508)
+  (zone (net 1) (net_name GND) (layer F.Cu) (tstamp 60476A0D) (hatch edge 0.508)
     (connect_pads (clearance 0.508))
     (min_thickness 0.254)
     (fill yes (arc_segments 32) (thermal_gap 0.508) (thermal_bridge_width 0.508))
@@ -6036,7 +6039,7 @@
       )
     )
   )
-  (zone (net 1) (net_name GND) (layer B.Cu) (tstamp 6046C264) (hatch edge 0.508)
+  (zone (net 1) (net_name GND) (layer B.Cu) (tstamp 60476A0A) (hatch edge 0.508)
     (connect_pads (clearance 0.508))
     (min_thickness 0.254)
     (fill yes (arc_segments 32) (thermal_gap 0.508) (thermal_bridge_width 0.508))
