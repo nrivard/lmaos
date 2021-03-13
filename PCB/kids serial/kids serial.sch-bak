@@ -4,12 +4,12 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title ""
-Date ""
-Rev ""
+Title "Kids' Serial"
+Date "2021-03-13"
+Rev "1"
 Comp ""
-Comment1 ""
-Comment2 ""
+Comment1 "ACIA n8 Bus expansion card"
+Comment2 "Uses an ACIA and FTDI USB breakout to provide a serial connection"
 Comment3 ""
 Comment4 ""
 $EndDescr
@@ -572,13 +572,13 @@ Wire Wire Line
 	3450 3825 3450 5350
 Wire Wire Line
 	3450 5350 4625 5350
+Connection ~ 4625 5350
+Wire Wire Line
+	4625 5350 4625 5400
 Wire Bus Line
 	925  3100 925  3600
 Wire Bus Line
 	2075 3300 2075 4000
 Wire Bus Line
 	3825 4125 3825 4825
-Connection ~ 4625 5350
-Wire Wire Line
-	4625 5350 4625 5400
 $EndSCHEMATC

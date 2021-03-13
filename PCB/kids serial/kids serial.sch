@@ -251,7 +251,7 @@ U 1 1 604C389E
 P 4625 3825
 F 0 "U1" H 4800 5250 50  0000 C CNN
 F 1 "6551" H 4800 5150 50  0000 C CIB
-F 2 "Package_DIP:DIP-28_W15.24mm" H 4625 3975 50  0001 C CNN
+F 2 "Package_DIP:DIP-28_W15.24mm_Socket" H 4625 3975 50  0001 C CNN
 F 3 "http://www.6502.org/documents/datasheets/mos/mos_6551_acia.pdf" H 4625 3975 50  0001 C CNN
 	1    4625 3825
 	1    0    0    -1  

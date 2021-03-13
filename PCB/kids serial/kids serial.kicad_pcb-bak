@@ -966,7 +966,7 @@
   (via (at 166.243 78.359) (size 0.8) (drill 0.4) (layers F.Cu B.Cu) (net 2) (tstamp 604CACE6))
   (via (at 105.537 78.359) (size 0.8) (drill 0.4) (layers F.Cu B.Cu) (net 2) (tstamp 604CACEF))
   (via (at 105.537 112.903) (size 0.8) (drill 0.4) (layers F.Cu B.Cu) (net 2))
-  (via (at 136.652 78.486) (size 0.8) (drill 0.4) (layers F.Cu B.Cu) (net 2))
+  (via (at 137.033 78.486) (size 0.8) (drill 0.4) (layers F.Cu B.Cu) (net 2))
   (segment (start 113.874001 111.334001) (end 115.189 112.649) (width 0.25) (layer B.Cu) (net 3))
   (segment (start 113.874001 89.236001) (end 113.874001 111.334001) (width 0.25) (layer B.Cu) (net 3))
   (segment (start 112.649 88.011) (end 113.874001 89.236001) (width 0.25) (layer B.Cu) (net 3))
