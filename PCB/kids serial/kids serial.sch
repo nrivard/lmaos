@@ -184,8 +184,6 @@ Text GLabel 950  3750 0    50   Output ~ 0
 ~CS
 Text GLabel 950  3900 0    50   Output ~ 0
 R~W
-Text GLabel 950  4025 0    50   Output ~ 0
-CLK
 Wire Wire Line
 	1275 3800 1225 3800
 Wire Wire Line
@@ -194,12 +192,6 @@ Wire Wire Line
 	1225 3750 950  3750
 Wire Wire Line
 	1275 3900 950  3900
-Wire Wire Line
-	1275 4000 1225 4000
-Wire Wire Line
-	1225 4000 1225 4025
-Wire Wire Line
-	1225 4025 950  4025
 Text GLabel 950  4150 0    50   Output ~ 0
 ~RES
 Wire Wire Line
@@ -795,6 +787,20 @@ Wire Wire Line
 	9700 4275 9700 4375
 Wire Wire Line
 	9700 4675 9700 4700
+NoConn ~ 4625 3100
+NoConn ~ 4625 3200
+NoConn ~ 4625 3300
+NoConn ~ 4625 3400
+NoConn ~ 4625 3500
+NoConn ~ 4625 3600
+NoConn ~ 4625 3700
+NoConn ~ 4625 4000
+NoConn ~ 4625 4100
+NoConn ~ 4625 4200
+NoConn ~ 4625 4300
+NoConn ~ 4625 4400
+NoConn ~ 4625 4500
+NoConn ~ 1275 4000
 Wire Bus Line
 	3150 2350 3150 2650
 Wire Bus Line
