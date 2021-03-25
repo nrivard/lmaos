@@ -21,8 +21,15 @@
       )
     )
     (boundary
-      (path pcb 0  186817 -139700  86995 -139700  86995 -40132  186817 -40132
-            186817 -139700)
+      (path pcb 0  186401 -40149.5  186549 -40201.2  186681 -40284.4  186792 -40395
+            186875 -40527.4  186926 -40675.1  186944 -40830.5  186944 -139065
+            186926 -139220  186875 -139368  186792 -139501  186681 -139611
+            186549 -139694  186401 -139746  186246 -139764  87693.5 -139764
+            87538.1 -139746  87390.4 -139694  87258 -139611  87147.4 -139501
+            87064.2 -139368  87012.5 -139220  86995 -139065  86995 -40830.5
+            87012.5 -40675.1  87064.2 -40527.4  87147.4 -40395  87258 -40284.4
+            87390.4 -40201.2  87538.1 -40149.5  87693.5 -40132  186246 -40132
+            186401 -40149.5)
     )
     (via "Via[0-1]_800:400_um")
     (rule
@@ -33,10 +40,22 @@
     )
   )
   (placement
+    (component Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm
+      (place C16 173418 -113919 front 0 (PN 100nf))
+      (place C3 91440 -97155 front 90 (PN 100nf))
+      (place C4 139700 -96202.5 front 90 (PN 100nf))
+      (place C5 91427.3 -136080 front 90 (PN 100nf))
+      (place C7 91440 -109538 front 90 (PN 100nf))
+      (place C9 91440 -122809 front 90 (PN 100nf))
+      (place C11 163449 -89408 front 270 (PN 100nf))
+    )
     (component MountingHole:MountingHole_3.2mm_M3_DIN965_Pad
       (place REF2 137795 -51816 front 0 (PN MountingHole_3.2mm_M3_DIN965_Pad))
       (place REF3 181991 -125857 front 0 (PN MountingHole_3.2mm_M3_DIN965_Pad))
       (place REF1 91440 -128270 front 0 (PN MountingHole_3.2mm_M3_DIN965_Pad))
+    )
+    (component graphics:Shaka
+      (place G*** 153352 -97853.5 front 0 (PN LOGO))
     )
     (component "Oscillator:Oscillator_DIP-8"
       (place X1 182118 -107696 front 90 (PN 4Mhz))
@@ -45,39 +64,28 @@
       (place J1 184023 -116586 front 90 (PN USB_B_Micro))
     )
     (component Capacitor_THT:CP_Radial_D8.0mm_P3.80mm
-      (place C2 172593 -121031 front 90 (PN 470uF))
+      (place C2 174752 -122428 front 180 (PN 470uF))
     )
-    (component graphics:Shaka
-      (place G*** 157734 -100330 front 0 (PN LOGO))
-    )
-    (component Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm
+    (component Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm::1
       (place C1 138303 -81280 front 270 (PN 100nf))
-      (place C6 139700 -136017 front 90 (PN 100nf))
-      (place C8 139700 -110109 front 90 (PN 100nf))
-      (place C10 139700 -123063 front 90 (PN 100nf))
+      (place C6 139687 -136080 front 90 (PN 100nf))
+      (place C8 139700 -109538 front 90 (PN 100nf))
+      (place C10 139700 -122809 front 90 (PN 100nf))
       (place C12 163322 -43434 front 270 (PN 100nf))
       (place C13 137795 -43434 front 270 (PN 100nf))
       (place C14 112014 -43434 front 270 (PN 100nf))
       (place C15 91440 -83820 front 90 (PN 100nf))
     )
-    (component Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm::1
-      (place C3 91440 -97155 front 90 (PN 100nf))
-      (place C4 139700 -97155 front 90 (PN 100nf))
-      (place C5 91440 -136017 front 90 (PN 100nf))
-      (place C7 91440 -110109 front 90 (PN 100nf))
-      (place C9 91440 -123063 front 90 (PN 100nf))
-      (place C11 163449 -89408 front 270 (PN 100nf))
-    )
     (component LED_THT:LED_D3.0mm
       (place D1 167386 -135636 front 180 (PN LED_ALT))
     )
     (component Connector_PinSocket_2.54mm:PinSocket_2x16_P2.54mm_Vertical
-      (place J2 96520 -94615 front 90 (PN PORT0))
-      (place J3 96520 -120523 front 90 (PN PORT2))
+      (place J2 96520 -93726 front 90 (PN PORT0))
+      (place J3 96520 -120269 front 90 (PN PORT2))
     )
     (component Connector_PinSocket_2.54mm:PinSocket_2x16_P2.54mm_Vertical::1
-      (place J4 96520 -107569 front 90 (PN PORT1))
-      (place J5 96520 -133477 front 90 (PN PORT3))
+      (place J4 96520 -106998 front 90 (PN PORT1))
+      (place J5 96507.3 -133540 front 90 (PN PORT3))
     )
     (component Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal
       (place R1 172466 -137414 front 90 (PN 330))
@@ -116,6 +124,22 @@
     )
   )
   (library
+    (image Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm
+      (outline (path signal 100  -1250 1250  -1250 -1250))
+      (outline (path signal 100  -1250 -1250  3750 -1250))
+      (outline (path signal 100  3750 -1250  3750 1250))
+      (outline (path signal 100  3750 1250  -1250 1250))
+      (outline (path signal 120  -1370 1370  3870 1370))
+      (outline (path signal 120  -1370 -1370  3870 -1370))
+      (outline (path signal 120  -1370 1370  -1370 -1370))
+      (outline (path signal 120  3870 1370  3870 -1370))
+      (outline (path signal 50  -1500 1500  -1500 -1500))
+      (outline (path signal 50  -1500 -1500  4000 -1500))
+      (outline (path signal 50  4000 -1500  4000 1500))
+      (outline (path signal 50  4000 1500  -1500 1500))
+      (pin Round[A]Pad_1600_um 2 2500 0)
+      (pin Round[A]Pad_1600_um 1 0 0)
+    )
     (image MountingHole:MountingHole_3.2mm_M3_DIN965_Pad
       (outline (path signal 150  2800 0  2718.64 -670.084  2479.28 -1301.22  2095.83 -1856.74
             1590.58 -2304.36  992.894 -2618.05  337.503 -2779.59  -337.503 -2779.59
@@ -132,6 +156,8 @@
             -177.342 3044.84  529.627 3003.66  1208.04 2800.56  1821.33 2446.48
             2336.44 1960.5  2725.58 1368.84  2967.79 703.378  3050 0))
       (pin Round[A]Pad_5600_um 1 0 0)
+    )
+    (image graphics:Shaka
     )
     (image "Oscillator:Oscillator_DIP-8"
       (outline (path signal 100  -2540 -2540  -2540 9510))
@@ -377,39 +403,21 @@
       (pin Round[A]Pad_1600_um 2 3800 0)
       (pin Rect[A]Pad_1600x1600_um 1 0 0)
     )
-    (image graphics:Shaka
-    )
-    (image Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm
-      (outline (path signal 50  4000 1500  -1500 1500))
-      (outline (path signal 50  4000 -1500  4000 1500))
-      (outline (path signal 50  -1500 -1500  4000 -1500))
-      (outline (path signal 50  -1500 1500  -1500 -1500))
-      (outline (path signal 120  3870 1370  3870 -1370))
-      (outline (path signal 120  -1370 1370  -1370 -1370))
-      (outline (path signal 120  -1370 -1370  3870 -1370))
-      (outline (path signal 120  -1370 1370  3870 1370))
-      (outline (path signal 100  3750 1250  -1250 1250))
-      (outline (path signal 100  3750 -1250  3750 1250))
-      (outline (path signal 100  -1250 -1250  3750 -1250))
-      (outline (path signal 100  -1250 1250  -1250 -1250))
-      (pin Round[A]Pad_1600_um 1 0 0)
-      (pin Round[A]Pad_1600_um 2 2500 0)
-    )
     (image Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm::1
-      (outline (path signal 100  -1250 1250  -1250 -1250))
-      (outline (path signal 100  -1250 -1250  3750 -1250))
-      (outline (path signal 100  3750 -1250  3750 1250))
-      (outline (path signal 100  3750 1250  -1250 1250))
-      (outline (path signal 120  -1370 1370  3870 1370))
-      (outline (path signal 120  -1370 -1370  3870 -1370))
-      (outline (path signal 120  -1370 1370  -1370 -1370))
-      (outline (path signal 120  3870 1370  3870 -1370))
-      (outline (path signal 50  -1500 1500  -1500 -1500))
-      (outline (path signal 50  -1500 -1500  4000 -1500))
-      (outline (path signal 50  4000 -1500  4000 1500))
       (outline (path signal 50  4000 1500  -1500 1500))
-      (pin Round[A]Pad_1600_um 2 2500 0)
+      (outline (path signal 50  4000 -1500  4000 1500))
+      (outline (path signal 50  -1500 -1500  4000 -1500))
+      (outline (path signal 50  -1500 1500  -1500 -1500))
+      (outline (path signal 120  3870 1370  3870 -1370))
+      (outline (path signal 120  -1370 1370  -1370 -1370))
+      (outline (path signal 120  -1370 -1370  3870 -1370))
+      (outline (path signal 120  -1370 1370  3870 1370))
+      (outline (path signal 100  3750 1250  -1250 1250))
+      (outline (path signal 100  3750 -1250  3750 1250))
+      (outline (path signal 100  -1250 -1250  3750 -1250))
+      (outline (path signal 100  -1250 1250  -1250 -1250))
       (pin Round[A]Pad_1600_um 1 0 0)
+      (pin Round[A]Pad_1600_um 2 2500 0)
     )
     (image LED_THT:LED_D3.0mm
       (outline (path signal 50  3700 2250  -1150 2250))
@@ -1007,16 +1015,16 @@
   )
   (network
     (net GND
-      (pins X1-4 J1-5 C2-2 C1-1 C3-1 C4-2 C5-1 C6-2 C7-1 C8-2 C9-1 C10-2 C11-2 C12-2
-        C13-2 C14-2 J2-3 J2-4 J2-31 J2-32 J3-3 J3-4 J3-31 J3-32 J4-32 J4-31 J4-4 J4-3
-        J5-32 J5-31 J5-4 J5-3 R1-2 U7-3 U6-12 C15-1 SW1-2 SW1-2@1 U1-21 U2-22 U2-14
-        U3-22 U3-14 U4-14 U4-22 U5-7)
+      (pins C16-1 X1-4 J1-5 C2-2 C1-1 C3-1 C4-2 C5-1 C6-2 C7-1 C8-2 C9-1 C10-2 C11-2
+        C12-2 C13-2 C14-2 J2-3 J2-4 J2-31 J2-32 J3-3 J3-4 J3-31 J3-32 J4-32 J4-31
+        J4-4 J4-3 J5-32 J5-31 J5-4 J5-3 R1-2 U7-3 U6-12 C15-1 SW1-2 SW1-2@1 U1-21
+        U2-22 U2-14 U3-22 U3-14 U4-14 U4-22 U5-7)
     )
     (net +5V
-      (pins X1-8 J1-1 C2-1 C1-2 C3-2 C4-1 C5-2 C6-1 C7-2 C8-1 C9-2 C10-1 C11-1 C12-1
-        C13-1 C14-1 J2-1 J2-2 J2-29 J2-30 J3-1 J3-2 J3-29 J3-30 J4-30 J4-29 J4-2 J4-1
-        J5-30 J5-29 J5-2 J5-1 R2-2 R3-2 RN1-1 U7-2 U6-24 C15-2 U1-8 U1-38 U2-28 U3-28
-        U4-28 U4-27 U5-14)
+      (pins C16-2 X1-8 J1-1 C2-1 C1-2 C3-2 C4-1 C5-2 C6-1 C7-2 C8-1 C9-2 C10-1 C11-1
+        C12-1 C13-1 C14-1 J2-1 J2-2 J2-29 J2-30 J3-1 J3-2 J3-29 J3-30 J4-30 J4-29
+        J4-2 J4-1 J5-30 J5-29 J5-2 J5-1 R2-2 R3-2 RN1-1 U7-2 U6-24 C15-2 U1-8 U1-38
+        U2-28 U3-28 U4-28 U4-27 U5-14)
     )
     (net "Net-(D1-Pad1)"
       (pins D1-1 R1-1)
@@ -1225,9 +1233,9 @@
     (net "Net-(J1-Pad4)"
       (pins J1-4)
     )
-    (class kicad_default "" /A0 /A1 /A10 /A11 /A12 /A13 /A14 /A15 /A2 /A3
-      /A4 /A5 /A6 /A7 /A8 /A9 /D0 /D1 /D2 /D3 /D4 /D5 /D6 /D7 CLK FUTURE0
-      FUTURE1 "Net-(D1-Pad1)" "Net-(J1-Pad4)" "Net-(J1-Pad6)" "Net-(J6-Pad10)"
+    (class kicad_default "" +5V /A0 /A1 /A10 /A11 /A12 /A13 /A14 /A15 /A2
+      /A3 /A4 /A5 /A6 /A7 /A8 /A9 /D0 /D1 /D2 /D3 /D4 /D5 /D6 /D7 CLK FUTURE0
+      FUTURE1 GND "Net-(D1-Pad1)" "Net-(J1-Pad4)" "Net-(J1-Pad6)" "Net-(J6-Pad10)"
       "Net-(J6-Pad12)" "Net-(J6-Pad14)" "Net-(J6-Pad16)" "Net-(J6-Pad2)" "Net-(J6-Pad4)"
       "Net-(J6-Pad6)" "Net-(J6-Pad8)" "Net-(R2-Pad1)" "Net-(R3-Pad1)" "Net-(U1-Pad1)"
       "Net-(U1-Pad3)" "Net-(U1-Pad35)" "Net-(U1-Pad39)" "Net-(U1-Pad5)" "Net-(U1-Pad7)"
@@ -1243,22 +1251,16 @@
         (clearance 200.1)
       )
     )
-    (class Power +5V GND
+    (class Power
       (circuit
         (use_via Via[0-1]_800:400_um)
       )
       (rule
-        (width 300)
-        (clearance 300.1)
+        (width 250)
+        (clearance 200.1)
       )
     )
   )
   (wiring
-    (wire (path F.Cu 300  174538 -115286  172593 -117231)(net GND)(type protect))
-    (wire (path F.Cu 300  182623 -115286  174538 -115286)(net GND)(type protect))
-    (wire (path F.Cu 300  179220 -121031  179197 -121031)(net +5V)(type protect))
-    (wire (path F.Cu 300  182365 -117886  179220 -121031)(net +5V)(type protect))
-    (wire (path F.Cu 300  179197 -121031  172593 -121031)(net +5V)(type protect))
-    (wire (path F.Cu 300  182623 -117886  182365 -117886)(net +5V)(type protect))
   )
 )

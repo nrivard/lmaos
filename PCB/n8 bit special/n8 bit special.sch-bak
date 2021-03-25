@@ -2952,6 +2952,7 @@ Wire Wire Line
 Connection ~ 1625 4275
 Wire Wire Line
 	1625 4275 1625 4300
+NoConn ~ 950  2075
 Wire Bus Line
 	6375 8950 6375 9450
 Wire Bus Line
