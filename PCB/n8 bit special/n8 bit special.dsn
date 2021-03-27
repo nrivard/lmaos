@@ -41,76 +41,71 @@
   )
   (placement
     (component Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm
-      (place C16 173418 -113919 front 0 (PN 100nf))
-      (place C3 91440 -97155 front 90 (PN 100nf))
-      (place C4 139700 -96202.5 front 90 (PN 100nf))
-      (place C5 91427.3 -136080 front 90 (PN 100nf))
-      (place C7 91440 -109538 front 90 (PN 100nf))
-      (place C9 91440 -122809 front 90 (PN 100nf))
-      (place C11 163449 -89408 front 270 (PN 100nf))
-    )
-    (component MountingHole:MountingHole_3.2mm_M3_DIN965_Pad
-      (place REF2 137795 -51816 front 0 (PN MountingHole_3.2mm_M3_DIN965_Pad))
-      (place REF3 181991 -125857 front 0 (PN MountingHole_3.2mm_M3_DIN965_Pad))
-      (place REF1 91440 -128270 front 0 (PN MountingHole_3.2mm_M3_DIN965_Pad))
+      (place C16 163258 -81470.5 front 270 (PN 100nf))
+      (place C3 91440 -84137.5 front 90 (PN 100nf))
+      (place C4 139700 -84074 front 90 (PN 100nf))
+      (place C7 91503.5 -118745 front 90 (PN 100nf))
+      (place C5 91503.5 -101473 front 90 (PN 100nf))
+      (place C9 91440 -136055 front 90 (PN 100nf))
+      (place C11 163258 -89408 front 270 (PN 100nf))
     )
     (component graphics:Shaka
-      (place G*** 153352 -97853.5 front 0 (PN LOGO))
+      (place G*** 207010 -92329 front 0 (PN LOGO))
     )
     (component "Oscillator:Oscillator_DIP-8"
-      (place X1 182118 -107696 front 90 (PN 4Mhz))
+      (place X1 149288 -82931 front 270 (PN 4Mhz))
     )
     (component "Connector_USB:USB_Micro-B_Amphenol_10118194_Horizontal"
-      (place J1 184023 -116586 front 90 (PN USB_B_Micro))
+      (place J1 184201 -123952 front 90 (PN USB_B_Micro))
     )
     (component Capacitor_THT:CP_Radial_D8.0mm_P3.80mm
-      (place C2 174752 -122428 front 180 (PN 470uF))
+      (place C2 180022 -116142 front 90 (PN 470uF))
     )
     (component Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm::1
-      (place C1 138303 -81280 front 270 (PN 100nf))
-      (place C6 139687 -136080 front 90 (PN 100nf))
-      (place C8 139700 -109538 front 90 (PN 100nf))
-      (place C10 139700 -122809 front 90 (PN 100nf))
+      (place C1 150749 -113284 front 90 (PN 100nf))
+      (place C8 139764 -118808 front 90 (PN 100nf))
+      (place C6 139700 -101473 front 90 (PN 100nf))
+      (place C10 139700 -136079 front 90 (PN 100nf))
       (place C12 163322 -43434 front 270 (PN 100nf))
       (place C13 137795 -43434 front 270 (PN 100nf))
       (place C14 112014 -43434 front 270 (PN 100nf))
-      (place C15 91440 -83820 front 90 (PN 100nf))
+      (place C15 150749 -100394 front 90 (PN 100nf))
     )
     (component LED_THT:LED_D3.0mm
-      (place D1 167386 -135636 front 180 (PN LED_ALT))
+      (place D1 172656 -135954 front 180 (PN LED_ALT))
     )
     (component Connector_PinSocket_2.54mm:PinSocket_2x16_P2.54mm_Vertical
-      (place J2 96520 -93726 front 90 (PN PORT0))
-      (place J3 96520 -120269 front 90 (PN PORT2))
+      (place J2 96520 -81597.5 front 90 (PN PORT0))
+      (place J3 96520 -116218 front 90 (PN PORT2))
     )
     (component Connector_PinSocket_2.54mm:PinSocket_2x16_P2.54mm_Vertical::1
-      (place J4 96520 -106998 front 90 (PN PORT1))
-      (place J5 96507.3 -133540 front 90 (PN PORT3))
+      (place J4 96520 -98907.5 front 90 (PN PORT1))
+      (place J5 96520 -133528 front 90 (PN PORT3))
     )
     (component Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal
-      (place R1 172466 -137414 front 90 (PN 330))
-      (place R2 163449 -76835 front 270 (PN 3K3))
+      (place R1 170370 -130429 front 90 (PN 330))
+      (place R2 163322 -60325 front 90 (PN 3K3))
     )
     (component Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal::1
-      (place R3 163449 -72263 front 90 (PN 3K3))
+      (place R3 163322 -73850.5 front 90 (PN 3K3))
     )
     (component Resistor_THT:R_Array_SIP9
-      (place RN1 160782 -115951 front 270 (PN 3K3))
+      (place RN1 165176 -135877 front 180 (PN 3K3))
     )
     (component "Package_TO_SOT_THT:TO-92"
-      (place U7 164719 -129159 front 0 (PN DS1813))
+      (place U7 174942 -126048 front 0 (PN DS1813))
     )
     (component "Package_DIP:DIP-24_W7.62mm_Socket"
-      (place U6 96393 -88900 front 90 (PN 22V10C))
+      (place U6 155702 -105474 front 90 (PN 22V10C))
     )
     (component Connector_PinHeader_2.54mm:PinHeader_2x08_P2.54mm_Vertical
-      (place J6 153797 -118491 front 0 (PN Conn_02x08_Odd_Even))
+      (place J6 162636 -128892 front 270 (PN Conn_02x08_Odd_Even))
     )
     (component Button_Switch_THT:SW_PUSH_6mm
       (place SW1 177546 -132207 front 0 (PN SW_Push_Dual))
     )
     (component "Package_DIP:DIP-40_W15.24mm_Socket"
-      (place U1 183769 -91821 front 180 (PN W65C02SxP))
+      (place U1 183452 -91821 front 180 (PN W65C02SxP))
     )
     (component "Package_DIP:DIP-28_W15.24mm_Socket"
       (place U2 143002 -43434 front 0 (PN "CY62256-70PC"))
@@ -120,7 +115,7 @@
       (place U4 91694 -43434 front 0 (PN 28C256))
     )
     (component "Package_DIP:DIP-14_W7.62mm_Socket"
-      (place U5 142875 -88900 front 90 (PN 74LS21))
+      (place U5 155638 -118491 front 90 (PN 74LS21))
     )
   )
   (library
@@ -139,23 +134,6 @@
       (outline (path signal 50  4000 1500  -1500 1500))
       (pin Round[A]Pad_1600_um 2 2500 0)
       (pin Round[A]Pad_1600_um 1 0 0)
-    )
-    (image MountingHole:MountingHole_3.2mm_M3_DIN965_Pad
-      (outline (path signal 150  2800 0  2718.64 -670.084  2479.28 -1301.22  2095.83 -1856.74
-            1590.58 -2304.36  992.894 -2618.05  337.503 -2779.59  -337.503 -2779.59
-            -992.894 -2618.05  -1590.58 -2304.36  -2095.83 -1856.74  -2479.28 -1301.22
-            -2718.64 -670.084  -2800 0  -2718.64 670.084  -2479.28 1301.22
-            -2095.83 1856.74  -1590.58 2304.36  -992.894 2618.05  -337.503 2779.59
-            337.503 2779.59  992.894 2618.05  1590.58 2304.36  2095.83 1856.74
-            2479.28 1301.22  2718.64 670.084  2800 0))
-      (outline (path signal 50  3050 0  2967.79 -703.378  2725.58 -1368.84  2336.44 -1960.5
-            1821.33 -2446.48  1208.04 -2800.56  529.627 -3003.66  -177.342 -3044.84
-            -874.75 -2921.87  -1525 -2641.38  -2093.04 -2218.49  -2548.24 -1676
-            -2866.06 -1043.16  -3029.38 -354.083  -3029.38 354.083  -2866.06 1043.16
-            -2548.24 1676  -2093.04 2218.49  -1525 2641.38  -874.75 2921.87
-            -177.342 3044.84  529.627 3003.66  1208.04 2800.56  1821.33 2446.48
-            2336.44 1960.5  2725.58 1368.84  2967.79 703.378  3050 0))
-      (pin Round[A]Pad_5600_um 1 0 0)
     )
     (image graphics:Shaka
     )
@@ -955,11 +933,6 @@
       (shape (circle B.Cu 2000))
       (attach off)
     )
-    (padstack Round[A]Pad_5600_um
-      (shape (circle F.Cu 5600))
-      (shape (circle B.Cu 5600))
-      (attach off)
-    )
     (padstack Oval[A]Pad_1600x1600_um
       (shape (path F.Cu 1600  0 0  0 0))
       (shape (path B.Cu 1600  0 0  0 0))
@@ -1015,13 +988,13 @@
   )
   (network
     (net GND
-      (pins C16-1 X1-4 J1-5 C2-2 C1-1 C3-1 C4-2 C5-1 C6-2 C7-1 C8-2 C9-1 C10-2 C11-2
+      (pins C16-1 X1-4 J1-5 C2-2 C1-1 C3-1 C4-2 C7-1 C8-2 C5-1 C6-2 C9-1 C10-2 C11-2
         C12-2 C13-2 C14-2 J2-3 J2-4 J2-31 J2-32 J3-3 J3-4 J3-31 J3-32 J4-32 J4-31
         J4-4 J4-3 J5-32 J5-31 J5-4 J5-3 R1-2 U7-3 U6-12 C15-1 SW1-2 SW1-2@1 U1-21
         U2-22 U2-14 U3-22 U3-14 U4-14 U4-22 U5-7)
     )
     (net +5V
-      (pins C16-2 X1-8 J1-1 C2-1 C1-2 C3-2 C4-1 C5-2 C6-1 C7-2 C8-1 C9-2 C10-1 C11-1
+      (pins C16-2 X1-8 J1-1 C2-1 C1-2 C3-2 C4-1 C7-2 C8-1 C5-2 C6-1 C9-2 C10-1 C11-1
         C12-1 C13-1 C14-1 J2-1 J2-2 J2-29 J2-30 J3-1 J3-2 J3-29 J3-30 J4-30 J4-29
         J4-2 J4-1 J5-30 J5-29 J5-2 J5-1 R2-2 R3-2 RN1-1 U7-2 U6-24 C15-2 U1-8 U1-38
         U2-28 U3-28 U4-28 U4-27 U5-14)
@@ -1233,9 +1206,9 @@
     (net "Net-(J1-Pad4)"
       (pins J1-4)
     )
-    (class kicad_default "" +5V /A0 /A1 /A10 /A11 /A12 /A13 /A14 /A15 /A2
-      /A3 /A4 /A5 /A6 /A7 /A8 /A9 /D0 /D1 /D2 /D3 /D4 /D5 /D6 /D7 CLK FUTURE0
-      FUTURE1 GND "Net-(D1-Pad1)" "Net-(J1-Pad4)" "Net-(J1-Pad6)" "Net-(J6-Pad10)"
+    (class kicad_default "" /A0 /A1 /A10 /A11 /A12 /A13 /A14 /A15 /A2 /A3
+      /A4 /A5 /A6 /A7 /A8 /A9 /D0 /D1 /D2 /D3 /D4 /D5 /D6 /D7 CLK FUTURE0
+      FUTURE1 "Net-(D1-Pad1)" "Net-(J1-Pad4)" "Net-(J1-Pad6)" "Net-(J6-Pad10)"
       "Net-(J6-Pad12)" "Net-(J6-Pad14)" "Net-(J6-Pad16)" "Net-(J6-Pad2)" "Net-(J6-Pad4)"
       "Net-(J6-Pad6)" "Net-(J6-Pad8)" "Net-(R2-Pad1)" "Net-(R3-Pad1)" "Net-(U1-Pad1)"
       "Net-(U1-Pad3)" "Net-(U1-Pad35)" "Net-(U1-Pad39)" "Net-(U1-Pad5)" "Net-(U1-Pad7)"
@@ -1251,12 +1224,12 @@
         (clearance 200.1)
       )
     )
-    (class Power
+    (class Power +5V GND
       (circuit
         (use_via Via[0-1]_800:400_um)
       )
       (rule
-        (width 250)
+        (width 300)
         (clearance 200.1)
       )
     )
