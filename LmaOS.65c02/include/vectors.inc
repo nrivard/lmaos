@@ -7,8 +7,8 @@ VECTORS_INC = 1
 
 .segment "VECTORS"
 
-.addr InterruptRouter ;; NMI (Non-maskable interrupt) vector
-.addr Main            ;; RESET vector
-.addr InterruptRouter ;; IRQ (Interrupt) vector
+.addr InterruptRouter       ;; NMI (Non-maskable interrupt) vector
+.addr Main                  ;; RESET vector
+.addr InterruptRouter       ;; IRQ (Interrupt) vector
 
 .endif

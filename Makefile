@@ -27,6 +27,10 @@ all:
 clean:
 	rm -f $(CLEAN_FILES)
 
+.PHONY: pad
+pad:
+	python padrom.py $(ROM_BIN)
+
 .PHONY: install
-install:
+install: pad
 	minipro -p AT28C256 -w $(ROM_BIN)
