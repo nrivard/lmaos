@@ -3,11 +3,12 @@
 ; Copyright Nate Rivard 2020
 
 .include "pseudoinstructions.inc"
+.include "strings.inc"
 .include "system.inc"
 .include "vectors.inc"
 .include "zeropage.inc"
 
-; .include "acia.asm"
+.include "acia.asm"
 .include "via.asm"
 .include "interrupt.asm"
 ; .include "monitaur.asm"
@@ -52,14 +53,14 @@ RamTest:
 
     ;;; initializes hardware
     JSR VIAInit
-;     JSR ACIAInit
+    JSR ACIAInit
 ;     JSR LCDInit
     
 ;     LDA #<LmaOSBootText
 ;     LDX #>LmaOSBootText
 ;     JSR LCDPrintString
     
-;     ;;; initializes the system clock @100Hz (10 msec)
+    ;;; initializes the system clock @100Hz (10 msec)
 @InitClock:
     LDA #ClockRateHz
     STA SystemClockJiffies
@@ -68,7 +69,7 @@ RamTest:
     JSR VIASetupSystemClock
 
 @SetupInterruptVector:
-;     ;;; copy system interrupt handler into the interrupt vector
+    ;;; copy system interrupt handler into the interrupt vector
     COPYADDR InterruptHandleSystemTimer, InterruptVector
 
     ;;; system clock is setup, turn on interrupts so they start firing
@@ -85,14 +86,24 @@ RamTest:
 ;     ;;; on startup, we jump into the monitor
 ;     JSR MonitorStart
 
-DumbLoop:
-    WAI
-    LDA SystemClockUptime
-    STA VIA_BASE+PORT_A
-    LDA #<SystemClockUptime
-    LDX #>SystemClockUptime
-    JSR DebugPrint
-    BRA DumbLoop
+ACIATest:
+    JSR ACIAGetByte                 ; just wait for connection and throw away what we receive
+    LDA #(ASCII_CARRIAGE_RETURN)
+    JSR ACIASendByte
+@TestLoop:
+    JSR ACIAGetByte
+    JSR ACIASendByte                ; echo
+    STA N8BUS_PORT3                 ; send byte to arduino
+    STZ N8BUS_PORT3                 ; 0 for high byte to arduino
+    LDA #(ASCII_CARRIAGE_RETURN)
+    JSR ACIASendByte
+    LDX #0
+@PrintLoop:
+    LDA Huh, X
+    BEQ ACIATest
+    JSR ACIASendByte
+    INX
+    BRA @PrintLoop
 
 ; prints the 16 bit value to n8 bus port 3 at passed in pointer
 ; A: low byte of pointer
@@ -112,7 +123,8 @@ DebugPrint:
     PLY
     RTS
 
-; .segment "RODATA"
+.segment "RODATA"
 
+Huh: .asciiz "Huh?"
 ; LmaOSBootText: .asciiz "Booting up..."
 ; LmaOSBootDone: .asciiz "Done."

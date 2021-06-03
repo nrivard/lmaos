@@ -1,8 +1,8 @@
 Modules list:
 -------------
 main.o:
-    CODE              Offs=000000  Size=0000BA  Align=00001  Fill=0000
-    RODATA            Offs=000000  Size=000000  Align=00001  Fill=0000
+    CODE              Offs=000000  Size=000108  Align=00001  Fill=0000
+    RODATA            Offs=000000  Size=000005  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
     ZEROPAGE          Offs=000000  Size=000017  Align=00001  Fill=0000
@@ -18,59 +18,64 @@ NULL                  000000  000000  000000  00001
 ZEROPAGE              000000  000016  000017  00001
 BSS                   000200  000200  000000  00001
 DATA                  000200  000200  000000  00001
-CODE                  00C000  00C0B9  0000BA  00001
-RODATA                00C0BA  00C0BA  000000  00001
+CODE                  00C000  00C107  000108  00001
+RODATA                00C108  00C10C  000005  00001
 VECTORS               00FFFA  00FFFF  000006  00001
 
 
 Exports list by name:
 ---------------------
-InterruptHandleSystemTimer 00C02C  LA    InterruptRouter           00C029  LA    
-InterruptVector           000015  LZ    SystemClockJiffies        000010  LZ    
-SystemClockUptime         000011  LZ    SystemRAMCapacity         000013  LZ    
-__BSS_LOAD__              000200  LA    __BSS_RUN__               000200  LA    
-__BSS_SIZE__              000000  EA    __DATA_LOAD__             00C000  LA    
-__DATA_RUN__              000200  LA    __DATA_SIZE__             000000  EA    
-__IO_FILEOFFS__           000000  EA    __IO_LAST__               00BF00  LA    
-__IO_SIZE__               000100  EA    __IO_START__              00BF00  LA    
-__RAM_FILEOFFS__          000000  EA    __RAM_LAST__              000200  LA    
-__RAM_SIZE__              00BD00  EA    __RAM_START__             000200  LA    
-__STACK_FILEOFFS__        000000  EA    __STACK_LAST__            000100  LA    
-__STACK_SIZE__            000100  EA    __STACK_START__           000100  LA    
-__ZEROPAGE_FILEOFFS__     000000  EA    __ZEROPAGE_LAST__         000017  LA    
-__ZEROPAGE_SIZE__         000100  EA    __ZEROPAGE_START__        000000  LA    
-r0                        000000  LZ    r1                        000002  LZ    
-r2                        000004  LZ    r3                        000006  LZ    
-r4                        000008  LZ    r5                        00000A  LZ    
-r6                        00000C  LZ    r7                        00000E  LZ    
-
+ACIAGetByte               00C00B  LA    ACIASendByte              00C016  LA    
+ACIASendString            00C023  LA    InterruptHandleSystemTimer 00C060  LA    
+InterruptRouter           00C05D  LA    InterruptVector           000015  LZ    
+SystemClockJiffies        000010  LZ    SystemClockUptime         000011  LZ    
+SystemRAMCapacity         000013  LZ    __BSS_LOAD__              000200  LA    
+__BSS_RUN__               000200  LA    __BSS_SIZE__              000000  EA    
+__DATA_LOAD__             00C000  LA    __DATA_RUN__              000200  LA    
+__DATA_SIZE__             000000  EA    __IO_FILEOFFS__           000000  EA    
+__IO_LAST__               00BF00  LA    __IO_SIZE__               000100  EA    
+__IO_START__              00BF00  LA    __RAM_FILEOFFS__          000000  EA    
+__RAM_LAST__              000200  LA    __RAM_SIZE__              00BD00  EA    
+__RAM_START__             000200  LA    __STACK_FILEOFFS__        000000  EA    
+__STACK_LAST__            000100  LA    __STACK_SIZE__            000100  EA    
+__STACK_START__           000100  LA    __ZEROPAGE_FILEOFFS__     000000  EA    
+__ZEROPAGE_LAST__         000017  LA    __ZEROPAGE_SIZE__         000100  EA    
+__ZEROPAGE_START__        000000  LA    r0                        000000  LZ    
+r1                        000002  LZ    r2                        000004  LZ    
+r3                        000006  LZ    r4                        000008  LZ    
+r5                        00000A  LZ    r6                        00000C  LZ    
+r7                        00000E  LZ    
 
 
 Exports list by value:
 ----------------------
-__BSS_SIZE__              000000  EA    __DATA_SIZE__             000000  EA    
-r0                        000000  LZ    __ZEROPAGE_START__        000000  LA    
+__IO_FILEOFFS__           000000  EA    __ZEROPAGE_START__        000000  LA    
 __ZEROPAGE_FILEOFFS__     000000  EA    __STACK_FILEOFFS__        000000  EA    
-__RAM_FILEOFFS__          000000  EA    __IO_FILEOFFS__           000000  EA    
+__BSS_SIZE__              000000  EA    __RAM_FILEOFFS__          000000  EA    
+__DATA_SIZE__             000000  EA    r0                        000000  LZ    
 r1                        000002  LZ    r2                        000004  LZ    
 r3                        000006  LZ    r4                        000008  LZ    
 r5                        00000A  LZ    r6                        00000C  LZ    
 r7                        00000E  LZ    SystemClockJiffies        000010  LZ    
 SystemClockUptime         000011  LZ    SystemRAMCapacity         000013  LZ    
 InterruptVector           000015  LZ    __ZEROPAGE_LAST__         000017  LA    
+__STACK_LAST__            000100  LA    __STACK_START__           000100  LA    
 __ZEROPAGE_SIZE__         000100  EA    __IO_SIZE__               000100  EA    
-__STACK_SIZE__            000100  EA    __STACK_START__           000100  LA    
-__STACK_LAST__            000100  LA    __BSS_RUN__               000200  LA    
-__RAM_START__             000200  LA    __DATA_RUN__              000200  LA    
-__BSS_LOAD__              000200  LA    __RAM_LAST__              000200  LA    
+__STACK_SIZE__            000100  EA    __DATA_RUN__              000200  LA    
+__RAM_LAST__              000200  LA    __RAM_START__             000200  LA    
+__BSS_RUN__               000200  LA    __BSS_LOAD__              000200  LA    
 __RAM_SIZE__              00BD00  EA    __IO_START__              00BF00  LA    
 __IO_LAST__               00BF00  LA    __DATA_LOAD__             00C000  LA    
-InterruptRouter           00C029  LA    InterruptHandleSystemTimer 00C02C  LA    
-
+ACIAGetByte               00C00B  LA    ACIASendByte              00C016  LA    
+ACIASendString            00C023  LA    InterruptRouter           00C05D  LA    
+InterruptHandleSystemTimer 00C060  LA    
 
 
 Imports list:
 -------------
+ACIAGetByte (main.o):
+ACIASendByte (main.o):
+ACIASendString (main.o):
 InterruptHandleSystemTimer (main.o):
 InterruptRouter (main.o):
 InterruptVector (main.o):
