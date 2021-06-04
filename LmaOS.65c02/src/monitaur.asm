@@ -13,7 +13,6 @@ MONITAUR_ASM = 1
 
 MonitorStart:
 @FlushLine:
-    INC VIA1_PORT_B
     JSR ACIAGetByte
     LDA #(ASCII_CARRIAGE_RETURN)
     JSR ACIASendByte
@@ -80,6 +79,7 @@ MonitorTokenizeCommandBuffer:
     BRA @WritePointerToRegister
 @Done:
     STZ MonitorCommandBuffer, X
+    DUMP MonitorCommandBuffer, 11           ; send raw command buffer tokens
     RTS
 
 MonitorProcessCommand:

@@ -6,15 +6,15 @@
 .ifndef MONITAUR_INC
 MONITAUR_INC = 1
 
+.export MonitorCommandBuffer
+
 .bss
 
 ; the current command buffer. terminated by carriage return
 MonitorCommandBuffer: .res $80 
 
 .macro DUMP addr, length
-.local @Loop
-.local @Send
-.local @SendASCII
+.scope
     PHA
     PHY
 	LDY #0
@@ -36,6 +36,7 @@ MonitorCommandBuffer: .res $80
 	JSR ACIASendByte
     PLY
     PLA
+.endscope
 .endmacro
 
 .endif

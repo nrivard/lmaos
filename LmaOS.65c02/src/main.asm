@@ -11,7 +11,7 @@
 .include "acia.asm"
 .include "via.asm"
 .include "interrupt.asm"
-; .include "monitaur.asm"
+.include "monitaur.asm"
 ; .include "lcd1602.asm"
 
 .code
@@ -82,46 +82,9 @@ RamTest:
 ;     LDX #>LmaOSBootDone
 ;     JSR LCDPrintString
     
-; StartMonitor:
-;     ;;; on startup, we jump into the monitor
-;     JSR MonitorStart
-
-ACIATest:
-    JSR ACIAGetByte                 ; just wait for connection and throw away what we receive
-    LDA #(ASCII_CARRIAGE_RETURN)
-    JSR ACIASendByte
-@TestLoop:
-    JSR ACIAGetByte
-    JSR ACIASendByte                ; echo
-    STA N8BUS_PORT3                 ; send byte to arduino
-    STZ N8BUS_PORT3                 ; 0 for high byte to arduino
-    LDA #(ASCII_CARRIAGE_RETURN)
-    JSR ACIASendByte
-    LDX #0
-@PrintLoop:
-    LDA Huh, X
-    BEQ ACIATest
-    JSR ACIASendByte
-    INX
-    BRA @PrintLoop
-
-; prints the 16 bit value to n8 bus port 3 at passed in pointer
-; A: low byte of pointer
-; X: high byte of pointer
-DebugPrint:
-    PHY
-    STA r0
-    STX r0 + 1
-@Print:
-    LDY #0
-    LDA (r0), Y
-    STA N8BUS_PORT3
-    INY
-    LDA (r0), Y
-    STA N8BUS_PORT3
-@Done:
-    PLY
-    RTS
+StartMonitor:
+    ;;; on startup, we jump into the monitor
+    JSR MonitorStart
 
 .segment "RODATA"
 

@@ -6,7 +6,7 @@
 SYSTEM_INC = 1
 
 ; microprocessor clock speed
-MpuRateHz := 75000 ; DEBUG: dropped to 75kz for now
+MpuRateHz := 1843200
 
 ; system uptime interrupt rate
 ClockRateHz := 100
