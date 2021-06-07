@@ -6,15 +6,21 @@
 .ifndef MONITAUR_INC
 MONITAUR_INC = 1
 
+.exportzp MonitorCommandDebugTokens
 .export MonitorCommandBuffer
+
+.zeropage
+
+; if this is non-zero, send tokenized buffer back to client
+MonitorCommandDebugTokens: .res $01
 
 .bss
 
 ; the current command buffer. terminated by carriage return
-MonitorCommandBuffer: .res $80 
+MonitorCommandBuffer: .res $80
 
 .macro DUMP addr, length
-.scope
+.local @Loop, @SendASCII, @Done
     PHA
     PHY
 	LDY #0
@@ -31,12 +37,11 @@ MonitorCommandBuffer: .res $80
 	INY
 	CPY #(length)
 	BNE @Loop
-@Send:
+@Done:
 	LDA #(ASCII_CARRIAGE_RETURN)
 	JSR ACIASendByte
     PLY
     PLA
-.endscope
 .endmacro
 
 .endif

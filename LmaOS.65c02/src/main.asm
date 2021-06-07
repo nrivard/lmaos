@@ -20,12 +20,6 @@ Main:
     LDX #$FF
     TXS
 
-; debug
-    COPYADDR 0, r0
-    LDA #<r0
-    LDX #>r0
-    JSR DebugPrint
-
 ; do NOT JSR to this routine, it overwrites _all_ of RAM to test it, including the stack
 RamTestPointer := r0
 RamTest:
@@ -45,11 +39,6 @@ RamTest:
     STA SystemRAMCapacity
     LDA RamTestPointer + 1
     STA SystemRAMCapacity + 1
-
-; debug
-    LDA #<SystemRAMCapacity
-    LDX #>SystemRAMCapacity
-    JSR DebugPrint
 
     ;;; initializes hardware
     JSR VIAInit
