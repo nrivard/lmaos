@@ -10,7 +10,7 @@
 ;
 ; NOTE 2: this is not imported _anywhere_. It is for your external program use _only_!
 ; copy and paste this into your project (along with any other relevant `.inc` files for system defined consts)
-; so you can JSR into these routines. See the relevant `.asm` file for preconditions on calling them.
+; so you can JSR into these routines. See the relevant `.asm` file for preconditions and calling conventions.
 
 .ifndef LMAOS_INC
 LMAOS_INC = 1
@@ -32,29 +32,29 @@ InterruptHandler   := $13
 InterruptRouter    := $808B
 
 ; ACIA
-ACIAGetByte        := $8041
-ACIASendByte       := $804C
-ACIASendString     := $8059
+ACIAGetByte        := $C00B
+ACIASendByte       := $C016
+ACIASendString     := $C023
 
 ; LCD
-LCDInit            := $848A
-LCDMoveCursor      := $84A1
-LCDPollBusy        := $84C3
-LCDPrintString     := $84A9
-LCDSendByte        := $84BC
-LCDSendInstruction := $84C9
-LCDSendBlock       := $84D0
+; LCDInit            := $848A
+; LCDMoveCursor      := $84A1
+; LCDPollBusy        := $84C3
+; LCDPrintString     := $84A9
+; LCDSendByte        := $84BC
+; LCDSendInstruction := $84C9
+; LCDSendBlock       := $84D0
 
 ; XModem
-XModemReceive      := $82F6
+XModemReceive      := $C2F3
 
 ; Strings
-StringLength       := $8241
-StringCompareN     := $824C
-StringCompare      := $825C
-StringCopy         := $8281
-NibbleToHexString  := $82EB
-ByteToHexString    := $82DA
-HexStringToWord    := $828E
+StringLength       := $C23E
+StringCompareN     := $C249
+StringCompare      := $C259
+StringCopy         := $C27E
+NibbleToHexString  := $C2E8
+ByteToHexString    := $C2D7
+HexStringToWord    := $C28B
 
 .endif

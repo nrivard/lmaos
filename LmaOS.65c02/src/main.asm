@@ -12,7 +12,7 @@
 .include "via.asm"
 .include "interrupt.asm"
 .include "monitaur.asm"
-; .include "lcd1602.asm"
+.include "lcd1602.asm"
 
 .code
 
@@ -77,6 +77,5 @@ StartMonitor:
 
 .segment "RODATA"
 
-Huh: .asciiz "Huh?"
 ; LmaOSBootText: .asciiz "Booting up..."
 ; LmaOSBootDone: .asciiz "Done."
