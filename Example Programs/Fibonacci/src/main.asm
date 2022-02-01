@@ -63,11 +63,13 @@ Done:
 
 ; byte to print in A
 PrintByte:
+    PHA
     JSR ByteToHexString
     LDA r7
-    ; JSR ACIASendByte
+    JSR ACIASendByte
     LDA r7 + 1
-    ; JSR ACIASendByte
+    JSR ACIASendByte
+    PLA
     RTS
 
 StartMessage: .asciiz "The Fibonacci sequence (in 16-bits)\r"

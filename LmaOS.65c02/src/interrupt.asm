@@ -9,7 +9,7 @@
 ;;; interrupt router. It's sole function is to jump to the address
 ;;; contained in `InterruptVector`. If you change this value, you need to either:
 ;;; • `JMP` to `InterruptHandleSystemTimer` from your custom interrupt handler which 
-;;;    will make the `RTI` call
+;;;   will make the `RTI` call
 ;;; • Call `RTI` yourself if you handled the interrupt
 InterruptRouter:
     JMP (InterruptVector)
