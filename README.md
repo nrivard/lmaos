@@ -258,7 +258,10 @@ Transmission successful.
 If you need to execute system provided (ROM) subroutines, copy `lmaos.inc` into your project.
 This file is not actually used by LmaOS; instead it is just a listing of the addresses of externally available system functionality.
 
-_Note: as of this writing, the addresses listed in`lmaos.inc` are very volatile from version to version. If you update your system ROM to a later version, this listing is likely different and you will have to recopy the include file and reassemble your program(s)._
+`lmaos.inc` is generated each time you run `make` on LmaOS.
+This means you will have to copy this file to your program's project and reassemble each time you update your system's ROM.
+You can also directly `include` this file (and all the other system utitilies) as the example programs do in this repo.
+See the `Makefile` of the examples for how to do this.
 
 ```asm
 .org $0400
