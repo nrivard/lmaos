@@ -309,7 +309,7 @@ A couple notes about this handler:
 Next, you will need to overwrite `InterruptVector`:
 
 ```asm
-@InjectInterrupt:
+InjectInterrupt:
     SEI                                 ; turn off interrupts as we don't want one firing as we overwrite the value
     LDA #<CustomInterruptHandler
     STA InterruptVector
