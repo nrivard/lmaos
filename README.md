@@ -229,7 +229,7 @@ If you never need to return to Monitaur, don't worry about it!
 
 _Note: When you transfer your program, the transfer location must match the origin!_
 
-Here's a very simple uploaded program that will write an alternating pattern to the VIA's 2 I/O ports:
+Here's a very simple program that will write an alternating pattern to the VIA's 2 I/O ports:
 
 ```asm
 .org $0400
@@ -286,43 +286,60 @@ WelcomeMsg: .asciiz "Welcome to LmaOS!"
 
 If you add new hardware support or want to piggyback on the system timer interrupt, LmaOS provides a way to inject your own interrupt handlers.
 
-First, write your own custom interrupt handler:
+First, you will need to overwrite `InterruptVector` (we will write `CustomInterrupt` in the next step):
+
+```asm
+SystemInterrupt: .res 2                         ; we'll store the original vector here
+
+InjectInterrupt:
+    SEI                                         ; turn off interrupts. we don't want them firing when we overwrite this
+    COPY16 InterruptVector, SystemInterrupt     ; store original vector
+    COPYADDR CustomInterrupt, InterruptVector   ; inject our interrupt
+    CLI                                         ; turn interrupts back on
+```
+
+A couple notes about injecting your subroutine:
+
+* as noted in the code, make sure you turn _off_ interrupts before overwriting this value, otherwise you could jump to a random part of memory if an interrupt occurs in the middle of this operation
+* be sure to store the value of the current system interrupt handler.
+You never know who is actually invoking your program and they may have set up their own custom handler.
+* when you're done, turn interrupts back _on_.
+
+Next, write your custom interrupt handler:
 
 ```asm
 CustomInterruptHandler:
-    BIT N8BUST_PORT_1                   ; test my custom hardware to see if this interrupt is intended for me :)
-    BPL @Unhandled
+    BIT N8BUS_PORT_1                   ; test our custom hardware to see if this interrupt is intended for us :)
+    BPL @Unhandled                     ; in this scenario highest-order bit set means we should handle it
 @HandleInterrupt:
     PHA
     PHX
-    ;; now do my work as quickly as possible!
+    ;; now do our work as quickly as possible!
     PLX
     PLA
-    RTI
+    RTI                                ; return directly. if other interrupts are present they'll get handled :)
 @Unhandled:
-    JMP InterruptHandlerSystemTimer     ; let the system handle it
+    JMP (SystemInterrupt)              ; let the system handle it
 ```
 
 A couple notes about this handler:
 
-* if you have fully handled the interrupt, call `RTI`. Even if there is a system timer event at the same time, it will re-raise the interrupt.
-* if you didn't handle the interrupt (because your hardware didn't raise it, for example), `JMP` to `InterruptHandleSystemTimer`, the declared system interrupt handler. That will call `RTI` for you when it's finished.
-* Be a good system citizen! Be as fast as you can and preserve any register values before either calling `RTI` or jumping to the system interrupt handler.
+* if you have fully handled the interrupt, call `RTI`.
+Even if there is a system timer event at the same time, it will re-raise the interrupt.
+* if you didn't handle the interrupt (because your hardware didn't raise it, for example), `JMP` to `InterruptHandleSystemTimer`, the declared system interrupt handler.
+That will call `RTI` for you when it's finished.
+* Be a good system citizen!
+Be as fast as you can and preserve any register values before either calling `RTI` or jumping to the system interrupt handler.
 
-Next, you will need to overwrite `InterruptVector`:
+When your program is done and you want to return to Monitaur, you need to set the interrupt back to its original value.
+Like before, make sure you're only editing the system's interrupt handler when interrupts are _off_.
 
 ```asm
-InjectInterrupt:
-    SEI                                 ; turn off interrupts as we don't want one firing as we overwrite the value
-    LDA #<CustomInterruptHandler
-    STA InterruptVector
-    LDA #>CustomInterruptHandler
-    STA InterruptVector + 1
-    CLI                                 ; turn interrupts back on
+RestoreInterrupt:
+    SEI
+    COPY16 SystemInterrupt, InterruptVector
+    CLI
 ```
-
-As noted in the code, make sure you turn _off_ interrupts before overwriting this value, otherwise you could jump to a random part of memory if an interrupt occurs in the middle of this operation.
-Then when you're done, turn interrupts back _on_.
 
 ## Future Support
 
