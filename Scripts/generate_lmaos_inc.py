@@ -35,14 +35,18 @@ def is_export_by_value(string):
 def tokenize_export_list(string):
     tokens = string.split()
 
-    if len(tokens) != 6:
+    num_tokens = len(tokens)
+    if num_tokens != 3 and num_tokens != 6:
         return None
 
     exports = []
 
     # 2 sets of 3 args here: name, address, and a 2 letter type
     first = ExportedSymbol.create_valid_export(tokens[0], tokens[1], tokens[2])
-    second = ExportedSymbol.create_valid_export(tokens[3], tokens[4], tokens[5])
+
+    second = None
+    if num_tokens == 6:
+        second = ExportedSymbol.create_valid_export(tokens[3], tokens[4], tokens[5])
 
     return filter(None, [first, second])
 
