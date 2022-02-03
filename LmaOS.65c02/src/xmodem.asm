@@ -19,19 +19,15 @@ XMODEM_ASM = 1
 ;
 ; Returns:
 ; Carry: clear if successful, set if canceled
-;
-; Uses:
-; r0: destination address
-; r1: time out
 XModemReceive:
-    STA r0                              ; set destination address
-    STX r0 + 1
+    STA XModemDestinationAddress        ; set destination address
+    STX XModemDestinationAddress + 1
     LDA #1
     STA XModemPacketNumberExpected      ; packet number, starting with 1 (packet numbers are 1 byte)
 @SendMode:
     JSR XModemSendNACK                  ; send a NACK to inform transmitter we're in checksum mode and ready
     LDA SystemClockUptime               ; copy lowest byte of uptime as timeout check
-    STA r1
+    STA XModemTimeout
 @WaitForFirstPacket:
     LDA ACIA_STATUS
     BIT #(ACIA_STATUS_MASK_RDR_FULL)    ; have we received anything?
@@ -39,7 +35,7 @@ XModemReceive:
 @CheckTimeout:
     LDA SystemClockUptime
     SEC
-    SBC r1
+    SBC XModemTimeout
     CMP #(XMODEM_TIMEOUT)               ; check for 3 second timeout
     BMI @WaitForFirstPacket
     BRA @SendMode                       ; timed-out. resend NACK
@@ -94,12 +90,12 @@ XModemReceive:
 @WritePacketLoop:
     LDA XModemPacketData, X
     INX
-    STA (r0), Y
+    STA (XModemDestinationAddress), Y
     INY
     CPY #(XMODEM_DATA_LENGTH)
     BNE @WritePacketLoop
 @AdvanceDestinationPointer:
-    ADD16 r0, XMODEM_DATA_LENGTH        ; advance destination pointer by data size
+    ADD16 XModemDestinationAddress, XMODEM_DATA_LENGTH        ; advance destination pointer by data size
     INC XModemPacketNumberExpected      ; increment expected packet number
 @SendAck:
     JSR XModemSendACK

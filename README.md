@@ -1,17 +1,21 @@
 # LmaOS
 
-LmaOS is a 65C02 system kernal for the n8 Bit Special Computer, a homebrew breadboard computer.
+LmaOS is a 65C02 system kernal designed primarily for the n8 Bit Microcomputer, a homebrew computer.
+If you are looking for the hardware this is designed to run on, check out the [n8 Bit Microcomputer](https://github.com/nrivard/n8-bit).
 
 ## Getting Started
 
 To build LmaOS, you will need `make` and the [CC65 suite](https://cc65.github.io) or my unreleased 65C02 IDE for macOS, System On Chip (how did you get this? It's unreleased!)
+
+From the root directory, run `make`:
 
 ```bash
 $ make
 /usr/local/bin/cl65 -t none -C LmaOS.65c02/memorymap.cfg --asm-include-dir LmaOS.65c02/include -l lmaos.rom.listing -vm --mapfile lmaos.rom.map --cpu 65C02 -o ./lmaos.rom  LmaOS.65c02/src/main.asm
 ```
 
-To install LmaOS on an EEPROM for use in your n8 Bit Special Computer, you will need [minipro](https://gitlab.com/DavidGriffith/minipro) and a TL866II Plus programmer.
+To install LmaOS on an EEPROM for use in your n8 Bit Microcomputer, you will need [minipro](https://gitlab.com/DavidGriffith/minipro) and a TL866II Plus programmer.
+Again, from the root directory, run `make install`:
 
 ```bash
 $ make install
@@ -23,54 +27,10 @@ Writing Code...  6.78Sec  OK
 Reading Code...  0.48Sec  OK
 ```
 
-## Hardware Support
-
-The n8 Bit Special computer is a homebrew breadboard computer built around a WDC 65C02 8 bit CPU operating at 2Mhz.
-This is connected to:
-
-* Atmel AT28C256 for 32K of ROM
-* Cypress CY62256NL for 32K of RAM
-* WDC 65C22 VIA for system timer and GPIO
-* Rockwell 65C51 for RS232 @ 19200 baud, 8.N.1 (8 bit, no parity, 1 stop bit) for serial communication
-* GAL22V10 for address decoding and multi-device interrupt handling
-* DS1813 for reset circuitry
-* FT232 breakout board to connect to an external system via USB
-
-<img src="n8bit.png" alt="n8 bit special computer" width="300"/>
-
-### Memory Layout
-
-<img src="n8bitmemorylayout.png" alt="n8 bit memory layout graph" height="400"/>
-
-The n8 Bit Special computer has the following memory layout:
-
-| Device | Address Range |
-|--------|---------------|
-| Zero Page | `$0000...$00FF` |
-| Stack | `$0100...$01FF` |
-| RAM | `$0200...$7EFF` |
-| VIA 1 | `$7F00...$7F3F` |
-| VIA 2 | `$7F40...$7F7F` |
-| ACIA | `$7F80...$7FBF` |
-| Display | `$7FC0...$7FFF` |
-| ROM | `$8000...$FFFF` |
-
-You will notice that each I/O device gets exactly `$40` addresses, starting at `$7F00`, though your device likely won't need nearly this many. For example, the 1602a based LCD display uses 2 addresses while the VIA uses 16.
-
-### Expansion
-
-Most of the hardware is set for the system: CPU, RAM, ROM, VIA 1 (for interfacing with an SD card interface and possibly keyboard input), ACIA, and some kind of display. At present, the address decoder has carved out another I/O device for a 2nd VIA. This should be considered an additional I/O slot that can be used for whatever you want.
-
-In addition, the address decoder can process interrupts from up to 4 devices. VIA 1 and the ACIA currently use 2 of these, but a 2nd I/O device and your display can also generate interrupts. This will require changing LmaOS to provide a writable vectored interrupt handler, after which it is up to your software to determine how to respond to events from these new devices.
-
-## Software Support
-
-LmaOS is a small kernal that provides a system monitor, software support for the ACIA and VIA, interrupts, and some system library utilities.
-
-### Conventions
+## Conventions
 
 LmaOS has a few conventions to consider.
-First, LmaOS uses 16 bit pseudo-registers for passing data between system subroutines: `r0` through `r7` (see `registers.inc`.)
+First, LmaOS uses 16 bit pseudo-registers for passing data between system subroutines: `r0` through `r7` (see `zeropage.inc`.)
 These registers should be considered volatile and if you use them in your program and call system functions, they could be mutated.
 
 Second, register values at this time should _also_ be considered volatile (with the exception of interrupt handling) so if you care about these values, push them onto the stack or store them elsewhere before calling system routines.
@@ -99,7 +59,72 @@ RandomSubroutine:
     RTS
 ```
 
-### Monitaur
+## Hardware Support
+
+LmaOS was written primarily for the n8 Bit Microcomputer but likely needs customization, which could make it suitable for other designs as well.
+
+### System Globals
+
+System globals that are used throughout LmaOS are declared in `system.inc`.
+This includes the system clock speed constant (needed for precise timing) and declarations for the n8 Bus ports` addresses.
+These follow the default memory mapping of the n8 Bit Microcomputer but you can customize them here if you changed that.
+
+Normally, there should be no need to customize the system uptime interrupt interval unless you need higher accuracy, the routine is taking too much time for your uses, or you want to use it instead as more of a VSYNC timer for consistent frames.
+
+### Zeropage
+
+LmaOS has carved out some of zeropage for particular uses.
+This includes the pseudo-registers (which are also for your program use), system uptime, the global interrupt vector, and more.
+See `zeropage.inc` for details on what is used and what is available for your own program use.
+
+### Expansion Ports
+
+When you add, remove, or change the order of your installed expansion cards (or your system doesn't have any), you will have to recompile LmaOS.
+
+First you will have to update the base address for system utilities to work.
+For example, if you've installed a VIA, in `via.inc` you'll want `VIA_BASE` to point to the correct base memory address.
+If you're using a n8 Bit Micrcomputer, you can just use the global n8 Bus port constant:
+
+```asm
+VIA_BASE := N8BUS_PORT2
+```
+
+There is system support for an ACIA, VIA, and 1602 style LCDs.
+If you are using different hardware for these, you may be able to just adapt what is provided for your purposes.
+
+## System utilities
+
+LmaOS provides some system support for the ACIA, VIA, and 1602 style LCDS as well as some built-in strings utilities.
+
+### VIA
+
+The VIA provides system timer support from Timer 1.
+If you want to take advantage of system uptime and jiffies, do not use Timer 1 and do not disable interrupts.
+By default, both I/O ports are configured for output.
+See `via.inc` and `via.asm` for more details.
+
+### ACIA
+
+Basic ACIA functions are provided: `ACIAGetByte`, `ACIASendByte`, and `ACIASendString`.
+All of these routines are synchronous, meaning they could lock up the system if there is no response from a connected system.
+A fully working interrupt driven ACIA implementation was written if you want to comb the commit history but it was way too complicated for realworld use.
+See `acia.inc` and `acia.asm` for more details.
+
+The XModem receive subroutine used by Monitaur's `tx` command is provided for program use as well: `XModemReceive`.
+See `xmodem.inc` and `xmodem.asm` for more details.
+
+### Strings
+
+Some C lib like string utilities are provided including: `StringLength`, `StringCompareN`, `StringCompare`, `StringCopy`, `HexStringToWord`, `ByteToHexString`, and `NibbleToHexString`. See `strings.asm` for more details.
+
+### Pseudoinstructions
+
+Pseudoinstructions are provided via macros.
+These can simplify common but rote tasks and make your code more readable but be careful when you use them.
+They may not always do what you think they do!
+You can discover them in `pseudoinstructions.inc`.
+
+## Monitaur
 
 At bootup, LmaOS boots into its monitor, called Monitaur. 
 Monitaur provides 4 basic commands: `rd`, `wr`, `tx`, and `ex`.
@@ -109,7 +134,7 @@ Where noted, a `word` is 16 bits and a `byte` is 8 bits.
 In general, Monitaur parses all values as a word but a command may ignore the upper nibble if it expects a byte.
 See `monitaur.inc` and `monitaur.asm` for more details.
 
-#### Reading memory
+### Reading memory
 
 The `rd` command allows you to read system memory. You provide an address (word) and, optionally, a length (byte).
 
@@ -150,7 +175,7 @@ B5 36 FA A8 66 9D B5 91 FF FA 8B B7 FF BF D3 39
 FF 13 BE F9 EF FA FF EE ED 27 67 E0 5F BD 11 83
 ```
 
-#### Writing memory
+### Writing memory
 
 The `wr` command allows you to write to system memory (provided it is writeable!)
 You provide an address (word) and a value (byte) to be written.
@@ -163,9 +188,9 @@ Values can only be written 1 at a time through this command.
 There is no feedback if a write fails because you tried to write to an address that is read-only (like ROM).
 If you need to know if your `wr` succeeded, send a `rd` command with the address and verify the value.
 
-#### Transferring data
+### Transferring data
 
-The `tx` command allows you to transfer data from the connected system to the n8 Bit Special Computer.
+The `tx` command allows you to transfer data from the connected system to the n8 Bit Microcomputer.
 You provide an address (word) to start writing the data.
 
 ```
@@ -177,7 +202,7 @@ When prompted, your connected system can send a file via the XModem Checksum (no
 When the transfer is completed or canceled, you will be returned to Monitaur.
 The `tx` command will write _all_ data sent, including EOF padding (`$1A` from the serial app I use), it makes no attempt to discover the true EOF.
 
-#### Executing programs
+### Executing programs
 
 The `ex` command executes code starting at the provided address (word).
 
@@ -191,50 +216,29 @@ When your program is done executing, calling `RTS` will return you to Monitaur.
 
 _Note: You should always start writing your program after address $0400, as there are two `$80` length buffers needed by Monitaur (for command storage) and `tx` (for packet storage) as well as some other bookkeeping when transferring data._
 
-### System utilities
-
-LmaOS provides some system support for the ACIA and the VIA as well as some built-in strings utilities.
-
-#### VIA
-
-The VIA provides system timer support from Timer 1. 
-If you want to take advantage of system uptime and jiffies, do not use Timer 1 and do not disable interrupts. 
-At this time, GPIO is connected to 2 8-bit LED banks, providing a full 16 bits of information!
-In the future, VIA1 will be entirely dedicated to system tasks and a second VIA will be provided for program use.
-See `via.inc` and `via.asm` for more details.
-
-#### ACIA
-
-Basic ACIA functions are provided: `ACIAGetByte`, `ACIASendByte`, and `ACIASendString`.
-All of these routines are synchronous, meaning they could lock up the system if there is no response from a connected system.
-A fully working interrupt driven ACIA implementation was written if you want to comb the commit history but it was way too complicated for realworld use.
-See `acia.inc` and `acia.asm` for more details.
-
-The XModem receive subroutine used by `tx` is provided for program use as well: `XModemReceive`.
-See `xmodem.inc` and `xmodem.asm` for more details.
-
-#### Strings
-
-Some C lib like string utilities are provided including: `StringLength`, `StringCompareN`, `StringCompare`, `StringCopy`, `HexStringToWord`, `ByteToHexString`, and `NibbleToHexString`. See `strings.asm` for more details.
-
 ## Writing Programs
 
-To write programs for the n8 Bit Special Computer (and LmaOS), copy any of the relevant include (`.inc`) files for your use.
+The point of the n8 Bit Microcomputer and LmaOS is to write programs and see them come to life!
+Take a look at the following guidelines and the included example programs.
+
+### The Basics
+
+To write programs for the n8 Bit Microcomputer (and LmaOS), copy any of the relevant include (`.inc`) files for your use.
 Set an origin for your program (I like `$0400`) as there is no built-in relocation scheme yet.
 If your program just performs a small task, remember to call `RTS` to return to Monitaur.
 If you never need to return to Monitaur, don't worry about it!
 
 _Note: When you transfer your program, the transfer location must match the origin!_
 
-Here's a very simple uploaded program that will write an alternating pattern on the connected 16 bit LED banks (you can see the result of this program in the system photo):
+Here's a very simple program that will write an alternating pattern to the VIA's 2 I/O ports:
 
 ```asm
 .org $0400
 
 Main:
     LDA #$AA
-    STA VIA1_PORT_A
-    STA VIA1_PORT_B
+    STA VIA_BASE+PORT_A
+    STA VIA_BASE+PORT_B
     RTS
 
 .include "via.inc"
@@ -244,7 +248,7 @@ Then transfer the program using Monitaur and execute it:
 
 ```
 LmaOS v1.0
-Unauthorized access of this N8 Bit Special computer will result in prosecution!
+Unauthorized access of this N8 Bit Microcomputer will result in prosecution!
 >tx 0400
 Waiting for XModem transfer...
 Transmission successful.
@@ -255,7 +259,10 @@ Transmission successful.
 If you need to execute system provided (ROM) subroutines, copy `lmaos.inc` into your project.
 This file is not actually used by LmaOS; instead it is just a listing of the addresses of externally available system functionality.
 
-_Note: as of this writing, the addresses listed in`lmaos.inc` are very volatile from version to version. If you update your system ROM to a later version, this listing is likely different and you will have to recopy the include file and reassemble your program(s)._
+`lmaos.inc` is generated each time you run `make` on LmaOS.
+This means you will have to copy this file to your program's project and reassemble each time you update your system's ROM.
+You can also directly `include` this file (and all the other system utitilies) as the example programs do in this repo.
+See the `Makefile` of the examples for how to do this.
 
 ```asm
 .org $0400
@@ -276,20 +283,71 @@ WelcomeMsg: .asciiz "Welcome to LmaOS!"
 .include "lmaos.inc"
 ```
 
-Now, have fun!
+### Injecting Interrupt Handlers
+
+If you add new hardware support or want to piggyback on the system timer interrupt, LmaOS provides a way to inject your own interrupt handlers.
+
+First, you will need to overwrite `InterruptVector` (we will write `CustomInterrupt` in the next step):
+
+```asm
+SystemInterrupt: .res 2                         ; we'll store the original vector here
+
+InjectInterrupt:
+    SEI                                         ; turn off interrupts. we don't want them firing when we overwrite this
+    COPY16 InterruptVector, SystemInterrupt     ; store original vector
+    COPYADDR CustomInterrupt, InterruptVector   ; inject our interrupt
+    CLI                                         ; turn interrupts back on
+```
+
+A couple notes about injecting your subroutine:
+
+* as noted in the code, make sure you turn _off_ interrupts before overwriting this value, otherwise you could jump to a random part of memory if an interrupt occurs in the middle of this operation
+* be sure to store the value of the current system interrupt handler.
+You never know who is actually invoking your program and they may have set up their own custom handler.
+* when you're done, turn interrupts back _on_.
+
+Next, write your custom interrupt handler:
+
+```asm
+CustomInterruptHandler:
+    BIT N8BUS_PORT_1                   ; test our custom hardware to see if this interrupt is intended for us :)
+    BPL @Unhandled                     ; in this scenario highest-order bit set means we should handle it
+@HandleInterrupt:
+    PHA
+    PHX
+    ;; now do our work as quickly as possible!
+    PLX
+    PLA
+    RTI                                ; return directly. if other interrupts are present they'll get handled :)
+@Unhandled:
+    JMP (SystemInterrupt)              ; let the system handle it
+```
+
+A couple notes about this handler:
+
+* if you have fully handled the interrupt, call `RTI`.
+Even if there is a system timer event at the same time, it will re-raise the interrupt.
+* if you didn't handle the interrupt (because your hardware didn't raise it, for example), `JMP` to `InterruptHandleSystemTimer`, the declared system interrupt handler.
+That will call `RTI` for you when it's finished.
+* Be a good system citizen!
+Be as fast as you can and preserve any register values before either calling `RTI` or jumping to the system interrupt handler.
+
+When your program is done and you want to return to Monitaur, you need to set the interrupt back to its original value.
+Like before, make sure you're only editing the system's interrupt handler when interrupts are _off_.
+
+```asm
+RestoreInterrupt:
+    SEI
+    COPY16 SystemInterrupt, InterruptVector
+    CLI
+```
 
 ## Future Support
-
-Planned improvements for the n8 Bit Special Computer include:
-
-* SD card reader
-* Expansion slot for 1 additinal I/O card (`VIA2_CS` signal from the address decoder)
-* Connected display: 1602a LCD or a [mini-OLED display](https://www.digikey.nl/product-detail/nl/newhaven-display-intl/NHD-1.69-160128UGC3/NHD-1.69-160128UGC3-ND/4756379)
-* More RAM, less ROM
 
 Planned improvements for LmaOS include:
 
 * FAT filesystem support
 * bootstrapping Monitaur and other system utilities from FAT storage
-* 2 line LCD and OLED display routines
+* OLED display routines
 * standalone input (keyboard, controller, etc.)
+* DUART support

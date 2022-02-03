@@ -9,23 +9,23 @@
 ;;; interrupt router. It's sole function is to jump to the address
 ;;; contained in `InterruptVector`. If you change this value, you need to either:
 ;;; • `JMP` to `InterruptHandleSystemTimer` from your custom interrupt handler which 
-;;;    will make the `RTI` call
+;;;   will make the `RTI` call
 ;;; • Call `RTI` yourself if you handled the interrupt
 InterruptRouter:
     JMP (InterruptVector)
 
 ;;; This routine uses A but not any other registers, so subroutines 
 ;;; routed to will then have to push and pull any index registers
-;;; In addition, any pseudo-registers MUST be pushed and restored
+;;; In addition, do _NOT_ use pseudoregisters in interrupt routines
 InterruptHandleSystemTimer:
     PHA
-    LDA VIA1_INTERRUPT_FLAG
+    LDA VIA_BASE+INTERRUPT_FLAG
 @InteruptClock:
-    BIT VIA1_TIMER1_COUNTER_LOW     ; ACK the interrupt
+    BIT VIA_BASE+TIMER1_COUNTER_LOW     ; ACK the interrupt
     DEC SystemClockJiffies
     BNE @Done
-    LDA #ClockRateHz
-    STA SystemClockJiffies          ; reset jiffies
+    LDA #ClockRateHz                    ; reset jiffies
+    STA SystemClockJiffies
     INC16 SystemClockUptime
 @Done:
     PLA

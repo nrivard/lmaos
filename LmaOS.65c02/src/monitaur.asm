@@ -12,8 +12,8 @@ MONITAUR_ASM = 1
 .feature string_escapes
 
 MonitorStart:
+    STZ MonitorCommandDebugTokens   ; by default, don't send parsed tokens back
 @FlushLine:
-    INC VIA1_PORT_B
     JSR ACIAGetByte
     LDA #(ASCII_CARRIAGE_RETURN)
     JSR ACIASendByte
@@ -69,7 +69,7 @@ MonitorTokenizeCommandBuffer:
 @TokenCharacterLoop:
     LDA MonitorCommandBuffer, X
     CMP #(ASCII_CARRIAGE_RETURN)                  ; all done!
-    BEQ @Done
+    BEQ @NullTerminateFinalToken
     CMP #' '                                ; end of token
     BEQ @NullTerminateToken
     INX
@@ -78,8 +78,12 @@ MonitorTokenizeCommandBuffer:
     STZ MonitorCommandBuffer, X
     INX
     BRA @WritePointerToRegister
-@Done:
+@NullTerminateFinalToken:
     STZ MonitorCommandBuffer, X
+    LDA MonitorCommandDebugTokens
+    BEQ @Done
+    DUMP MonitorCommandBuffer, 11           ; send raw command buffer tokens
+@Done:
     RTS
 
 MonitorProcessCommand:
@@ -183,6 +187,7 @@ MonitorProcessTransferCommand:
     LDA r7
     LDX r7 + 1
     JSR XModemReceive
+    JSR ACIAGetByte                     ; wait for user to press a key. ideally this would be unnecessary
 @CheckErrors:
     BCS @Error
     COPYADDR MONITAUR_TRANSFER_SUCCESS, r0

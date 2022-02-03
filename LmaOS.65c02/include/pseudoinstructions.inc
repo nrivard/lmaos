@@ -47,10 +47,10 @@ PSEUDOINSTRUCTIONS_INC = 1
 .macro ADD16 addr, imm
     CLC
     LDA addr
-    ADC #imm
+    ADC #<imm
     STA addr
     LDA addr + 1
-    ADC #0
+    ADC #>imm
     STA addr + 1
 .endmacro
 

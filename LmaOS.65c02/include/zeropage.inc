@@ -7,7 +7,7 @@
 .ifndef REGISTERS_INC
 REGISTERS_INC = 1
 
-.exportzp r0, r1, r2, r3, r4, r5, r6, r7, SystemClockJiffies, SystemClockUptime, InterruptVector
+.exportzp r0, r1, r2, r3, r4, r5, r6, r7, SystemClockJiffies, SystemClockUptime, SystemRAMCapacity, InterruptVector
 
 .zeropage
 
@@ -26,6 +26,9 @@ r7: .res 2
 SystemClockJiffies: .res 1
 SystemClockUptime: .res 2
 
+; verified RAM capacity, as measured at startup
+SystemRAMCapacity: .res 2
+
 ; interrupt handler vector. you can overwrite this to handle your own interrupts.
 ;
 ; NOTE: be sure to call the original interrupt handler (See `InterruptRouter` in `lmaos.inc`)
@@ -33,6 +36,16 @@ SystemClockUptime: .res 2
 ;
 ; NOTE 2: you are responsible for being a good system citizen! Be fast and preserve register values
 ; before calling the system vector handler (or `RTI` if you fully took care of the interrupt)
+;
+; ex:
+; CustomInterruptHandler:
+;   BIT N8BUS_PORT_1                    ; custom hardware on port 1
+;   BPL @Unhandled
+; @HandleInterrupt:
+;   ;; do some work to ack the interrupt and process it quickly
+;   RTI
+; @Unhandled:
+;   JMP InterruptHandleSystemTimer      ; let the system handle it
 InterruptVector: .res 2
 
 .endif

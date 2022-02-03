@@ -5,7 +5,7 @@
 .ifndef LCD1602_INC
 LCD1602_INC = 1
 
-DISPLAY_BASE := $7FC0
+DISPLAY_BASE := N8BUS_PORT3
 
 LCDInstructionRegister := DISPLAY_BASE + 0
 LCDDataRegister := DISPLAY_BASE + 1
