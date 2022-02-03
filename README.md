@@ -219,6 +219,7 @@ _Note: You should always start writing your program after address $0400, as ther
 ## Writing Programs
 
 The point of the n8 Bit Microcomputer and LmaOS is to write programs and see them come to life!
+Take a look at the following guidelines and the included example programs.
 
 ### The Basics
 
