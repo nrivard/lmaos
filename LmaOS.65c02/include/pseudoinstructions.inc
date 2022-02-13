@@ -136,4 +136,11 @@ PSEUDOINSTRUCTIONS_INC = 1
     INC A
 .endmacro
 
+;; Invert the carry bit. destroys `A`, and N, Z flags
+.macro INVC
+    ROL A
+    EOR #$01
+    ROR A
+.endmacro
+
 .endif

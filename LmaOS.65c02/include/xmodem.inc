@@ -21,8 +21,8 @@ XMODEM_DATA_LENGTH := $80
 
 .zeropage
 
-XModemDestinationAddress: .res $02
-XModemTimeout: .res $01
+XModemDestinationAddress:       .res $02
+XModemTimeout:                  .res $01
 
 .bss
 
