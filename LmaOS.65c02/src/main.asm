@@ -13,6 +13,8 @@
 .include "interrupt.asm"
 .include "monitaur.asm"
 .include "lcd1602.asm"
+; .include "sdcard.asm"
+.include "fat32.asm"
 
 .code
 

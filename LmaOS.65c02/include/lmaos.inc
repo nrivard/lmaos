@@ -35,12 +35,14 @@ XModemTimeout                 := $1A
 
 ; Read-only
 MonitorCommandBuffer          := $0200
-XModemPacketData              := $0280
-XModemPacketNumber            := $0300
-XModemPacketNumberComplement  := $0301
-XModemPacketChecksum          := $0302
-XModemCalculatedChecksum      := $0303
-XModemPacketNumberExpected    := $0304
+XModemPacketData              := $0200
+XModemPacketNumber            := $0280
+XModemPacketNumberComplement  := $0281
+XModemPacketChecksum          := $0282
+XModemCalculatedChecksum      := $0283
+XModemPacketNumberExpected    := $0284
+FAT32SectorBuffer             := $0300
+FAT32PartitionTable           := $0500
 ACIAGetByte                   := $C00B
 ACIASendByte                  := $C016
 ACIASendString                := $C023
