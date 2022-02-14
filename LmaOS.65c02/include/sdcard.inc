@@ -41,6 +41,7 @@ SDCARD_OCR_HIGH_CAPACITY    := %01000000    ; value for return arg 0
     V2_CARD = 3
     OCR_READ = 4
     INITIALIZED = 5
+    READY = 6
 .endenum
 
 .endif

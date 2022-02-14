@@ -60,16 +60,36 @@ SDCardInit:
     JSR SDCardSendAppCommand
     BCS @Done
     LDA SDTransferR1Response
-    STX $6000
     BEQ @Initialized
     DEX
     BEQ @Done                                       ; tried 10 times to no avail
+    JSR SDCardDelay                                 ; delay just a bit before trying again
     BRA @StartInitLoop
 @Initialized:
     INC SDCardInitPhase
+@RereadOCR:
+    JSR SDCardSendReadOCR
+    BCS @Done
+    LDA SDTransferR7Response                        ; is sd card powered up and high capacity?
+    AND #(SDCARD_OCR_POWERED_UP | SDCARD_OCR_HIGH_CAPACITY)
+    CMP #(SDCARD_OCR_POWERED_UP | SDCARD_OCR_HIGH_CAPACITY)
+    BNE @Done                                       ; not powered up or not high capacity. error :(
+    INC SDCardInitPhase                             ; READY
 @Done:
     LDA #(SDCARD_CSB | SDCARD_MOSI)                 ; de-select device
     STA SDCARD_VIA_PORT
+    RTS
+
+; delays for 10 jiffies (ie, ~100 msec)
+SDCardDelay:
+    PHY
+    LDY #10
+@Loop:
+    WAI                                             ; just wait until an interrupt brings us back
+    DEY
+    BNE @Loop
+@Done:
+    PLY
     RTS
 
 ; continuously reads results until it's something other than $FF
@@ -81,6 +101,11 @@ SDCardWaitForResult:
     BEQ @WaitLoop
     RTS
 
+; convenience that reads a byte and returns it in `A`
+SDCardReadByte:
+    LDA #$FF
+    ;; FALLTHROUGH to SDCardTransferByte. It will handle the RTS
+    
 ; Sends the contents of `A` and returns the response in `A`
 SDCardTransferByte:
     PHX
@@ -124,11 +149,6 @@ SDCardTransferByte:
     PLY
     PLX
     RTS
-
-; convenience that reads a byte and returns it in `A`
-SDCardReadByte:
-    LDA #$FF
-    JMP SDCardTransferByte      ; we'd just RTS anyway so let SDCardTransferByte do that directly
 
 ; sends the command at the given address. it is expected the command is entirely properly set up
 ; low byte is in `A`, high byte is in `Y`
@@ -198,8 +218,8 @@ SDCardSendReadOCR:
 @ReceiveR1:
     JSR SDCardWaitForResult
     STA SDTransferR1Response
-    CMP #(SDCARD_R1_IDLE)            ; $01 if successful (TODO: 0 might be ok too!)
-    BNE @Done
+    CMP #2                          ; 0 and 1 are valid, so CMP will clear carry if < 2
+    BCS @Done
 @ReceiveR7:
     LDY #$00
 @ReceiveR7Loop:
@@ -208,9 +228,8 @@ SDCardSendReadOCR:
     INY
     CPY #$04
     BNE @ReceiveR7Loop
-    SEC                             ; set this so it gets inverted :)
+    CLC                             ; success so clear carry
 @Done:
-    INVC
     RTS
 
 ; sends the app command passed in via `A` (low-byte) and `Y` (high-byte)
