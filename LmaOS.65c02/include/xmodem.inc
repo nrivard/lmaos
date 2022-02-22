@@ -25,7 +25,6 @@ XModemDestinationAddress: .res $02
 XModemTimeout: .res $01
 
 .bss
-.org $0200
 
 XModemPacketData:     .res $80
 XModemPacketNumber:   .res $01
@@ -33,7 +32,5 @@ XModemPacketNumberComplement: .res $01
 XModemPacketChecksum: .res $01
 XModemCalculatedChecksum: .res $01
 XModemPacketNumberExpected: .res $01
-
-.reloc
 
 .endif
