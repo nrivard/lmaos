@@ -127,9 +127,9 @@ Fat32VerifyVolumeID:
 @Done:
     RTS
 
-SDCardInitError:    .asciiz "SD card could not be initialized\r"
-SDCardInitSuccess:  .asciiz "SD card initialized\r"
-SDCardMBRError:     .asciiz "Could not read MBR\r"
+SDCardInitError:     .asciiz "SD card could not be initialized\r"
+SDCardInitSuccess:   .asciiz "SD card initialized\r"
+SDCardMBRError:      .asciiz "Could not read MBR\r"
 SDCardFat32PartitionNotFound: .asciiz "No FAT32 partition could be found\r"
 SDCardFat32PartitionFoundPrefix: .asciiz "FAT32 partition found at sector: "
 SDCardVolumeIDError: .asciiz "Could not read volume ID\r"
