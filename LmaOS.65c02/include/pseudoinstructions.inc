@@ -25,6 +25,11 @@ PSEUDOINSTRUCTIONS_INC = 1
     STA destination + 1
 .endmacro
 
+.macro COPY32 source, destination
+    COPY16 source, destination
+    COPY16 source + 2, destination + 2
+.endmacro
+
 .macro COPYADDR addr, destination
     LDA #(<addr)
     STA destination
@@ -67,6 +72,27 @@ PSEUDOINSTRUCTIONS_INC = 1
     LDA lhs + 1
     ADC rhs + 1
     STA result + 1
+.endmacro
+
+;; 32 bit ADC
+;;
+;; { PARAM } low-byte address of 32-bit value
+;; { PARAM } low-byte address of 32-bit value
+;; { PARAM } low-byte address of desired 32-bit result
+.macro ADC32 lhs, rhs, result
+    CLC
+    LDA lhs
+    ADC rhs
+    STA result
+    LDA lhs + 1
+    ADC rhs + 1
+    STA result + 1
+    LDA lhs + 2
+    ADC rhs + 2
+    STA result + 2
+    LDA lhs + 3
+    ADC rhs + 3
+    STA result + 3
 .endmacro
 
 ;; 16 bit SUB
@@ -128,6 +154,13 @@ PSEUDOINSTRUCTIONS_INC = 1
 .macro LSR16 addr
     LSR addr + 1
     ROR addr
+.endmacro
+
+.macro ASL32 addr
+    ASL addr
+    ROL addr + 1
+    ROL addr + 2
+    ROL addr + 3
 .endmacro
 
 ;; -A (negate accumulator)
