@@ -7,7 +7,7 @@ ACIA_ASM = 1
 
 .include "acia.inc"
 
-.export ACIAGetByte, ACIASendByte, ACIASendString
+.export ACIAGetByte, ACIASendByte, ACIASendString, ACIASendByteAsString
 
 .code
 
@@ -67,6 +67,16 @@ ACIASendString:
 @Done:
     PLY
     PLA
+    RTS
+
+;; sends the byte in `A` as a hex string via the ACIA sychronously
+;; this is a convenience and destroys r7
+ACIASendByteAsString:
+    JSR ByteToHexString
+    LDA r7
+    JSR ACIASendByte
+    LDA r7 + 1
+    JSR ACIASendByte
     RTS
 
 .endif
