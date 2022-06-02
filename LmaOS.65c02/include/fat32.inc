@@ -45,7 +45,6 @@ FAT32_VOLUME_ID_SECTORS_PER_FAT_OFFSET := $24 ; 4 bytes, little endian. depends 
 FAT32_VOLUME_ID_ROOT_DIR_CLUSTER_OFFSET := $2C  ; bytes, little endian. usually $00000002
 
 ; offset for file attributes in a directory entry
-FAT32_RECORD_ATTRIBUTES_OFFSET  := $0B
 FAT32_RECORD_ATTRIBUTES_LFN_MASK := $0F
 FAT32_RECORD_ATTRIBUTES_DIR_MASK := $10
 
@@ -55,6 +54,23 @@ FAT32_RECORD_FILE_DELETED := $E5
 FAT32_RECORD_END_OF_DIR := $00
 ; first byte of a directory record will be this if it's special `.` or `..` entries
 FAT32_RECORD_DOT_ENTRY := $2E
+
+; layout of a Fat32 file record
+.struct Fat32FileRecord
+    filename            .res 8
+    extension           .res 3
+    attributes          .byte
+    RESERVED            .byte
+    creationCentisec    .byte
+    creationTime        .word
+    creationDate        .word
+    lastAccessDate      .word
+    clusterHigh         .word
+    writeTime           .word
+    writeDate           .word
+    clusterLow          .word
+    size                .res 4
+.endstruct
 
 ; .export FAT32SectorBuffer, FAT32PartitionTable
 
