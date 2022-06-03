@@ -52,8 +52,15 @@ FAT32_RECORD_ATTRIBUTES_DIR_MASK := $10
 FAT32_RECORD_FILE_DELETED := $E5
 ; first byte of a directory record will be this if it's the end of the directory
 FAT32_RECORD_END_OF_DIR := $00
-; first byte of a directory record will be this if it's special `.` or `..` entries
+; first byte of a directory record will be this if it's special `.` or `..` entry
 FAT32_RECORD_DOT_ENTRY := $2E
+
+.struct Fat32DirectoryReadRequest
+    cluster             .res 4     ; the first cluster of the directory to read
+    handler             .addr      ; address of a subroutine to be called for each valid file.
+                                   ; `Fat32CurrentFileRecordPtr` will contain the pointer to the file record
+                                   ; must call RTS when finished processing the current file
+.endstruct
 
 ; layout of a Fat32 file record
 .struct Fat32FileRecord

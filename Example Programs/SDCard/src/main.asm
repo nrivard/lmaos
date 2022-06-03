@@ -12,7 +12,8 @@
 
 ; pointer to file record currently being operated on.
 ; TODO: should be moved to real zeropage declaration when moved to LmaOS declarations
-Fat32CurrentFileRecordPtr := $20 ; and $21
+Fat32CurrentFileRecordPtr := $40 ; and $21
+Fat32CurrentDirectoryReadRequest := $42 ; through $27
 
 Main:
     JMP Fat32Init
@@ -111,38 +112,61 @@ Fat32Init:
     JSR ACIASendString
     COPYADDR Fat32DirectoryListingSeparator, r0
     JSR ACIASendString
+
 @FetchRootDir:
     LDA FAT32RootDirCluster
-    LDX FAT32RootDirCluster + 1
-    LDY FAT32RootDirCluster + 2
-    JSR Fat32ClusterToSector
-    JSR SDCardReadBlock
-    BCC @ReadRootDir
-    JMP @RootDirError
-@ReadRootDir:
-    LDY #0
-@ReadRootDirLoop:
-    PHY                         ; preserve index into the file list
-    TYA
-    JSR Fat32FileAtIndex          ; file addr is in A/X
-    STA Fat32CurrentFileRecordPtr
-    STX Fat32CurrentFileRecordPtr + 1
-    JSR Fat32FileIsValid        ; is this a valid file?
-    BCC @ReadRootDirNext
+    STA Fat32CurrentDirectoryReadRequest + Fat32DirectoryReadRequest::cluster
+    LDA FAT32RootDirCluster + 1
+    STA Fat32CurrentDirectoryReadRequest + Fat32DirectoryReadRequest::cluster + 1
+    LDA FAT32RootDirCluster + 2
+    STA Fat32CurrentDirectoryReadRequest + Fat32DirectoryReadRequest::cluster + 2
+    STZ Fat32CurrentDirectoryReadRequest + Fat32DirectoryReadRequest::cluster + 4
+    LDA #<FileHandler
+    STA Fat32CurrentDirectoryReadRequest + Fat32DirectoryReadRequest::handler
+    LDA #>FileHandler
+    STA Fat32CurrentDirectoryReadRequest + Fat32DirectoryReadRequest::handler + 1
+    JSR Fat32DirectoryRead
+    BCS @RootDirError
+@Done:
+    RTS
+
+@SDCardInitError:
+    COPYADDR SDCardInitError, r0
+    BRA @SendErrorString
+
+@FetchMBRError:
+    COPYADDR SDCardMBRError, r0
+    BRA @SendErrorString
+
+@Fat32PartitionNotFound:
+    COPYADDR SDCardFat32PartitionNotFound, r0
+    BRA @SendErrorString
+
+@VolumeIDError:
+    COPYADDR SDCardVolumeIDError, r0
+    BRA @SendErrorString
+
+@RootDirError:
+    COPYADDR Fat32RootDirError, r0
+    BRA @SendErrorString    ; just in case there are more errors :)
+
+@SendErrorString:
+    JSR ACIASendString
+    JMP @Done
+
+; a sample file handler. `Fat32CurrentFileRecordPtr` is already filled out
+FileHandler:
+    PHA
+    PHY
+@ReadAttributes:
     JSR Fat32FileReadAttributes
     CMP #(FAT32_RECORD_ATTRIBUTES_LFN_MASK) ; is this a long filename text record?
     BNE @PrintFilename
-    BRA @ReadRootDirNext
+    BRA @Done
 @PrintFilename:
     JSR Fat32FileReadName       ; read the filename
     COPYADDR Fat32Filename, r0
     JSR ACIASendString
-@TestFileIsDirectory:
-    JSR Fat32FileReadAttributes
-    AND #(FAT32_RECORD_ATTRIBUTES_DIR_MASK)
-    BEQ @PrintFileCluster       ; not a directory
-    LDA #'/'                    ; this is a directory, so print a char so we know
-    JSR ACIASendByte
 @PrintFileCluster:
     LDA #(ASCII_TAB)
     JSR ACIASendByte
@@ -171,37 +195,94 @@ Fat32Init:
 @PrintTerminator:
     LDA #(ASCII_CARRIAGE_RETURN)
     JSR ACIASendByte
-@ReadRootDirNext:
-    PLY                         ; restore index into the file list
-    INY
-    CPY #16
-    BNE @ReadRootDirLoop
 @Done:
+    PLY
+    PLA
     RTS
 
-@SDCardInitError:
-    COPYADDR SDCardInitError, r0
-    BRA @SendErrorString
-
-@FetchMBRError:
-    COPYADDR SDCardMBRError, r0
-    BRA @SendErrorString
-
-@Fat32PartitionNotFound:
-    COPYADDR SDCardFat32PartitionNotFound, r0
-    BRA @SendErrorString
-
-@VolumeIDError:
-    COPYADDR SDCardVolumeIDError, r0
-    BRA @SendErrorString
-
-@RootDirError:
-    COPYADDR Fat32RootDirError, r0
-    BRA @SendErrorString    ; just in case there are more errors :)
-
-@SendErrorString:
-    JSR ACIASendString
+; Reads the directory requested in `Fat32CurrentDirectoryReadRequest`
+; This function will repeatedly JSR into the provided `handler` for each valid file
+; See docs on the `Fat32DirectoryReadRequest` for more information
+; carry will be set if an error occurred
+Fat32DirectoryRead:
+    PHA
+    PHY
+    PHX
+@LoadCluster:
+    LDA Fat32CurrentDirectoryReadRequest + Fat32DirectoryReadRequest::cluster
+    LDX Fat32CurrentDirectoryReadRequest + Fat32DirectoryReadRequest::cluster + 1
+    LDY Fat32CurrentDirectoryReadRequest + Fat32DirectoryReadRequest::cluster + 2
+    JSR Fat32ClusterToSector
+    JSR SDCardReadBlock
+    BCC @ProcessBlock
     JMP @Done
+@ProcessBlock:
+    LDY #0
+@ProcessBlockLoop:
+    TYA
+    JSR Fat32FileAtIndex              ; file addr is in A/X
+    STA Fat32CurrentFileRecordPtr
+    STX Fat32CurrentFileRecordPtr + 1
+@FetchFirstByte:
+    LDA (Fat32CurrentFileRecordPtr)
+@TestFirstByte:
+    CMP #(FAT32_RECORD_END_OF_DIR)
+    BEQ @Done
+    CMP #(FAT32_RECORD_FILE_DELETED) 
+    BEQ @NextFile
+    CMP #(FAT32_RECORD_DOT_ENTRY)
+    BEQ @NextFile
+@CallHandler:
+    JSR @CallHandlerIndirect
+    BRA @NextFile
+@CallHandlerIndirect:
+    JMP (Fat32CurrentDirectoryReadRequest + Fat32DirectoryReadRequest::handler)
+@NextFile:
+    INY
+    CPY #16
+    BNE @ProcessBlockLoop
+@FollowChain:
+    JSR Fat32ClusterFollowChain
+@NoError:
+    CLC
+    BRA @Done
+@Done:
+    PLX
+    PLY
+    PLA
+    RTS
+
+; updates `Fat32CurrentDirectoryReadRequest` with the next cluster in the chain
+; if there is no cluster, `Fat32CurrentDirectoryReadRequest::cluster == $00000000`
+Fat32ClusterFollowChain:
+    PHA
+    PHY
+@CopyCluster:
+    LDY #0
+@CopyClusterLoop:
+    LDA Fat32CurrentDirectoryReadRequest + Fat32DirectoryReadRequest::cluster, Y
+    STA r0, Y
+    INY
+    CPY #4
+    BNE @CopyClusterLoop
+@CalculateFATSectorIndex:
+    LDY #7
+@CalculateFATSectorIndexLoop:
+    LSR32 r0
+    DEY
+    BNE @CalculateFATSectorIndexLoop
+@CalculateFATSector:
+    ADC32 FAT32TableBlock, r0, $6000
+@FetchFATSector:
+    LDA $6000
+    LDX $6000 + 1
+    LDY $6000 + 2
+    JSR SDCardReadBlock
+    BCS @Done
+@Done:
+    PLY
+    PLA
+    RTS
 
 ; subroutine that verifies sector signature
 ; signature should be at the end of SDCardDataPacketBuffer
@@ -311,29 +392,6 @@ Fat32FileReadAttributes:
     PLY
     RTS
 
-; reads first byte of the current file at Fat32CurrentFileRecordPtr
-; to determine if this is a valid file or not
-; Files starting with $E5 or $00 are considered invalid
-; carry will be set if file is valid, and cleared if file is invalid
-Fat32FileIsValid:
-    PHA
-@FetchFirstByte:
-    LDA (Fat32CurrentFileRecordPtr)
-@TestFirstByte:
-    CMP #(FAT32_RECORD_FILE_DELETED)
-    BEQ @FileInvalid
-    CMP #(FAT32_RECORD_END_OF_DIR)
-    BEQ @FileInvalid
-    CMP #(FAT32_RECORD_DOT_ENTRY)
-    BEQ @FileInvalid
-    SEC
-    BRA @Done
-@FileInvalid:
-    CLC
-@Done:
-    PLA
-    RTS
-
 ; reads the short filename of the current file at Fat32CurrentFileRecordPtr
 ; filename with a dot between name and extension and zero-terminated will be stored at Fat32Filename
 Fat32FileReadName:
@@ -347,6 +405,15 @@ Fat32FileReadName:
     INY
     CPY #8
     BNE @ReadFilenameLoop
+@TestFileIsDirectory:
+    JSR Fat32FileReadAttributes
+    AND #(FAT32_RECORD_ATTRIBUTES_DIR_MASK)
+    BEQ @SeparateFilenameAndExtension   ; not a directory
+@PrintDirectory:
+    LDA #'/'                            ; this is a directory
+    STA Fat32Filename, Y
+    INY
+    BRA @TerminateString 
 @SeparateFilenameAndExtension:
     LDA #'.'
     STA Fat32Filename, Y
@@ -368,11 +435,15 @@ Fat32FileReadName:
 ;; sends the byte in `A` as a hex string via the ACIA sychronously
 ;; this is a convenience and destroys r7
 ACIASendByteAsString:
+    PHA
+@ConvertAndSend:
     JSR ByteToHexString
     LDA r7
     JSR ACIASendByte
     LDA r7 + 1
     JSR ACIASendByte
+@Done:
+    PLA
     RTS
 
 SDCardInitError:     .asciiz "SD card could not be initialized\r"
@@ -386,6 +457,7 @@ Fat32RootDirError: .asciiz "Could not read root directory\r"
 Fat32DirectoryListingHeader:    .asciiz "Filename    \tCluster \tSize\r"
 Fat32DirectoryListingSeparator: .asciiz "------------\t--------\t--------\r"
 
+HahaPrefix: .asciiz "File: "
 ; storage
 ; Fat32DataPacket:    .tag SDCardDataPacket       ; goes first so `data` is on page boundary
 ; Fat32Command:       .tag SDCardCommand

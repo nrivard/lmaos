@@ -163,6 +163,13 @@ PSEUDOINSTRUCTIONS_INC = 1
     ROL addr + 3
 .endmacro
 
+.macro LSR32 addr
+    LSR addr + 3
+    ROR addr + 2
+    ROR addr + 1
+    ROR addr
+.endmacro
+
 ;; -A (negate accumulator)
 .macro NEG
     EOR #$FF

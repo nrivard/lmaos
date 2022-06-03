@@ -257,7 +257,7 @@ Command58: .byte $7A, $00, $00, $00, $00, $00   ; READ_OCR
 ;; app commands
 Command41: .byte $69, $40, $00, $00, $00, $00   ; APP_SEND_OP_COND
 
-SDCardDataPacketBuffer  := $1000                ; for now let's hardcode this
+SDCardDataPacketBuffer  := $2000                ; for now let's hardcode this
 SDCardCommandRequest    := (SDCardDataPacketBuffer + 512)
 
 .endif
