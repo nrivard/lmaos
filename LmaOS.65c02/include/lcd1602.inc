@@ -5,7 +5,8 @@
 .ifndef LCD1602_INC
 LCD1602_INC = 1
 
-DISPLAY_BASE := N8BUS_PORT3
+; no actual hardware!
+DISPLAY_BASE := N8BUS_PORT1
 
 LCDInstructionRegister := DISPLAY_BASE + 0
 LCDDataRegister := DISPLAY_BASE + 1

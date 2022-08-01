@@ -42,6 +42,8 @@ RestoreInterrupt:
     CLI
 
 SendPrefix:
+    LDA #(ASCII_CARRIAGE_RETURN)
+    JSR ACIASendByte
     LDA #<ResponseMessagePrefix
     STA r0
     LDA #>ResponseMessagePrefix
