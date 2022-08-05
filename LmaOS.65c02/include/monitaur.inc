@@ -29,17 +29,17 @@ MonitorCommandBuffer: .res $80
 @SendASCII:
     JSR ByteToHexString
     LDA r7
-    JSR ACIASendByte
+    JSR SerialSendByte
     LDA r7 + 1
-    JSR ACIASendByte
+    JSR SerialSendByte
     LDA #' '
-    JSR ACIASendByte
+    JSR SerialSendByte
 	INY
 	CPY #(length)
 	BNE @Loop
 @Done:
 	LDA #(ASCII_CARRIAGE_RETURN)
-	JSR ACIASendByte
+	JSR SerialSendByte
     PLY
     PLA
 .endmacro

@@ -14,21 +14,21 @@ MONITAUR_ASM = 1
 MonitorStart:
     STZ MonitorCommandDebugTokens   ; by default, don't send parsed tokens back
 @FlushLine:
-    JSR ACIAGetByte
+    JSR SerialGetByte
     LDA #(ASCII_CARRIAGE_RETURN)
-    JSR ACIASendByte
+    JSR SerialSendByte
 @SendGreeting:
     COPYADDR LMAOS_VERSION_STRING, r0
-    JSR ACIASendString
+    JSR SerialSendString
     COPYADDR LMAOS_GREETING, r0
-    JSR ACIASendString
+    JSR SerialSendString
 @MonitorGetCommandLoop:
     LDA #'>'
-    JSR ACIASendByte
+    JSR SerialSendByte
     LDY #0
 @WaitForInput:
-    JSR ACIAGetByte
-    JSR ACIASendByte				; echo received byte (already in A)
+    JSR SerialGetByte
+    JSR SerialSendByte				; echo received byte (already in A)
     STA MonitorCommandBuffer, Y
     CMP #(ASCII_CARRIAGE_RETURN)
     BEQ @ProcessCommand
@@ -143,18 +143,18 @@ MonitorProcessReadCommand:
     CPX #0
     BNE @LoadValue
     LDA #(ASCII_CARRIAGE_RETURN)
-    JSR ACIASendByte
+    JSR SerialSendByte
     LDX #$10
 @LoadValue:
     LDA (r5), Y                             ; load value at parsed address
 @SendASCII:
     JSR ByteToHexString
     LDA r7
-    JSR ACIASendByte
+    JSR SerialSendByte
     LDA r7 + 1
-    JSR ACIASendByte
+    JSR SerialSendByte
     LDA #' '
-    JSR ACIASendByte
+    JSR SerialSendByte
 @CheckLoopDone:
     INY
     CPY r6
@@ -163,7 +163,7 @@ MonitorProcessReadCommand:
     BRA @SendLoop
 @Done:
     LDA #(ASCII_CARRIAGE_RETURN)
-    JSR ACIASendByte
+    JSR SerialSendByte
     JMP MonitorProcessCommandDone
 
 MonitorProcessWriteCommand:
@@ -180,14 +180,14 @@ MonitorProcessWriteCommand:
 
 MonitorProcessTransferCommand:
     COPYADDR MONITAUR_TRANSFER_WAITING, r0
-    JSR ACIASendString
+    JSR SerialSendString
 @StartTransfer:
     COPY16 r5, r0
     JSR HexStringToWord
     LDA r7
     LDX r7 + 1
     JSR XModemReceive
-    JSR ACIAGetByte                     ; wait for user to press a key. ideally this would be unnecessary
+    JSR SerialGetByte                     ; wait for user to press a key. ideally this would be unnecessary
 @CheckErrors:
     BCS @Error
     COPYADDR MONITAUR_TRANSFER_SUCCESS, r0
@@ -195,7 +195,7 @@ MonitorProcessTransferCommand:
 @Error:
     COPYADDR MONITAUR_TRANSFER_CANCELED, r0
 @Done:
-    JSR ACIASendString
+    JSR SerialSendString
     JMP MonitorProcessCommandDone
 
 MonitorProcessExecuteCommand:
@@ -210,13 +210,13 @@ MonitorProcessExecuteCommand:
 
 MonitorProcessIllegalCommand:
     COPYADDR MONITAUR_ILLEGAL_COMMAND_START, r0
-    JSR ACIASendString
+    JSR SerialSendString
 @EchoIllegalCommand:
     COPY16 r4, r0
-    JSR ACIASendString
+    JSR SerialSendString
 @TerminateIllegalCommand:
     COPYADDR MONITAUR_ILLEGAL_COMMAND_END, r0
-    JSR ACIASendString
+    JSR SerialSendString
 @Done:
     JMP MonitorProcessCommandDone
 

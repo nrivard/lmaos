@@ -8,15 +8,18 @@
 .include "vectors.inc"
 .include "zeropage.inc"
 
+.include "serial.asm"
+.include "duart.asm"
 .include "acia.asm"
 .include "via.asm"
-.include "interrupt.asm"
 .include "monitaur.asm"
 .include "lcd1602.asm"
+.include "interrupt.asm"
 
 .code
 
 Main:
+    SEI
     LDX #$FF
     TXS
 
@@ -41,8 +44,9 @@ RamTest:
     STA SystemRAMCapacity + 1
 
     ;;; initializes hardware
-    JSR VIAInit
+    ; JSR VIAInit
     JSR ACIAInit
+    JSR DuartInit
 ;     JSR LCDInit
     
 ;     LDA #<LmaOSBootText

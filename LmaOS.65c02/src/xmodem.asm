@@ -29,9 +29,8 @@ XModemReceive:
     LDA SystemClockUptime               ; copy lowest byte of uptime as timeout check
     STA XModemTimeout
 @WaitForFirstPacket:
-    LDA ACIA_STATUS
-    BIT #(ACIA_STATUS_MASK_RDR_FULL)    ; have we received anything?
-    BNE @PacketRouter                   ; start of first packet
+    SERIAL_BYTE_AVAIL                   ; have we received anything?
+    BCC @PacketRouter                   ; start of first packet
 @CheckTimeout:
     LDA SystemClockUptime
     SEC
@@ -40,7 +39,7 @@ XModemReceive:
     BMI @WaitForFirstPacket
     BRA @SendMode                       ; timed-out. resend NACK
 @PacketRouter:
-    JSR ACIAGetByte                     ; get the header byte
+    JSR SerialGetByte                   ; get the header byte
     CMP #(XMODEM_START_OF_HEADER)
     BEQ @ReceivePacketNumber
     CMP #(XMODEM_END_TRANSMISSION)
@@ -48,15 +47,15 @@ XModemReceive:
     SEC                                 ; canceled
     BRA @Done
 @ReceivePacketNumber:
-    JSR ACIAGetByte                     ; packet number
+    JSR SerialGetByte                   ; packet number
     STA XModemPacketNumber
-    JSR ACIAGetByte                     ; 1s complement of packet number
+    JSR SerialGetByte                   ; 1s complement of packet number
     STA XModemPacketNumberComplement
 @ReceivePacketData:
     LDX #0
     STZ XModemCalculatedChecksum        ; reset running checksum
 @ReceivePacketDataLoop:
-    JSR ACIAGetByte
+    JSR SerialGetByte
     STA XModemPacketData, X
 @CalculateChecksum:
     CLC
@@ -66,7 +65,7 @@ XModemReceive:
     CPX #(XMODEM_DATA_LENGTH)
     BNE @ReceivePacketDataLoop
 @ReceiveChecksum:
-    JSR ACIAGetByte
+    JSR SerialGetByte
     STA XModemPacketChecksum
 @VerifyPacketNumber:
     LDA XModemPacketNumberExpected
@@ -111,12 +110,12 @@ XModemReceive:
 
 XModemSendNACK:
     LDA #(XMODEM_NACK)
-    JSR ACIASendByte
+    JSR SerialSendByte
     RTS
 
 XModemSendACK:
     LDA #(XMODEM_ACK)
-    JSR ACIASendByte
+    JSR SerialSendByte
     RTS
 
 .endif

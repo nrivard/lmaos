@@ -1,7 +1,7 @@
 Modules list:
 -------------
 main.o:
-    CODE              Offs=000000  Size=0003E9  Align=00001  Fill=0000
+    CODE              Offs=000000  Size=00045D  Align=00001  Fill=0000
     RODATA            Offs=000000  Size=00013F  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000105  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
@@ -18,54 +18,55 @@ NULL                  000000  000000  000000  00001
 ZEROPAGE              000000  00001A  00001B  00001
 BSS                   000200  000304  000105  00001
 DATA                  000200  000200  000000  00001
-CODE                  00C000  00C3E8  0003E9  00001
-RODATA                00C3E9  00C527  00013F  00001
+CODE                  00C000  00C45C  00045D  00001
+RODATA                00C45D  00C59B  00013F  00001
 VECTORS               00FFFA  00FFFF  000006  00001
 
 
 Exports list by name:
 ---------------------
-ACIAGetByte               00C00B  LA    ACIASendByte              00C016  LA    
-ACIASendString            00C023  LA    ByteToHexString           00C2D7  LA    
-HexStringToWord           00C28B  LA    InterruptHandleSystemTimer 00C060  LA    
-InterruptRouter           00C05D  LA    InterruptVector           000015  LZ    
-LCDInit                   00C4CB  LA    LCDMoveCursor             00C4E2  LA    
-LCDPollBusy               00C504  LA    LCDPrintString            00C4EA  LA    
-LCDSendBlock              00C511  LA    LCDSendByte               00C4FD  LA    
-LCDSendInstruction        00C50A  LA    MonitorCommandBuffer      000200  LA    
-MonitorCommandDebugTokens 000017  LZ    NibbleToHexString         00C2E8  LA    
-StringCompare             00C259  LA    StringCompareN            00C249  LA    
-StringCopy                00C27E  LA    StringLength              00C23E  LA    
-SystemClockJiffies        000010  LZ    SystemClockUptime         000011  LZ    
-SystemRAMCapacity         000013  LZ    XModemCalculatedChecksum  000303  LA    
-XModemDestinationAddress  000018  LZ    XModemPacketChecksum      000302  LA    
-XModemPacketData          000280  LA    XModemPacketNumber        000300  LA    
-XModemPacketNumberComplement 000301  LA    XModemPacketNumberExpected 000304  LA    
-XModemReceive             00C2F3  LA    XModemTimeout             00001A  LZ    
-__BSS_LOAD__              000200  LA    __BSS_RUN__               000200  LA    
-__BSS_SIZE__              000105  EA    __DATA_LOAD__             00C000  LA    
-__DATA_RUN__              000200  LA    __DATA_SIZE__             000000  EA    
-__IO_FILEOFFS__           000000  EA    __IO_LAST__               00BF00  LA    
-__IO_SIZE__               000100  EA    __IO_START__              00BF00  LA    
-__RAM_FILEOFFS__          000000  EA    __RAM_LAST__              000305  LA    
-__RAM_SIZE__              00BD00  EA    __RAM_START__             000200  LA    
-__STACK_FILEOFFS__        000000  EA    __STACK_LAST__            000100  LA    
-__STACK_SIZE__            000100  EA    __STACK_START__           000100  LA    
-__ZEROPAGE_FILEOFFS__     000000  EA    __ZEROPAGE_LAST__         00001B  LA    
-__ZEROPAGE_SIZE__         000100  EA    __ZEROPAGE_START__        000000  LA    
-r0                        000000  LZ    r1                        000002  LZ    
-r2                        000004  LZ    r3                        000006  LZ    
-r4                        000008  LZ    r5                        00000A  LZ    
-r6                        00000C  LZ    r7                        00000E  LZ    
-
+ACIAGetByte               00C082  LA    ACIASendByte              00C08D  LA    
+ByteToHexString           00C323  LA    HexStringToWord           00C2D7  LA    
+InterruptHandleSystemTimer 00C3F8  LA    InterruptRouter           00C3F5  LA    
+InterruptVector           000015  LZ    LCDInit                   00C53F  LA    
+LCDMoveCursor             00C556  LA    LCDPollBusy               00C578  LA    
+LCDPrintString            00C55E  LA    LCDSendBlock              00C585  LA    
+LCDSendByte               00C571  LA    LCDSendInstruction        00C57E  LA    
+MonitorCommandBuffer      000200  LA    MonitorCommandDebugTokens 000017  LZ    
+NibbleToHexString         00C334  LA    SerialGetByte             00C03B  LA    
+SerialSendByte            00C046  LA    SerialSendByteAsString    00C011  LA    
+SerialSendString          00C000  LA    StringCompare             00C2A5  LA    
+StringCompareN            00C295  LA    StringCopy                00C2CA  LA    
+StringLength              00C28A  LA    SystemClockJiffies        000010  LZ    
+SystemClockUptime         000011  LZ    SystemRAMCapacity         000013  LZ    
+XModemCalculatedChecksum  000303  LA    XModemDestinationAddress  000018  LZ    
+XModemPacketChecksum      000302  LA    XModemPacketData          000280  LA    
+XModemPacketNumber        000300  LA    XModemPacketNumberComplement 000301  LA    
+XModemPacketNumberExpected 000304  LA    XModemReceive             00C33F  LA    
+XModemTimeout             00001A  LZ    __BSS_LOAD__              000200  LA    
+__BSS_RUN__               000200  LA    __BSS_SIZE__              000105  EA    
+__DATA_LOAD__             00C000  LA    __DATA_RUN__              000200  LA    
+__DATA_SIZE__             000000  EA    __IO_FILEOFFS__           000000  EA    
+__IO_LAST__               00BF00  LA    __IO_SIZE__               000100  EA    
+__IO_START__              00BF00  LA    __RAM_FILEOFFS__          000000  EA    
+__RAM_LAST__              000305  LA    __RAM_SIZE__              00BD00  EA    
+__RAM_START__             000200  LA    __STACK_FILEOFFS__        000000  EA    
+__STACK_LAST__            000100  LA    __STACK_SIZE__            000100  EA    
+__STACK_START__           000100  LA    __ZEROPAGE_FILEOFFS__     000000  EA    
+__ZEROPAGE_LAST__         00001B  LA    __ZEROPAGE_SIZE__         000100  EA    
+__ZEROPAGE_START__        000000  LA    r0                        000000  LZ    
+r1                        000002  LZ    r2                        000004  LZ    
+r3                        000006  LZ    r4                        000008  LZ    
+r5                        00000A  LZ    r6                        00000C  LZ    
+r7                        00000E  LZ    
 
 
 Exports list by value:
 ----------------------
-__DATA_SIZE__             000000  EA    r0                        000000  LZ    
-__ZEROPAGE_START__        000000  LA    __ZEROPAGE_FILEOFFS__     000000  EA    
-__STACK_FILEOFFS__        000000  EA    __RAM_FILEOFFS__          000000  EA    
-__IO_FILEOFFS__           000000  EA    r1                        000002  LZ    
+__STACK_FILEOFFS__        000000  EA    r0                        000000  LZ    
+__ZEROPAGE_START__        000000  LA    __DATA_SIZE__             000000  EA    
+__IO_FILEOFFS__           000000  EA    __ZEROPAGE_FILEOFFS__     000000  EA    
+__RAM_FILEOFFS__          000000  EA    r1                        000002  LZ    
 r2                        000004  LZ    r3                        000006  LZ    
 r4                        000008  LZ    r5                        00000A  LZ    
 r6                        00000C  LZ    r7                        00000E  LZ    
@@ -73,8 +74,8 @@ SystemClockJiffies        000010  LZ    SystemClockUptime         000011  LZ
 SystemRAMCapacity         000013  LZ    InterruptVector           000015  LZ    
 MonitorCommandDebugTokens 000017  LZ    XModemDestinationAddress  000018  LZ    
 XModemTimeout             00001A  LZ    __ZEROPAGE_LAST__         00001B  LA    
-__STACK_START__           000100  LA    __ZEROPAGE_SIZE__         000100  EA    
-__STACK_SIZE__            000100  EA    __IO_SIZE__               000100  EA    
+__STACK_SIZE__            000100  EA    __ZEROPAGE_SIZE__         000100  EA    
+__IO_SIZE__               000100  EA    __STACK_START__           000100  LA    
 __STACK_LAST__            000100  LA    __BSS_SIZE__              000105  EA    
 __DATA_RUN__              000200  LA    MonitorCommandBuffer      000200  LA    
 __BSS_LOAD__              000200  LA    __BSS_RUN__               000200  LA    
@@ -84,24 +85,24 @@ XModemPacketChecksum      000302  LA    XModemCalculatedChecksum  000303  LA
 XModemPacketNumberExpected 000304  LA    __RAM_LAST__              000305  LA    
 __RAM_SIZE__              00BD00  EA    __IO_LAST__               00BF00  LA    
 __IO_START__              00BF00  LA    __DATA_LOAD__             00C000  LA    
-ACIAGetByte               00C00B  LA    ACIASendByte              00C016  LA    
-ACIASendString            00C023  LA    InterruptRouter           00C05D  LA    
-InterruptHandleSystemTimer 00C060  LA    StringLength              00C23E  LA    
-StringCompareN            00C249  LA    StringCompare             00C259  LA    
-StringCopy                00C27E  LA    HexStringToWord           00C28B  LA    
-ByteToHexString           00C2D7  LA    NibbleToHexString         00C2E8  LA    
-XModemReceive             00C2F3  LA    LCDInit                   00C4CB  LA    
-LCDMoveCursor             00C4E2  LA    LCDPrintString            00C4EA  LA    
-LCDSendByte               00C4FD  LA    LCDPollBusy               00C504  LA    
-LCDSendInstruction        00C50A  LA    LCDSendBlock              00C511  LA    
-
+SerialSendString          00C000  LA    SerialSendByteAsString    00C011  LA    
+SerialGetByte             00C03B  LA    SerialSendByte            00C046  LA    
+ACIAGetByte               00C082  LA    ACIASendByte              00C08D  LA    
+StringLength              00C28A  LA    StringCompareN            00C295  LA    
+StringCompare             00C2A5  LA    StringCopy                00C2CA  LA    
+HexStringToWord           00C2D7  LA    ByteToHexString           00C323  LA    
+NibbleToHexString         00C334  LA    XModemReceive             00C33F  LA    
+InterruptRouter           00C3F5  LA    InterruptHandleSystemTimer 00C3F8  LA    
+LCDInit                   00C53F  LA    LCDMoveCursor             00C556  LA    
+LCDPrintString            00C55E  LA    LCDSendByte               00C571  LA    
+LCDPollBusy               00C578  LA    LCDSendInstruction        00C57E  LA    
+LCDSendBlock              00C585  LA    
 
 
 Imports list:
 -------------
 ACIAGetByte (main.o):
 ACIASendByte (main.o):
-ACIASendString (main.o):
 ByteToHexString (main.o):
 HexStringToWord (main.o):
 InterruptHandleSystemTimer (main.o):
@@ -117,6 +118,10 @@ LCDSendInstruction (main.o):
 MonitorCommandBuffer (main.o):
 MonitorCommandDebugTokens (main.o):
 NibbleToHexString (main.o):
+SerialGetByte (main.o):
+SerialSendByte (main.o):
+SerialSendByteAsString (main.o):
+SerialSendString (main.o):
 StringCompare (main.o):
 StringCompareN (main.o):
 StringCopy (main.o):

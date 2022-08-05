@@ -26,11 +26,11 @@ XModemTimeout: .res $01
 
 .bss
 
-XModemPacketData:     .res $80  ; 0280
-XModemPacketNumber:   .res $01  ; 0300
-XModemPacketNumberComplement: .res $01  ; 0301
-XModemPacketChecksum: .res $01  ; 0302
-XModemCalculatedChecksum: .res $01 ; 0303
-XModemPacketNumberExpected: .res $01 ; 0304
+XModemPacketData:               .res $80
+XModemPacketNumber:             .res $01
+XModemPacketNumberComplement:   .res $01
+XModemPacketChecksum:           .res $01
+XModemCalculatedChecksum:       .res $01
+XModemPacketNumberExpected:     .res $01
 
 .endif

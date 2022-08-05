@@ -22,7 +22,7 @@ PrintStartMessage:
     STA r0
     LDA #>StartMessage
     STA r0 + 1
-    JSR ACIASendString
+    JSR SerialSendString
 
 Init:
     SEI
@@ -32,7 +32,7 @@ Init:
     CLI
 
 WaitForIt:
-    JSR ACIAGetByte                             ; the whole program is just waiting for a Q
+    JSR SerialGetByte                             ; the whole program is just waiting for a Q
     CMP #(ASCII_ESCAPE)
     BNE WaitForIt
 
@@ -43,12 +43,12 @@ RestoreInterrupt:
 
 SendPrefix:
     LDA #(ASCII_CARRIAGE_RETURN)
-    JSR ACIASendByte
+    JSR SerialSendByte
     LDA #<ResponseMessagePrefix
     STA r0
     LDA #>ResponseMessagePrefix
     STA r0 + 1
-    JSR ACIASendString
+    JSR SerialSendString
 SendWaitTime:
     SBC16 SystemClockUptime, StartTime, StartTime   ; subtract StartTime from the current time and store it back since we're done with this value
     LDA StartTime + 1
@@ -60,7 +60,7 @@ SendSuffix:
     STA r0
     LDA #>ResponseMessageSuffix
     STA r0 + 1
-    JSR ACIASendString
+    JSR SerialSendString
 Done:
     RTS
 
@@ -69,9 +69,9 @@ PrintByte:
     PHA
     JSR ByteToHexString
     LDA r7
-    JSR ACIASendByte
+    JSR SerialSendByte
     LDA r7 + 1
-    JSR ACIASendByte
+    JSR SerialSendByte
     PLA
     RTS
 
@@ -83,7 +83,7 @@ FrameInterrupt:
     JMP @Done
 @SendHeartbeat:
     LDA #'*'
-    JSR ACIASendByte
+    JSR SerialSendByte
 @Done:
     PLA
     JMP (SystemInterrupt) 

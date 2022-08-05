@@ -22,7 +22,7 @@ PrintStartMessage:
     STA r0
     LDA #>StartMessage
     STA r0 + 1
-    JSR ACIASendString
+    JSR SerialSendString
 
 Init:
     STZ N
@@ -37,7 +37,7 @@ SeedTerms:
     JSR PrintByte             ; first number is always zero. let's send it :)
     JSR PrintByte
     LDA #' '
-    JSR ACIASendByte
+    JSR SerialSendByte
     INC NMinusOne             ; now we seed the first term
 
 CalculateNextTerm:
@@ -53,12 +53,12 @@ CalculateNextTerm:
     COPY16 NMinusOne, NMinusTwo
     COPY16 N, NMinusOne
     LDA #' '
-    JSR ACIASendByte
+    JSR SerialSendByte
     BRA CalculateNextTerm
 
 Done:
     LDA #(ASCII_CARRIAGE_RETURN)
-    JSR ACIASendByte
+    JSR SerialSendByte
     RTS
 
 ; byte to print in A
@@ -66,9 +66,9 @@ PrintByte:
     PHA
     JSR ByteToHexString
     LDA r7
-    JSR ACIASendByte
+    JSR SerialSendByte
     LDA r7 + 1
-    JSR ACIASendByte
+    JSR SerialSendByte
     PLA
     RTS
 

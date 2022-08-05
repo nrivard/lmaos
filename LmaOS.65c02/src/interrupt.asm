@@ -19,9 +19,13 @@ InterruptRouter:
 ;;; In addition, do _NOT_ use pseudoregisters in interrupt routines
 InterruptHandleSystemTimer:
     PHA
-    LDA VIA_BASE+INTERRUPT_FLAG
-@InteruptClock:
-    BIT VIA_BASE+TIMER1_COUNTER_LOW     ; ACK the interrupt
+    LDA DUART_BASE+ISR
+    BEQ @Lockup                         ; unhandled irq!
+@HandleDuartIRQ:
+    BIT #(IMR_CT_ENABLE)
+    BEQ @Lockup                         ; we only handle timer right now!
+@HandleTimerIRQ:
+    BIT DUART_BASE+CTR_STOP             ; ACK the C/T IRQ
     DEC SystemClockJiffies
     BNE @Done
     LDA #ClockRateHz                    ; reset jiffies
@@ -30,3 +34,6 @@ InterruptHandleSystemTimer:
 @Done:
     PLA
     RTI
+    
+@Lockup:                                ; shouldn't get here :(
+    JMP @Lockup
