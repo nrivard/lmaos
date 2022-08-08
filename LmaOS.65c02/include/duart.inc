@@ -57,11 +57,13 @@ CTR_STOP    := $0F ; counter/timer stop (~RD)
 ROPR        := CTR_STOP ; reset output bits register (~WR)
 
 ; ACR masks
-ACR_TIMER_XTL_CLK   := (%110) << 4  ; timer-mode, use external clock unchanged
-ACR_BRG_SELECT      := 1 << 7       ; select the 2nd group of BRG values 
+ACR_TIMER_XTL_CLK   := (%110) << 4    ; timer-mode, use external clock unchanged
+ACR_BRG_SELECT      := 1 << 7         ; select the 2nd group of BRG values 
 
 ; IRQ masks
-IMR_CT_ENABLE := %00001000
+IMR_TX_RDY_A            := %00000001
+IMR_RX_RDY_A            := %00000010
+IMR_CT_ENABLE           := %00001000
 
 ; MR options
 MR0_RX_WATCHDOG         := %10000000

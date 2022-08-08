@@ -94,7 +94,7 @@ XModemReceive:
     CPY #(XMODEM_DATA_LENGTH)
     BNE @WritePacketLoop
 @AdvanceDestinationPointer:
-    ADD16 XModemDestinationAddress, XMODEM_DATA_LENGTH        ; advance destination pointer by data size
+    ADD16 XModemDestinationAddress, XMODEM_DATA_LENGTH ; advance destination pointer by data size
     INC XModemPacketNumberExpected      ; increment expected packet number
 @SendAck:
     JSR XModemSendACK

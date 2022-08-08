@@ -10,7 +10,6 @@
 
 .include "serial.asm"
 .include "duart.asm"
-.include "acia.asm"
 .include "via.asm"
 .include "monitaur.asm"
 .include "lcd1602.asm"
@@ -45,7 +44,6 @@ RamTest:
 
     ;;; initializes hardware
     ; JSR VIAInit
-    JSR ACIAInit
     JSR DuartInit
 ;     JSR LCDInit
     
