@@ -43,8 +43,6 @@ RamTest:
     STA SystemRAMCapacity + 1
 
     ;;; initializes hardware
-    ; JSR VIAInit
-    JSR DuartInit
 ;     JSR LCDInit
     
 ;     LDA #<LmaOSBootText
@@ -57,7 +55,7 @@ RamTest:
     STA SystemClockJiffies
     STZ SystemClockUptime
     STZ SystemClockUptime + 1
-    JSR VIASetupSystemClock
+    JSR DuartInit
 
 @SetupInterruptVector:
     ;;; copy system interrupt handler into the interrupt vector
