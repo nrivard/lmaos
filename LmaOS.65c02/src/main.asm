@@ -41,13 +41,6 @@ RamTest:
     STA SystemRAMCapacity
     LDA RamTestPointer + 1
     STA SystemRAMCapacity + 1
-
-    ;;; initializes hardware
-;     JSR LCDInit
-    
-;     LDA #<LmaOSBootText
-;     LDX #>LmaOSBootText
-;     JSR LCDPrintString
     
     ;;; initializes the system clock @100Hz (10 msec)
 @InitClock:
