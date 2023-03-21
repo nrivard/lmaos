@@ -6,8 +6,8 @@
 SPI_INC = 1
 
 ; set these to the appropriate VIA port addresses
-SPI_VIA_PORT := VIA_BASE+PORT_B
-SPI_VIA_DDR := VIA_BASE+DDRB
+SPI_VIA_PORT := VIA_BASE+PORT_A
+SPI_VIA_DDR := VIA_BASE+DDRA
 
 ; set these to bit masks for how your sd card interface is wired up to the VIA
 SPI_CSB  := %00000001

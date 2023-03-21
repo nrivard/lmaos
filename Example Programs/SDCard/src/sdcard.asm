@@ -144,7 +144,7 @@ SDCardSendV2Check:
     CMP #0              ; again, known carry state
     BNE @Done
     JSR SPIReadByte
-    CMP #SDCARD_VOLTAGE_27_36   ; card accepts a valid voltage range
+    CMP #SDCARD_VOLTAGE_27_36   ; card accepts a valid voltage range. TODO: this should NOT bail before fetching final byte
     BNE @Done
     JSR SPIReadByte
     CMP Command8 + 4    ; matches the pattern we sent in arg4

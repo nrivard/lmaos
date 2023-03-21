@@ -7,7 +7,7 @@ VIA_INC = 1
 
 ;;; VIA Addresses
 
-VIA_BASE := N8BUS_PORT1
+VIA_BASE := N8BUS_PORT0
 
 PORT_B := $0
 PORT_A := $1

@@ -1,9 +1,7 @@
 .include "lmaos.inc"
-.include "lcd1602.inc"
 .include "pseudoinstructions.inc"
 .include "strings.inc"
 .include "system.inc"
-.include "via.inc"
 
 .org $0400
 
@@ -13,9 +11,9 @@ Main:
     JMP PrintStartMessage
 
 ; storage
-N: .res $02
-NMinusOne: .res $02
-NMinusTwo: .res $02
+N: .res $04
+NMinusOne: .res $04
+NMinusTwo: .res $04
 
 PrintStartMessage:
     LDA #<StartMessage
@@ -27,33 +25,22 @@ PrintStartMessage:
 Init:
     STZ N
     STZ N + 1
-    STZ NMinusOne
-    STZ NMinusOne + 1
-    STZ NMinusTwo
-    STZ NMinusTwo + 1
+    STZ N + 2
+    STZ N + 3
+    COPY32 N, NMinusOne
+    COPY32 N, NMinusTwo
 
 SeedTerms:
-    LDA #0
-    JSR PrintByte             ; first number is always zero. let's send it :)
-    JSR PrintByte
-    LDA #' '
-    JSR SerialSendByte
+    JSR SendN                 ; first number is always zero. let's send it :)
     INC NMinusOne             ; now we seed the first term
 
 CalculateNextTerm:
-    ADC16 NMinusTwo, NMinusOne, N
-    BMI @SendTerm               ; if high byte of N is positive, we might have overflowed. check NMinusOne
-    LDA NMinusOne + 1
-    BPL @SendTerm               ; if high byte of NMinusOne is positive, we haven't overflowed
-    BRA Done
+    ADC32 NMinusTwo, NMinusOne, N
+    BCS Done                    ; if carry is set, we overflowed
 @SendTerm:
-    JSR PrintByte         ; high byte is already in A
-    LDA N
-    JSR PrintByte
-    COPY16 NMinusOne, NMinusTwo
-    COPY16 N, NMinusOne
-    LDA #' '
-    JSR SerialSendByte
+    JSR SendN
+    COPY32 NMinusOne, NMinusTwo
+    COPY32 N, NMinusOne
     BRA CalculateNextTerm
 
 Done:
@@ -61,15 +48,19 @@ Done:
     JSR SerialSendByte
     RTS
 
-; byte to print in A
-PrintByte:
+SendN:
     PHA
-    JSR ByteToHexString
-    LDA r7
-    JSR SerialSendByte
-    LDA r7 + 1
+    LDA N + 3
+    JSR SerialSendByteAsString
+    LDA N + 2
+    JSR SerialSendByteAsString
+    LDA N + 1
+    JSR SerialSendByteAsString
+    LDA N
+    JSR SerialSendByteAsString
+    LDA #' '
     JSR SerialSendByte
     PLA
     RTS
 
-StartMessage: .asciiz "The Fibonacci sequence (in 16-bits)\r"
+StartMessage: .asciiz "The Fibonacci sequence (in 32-bits)\r"

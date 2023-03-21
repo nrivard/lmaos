@@ -1,0 +1,6 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/nrivard/git_tree/github/lmaos'
+/opt/homebrew/bin/cl65 -t none -C LmaOS.65c02/memorymap.cfg --asm-include-dir LmaOS.65c02/include -l lmaos.rom.listing -vm --mapfile lmaos.rom.map --cpu 65C02 -o ./lmaos.rom  LmaOS.65c02/src/main.asm
+/usr/bin/python3	 Scripts/generate_lmaos_inc.py lmaos.rom.map LmaOS.65c02/include/lmaos.inc
+make: Leaving directory `/Users/nrivard/git_tree/github/lmaos'
+ 

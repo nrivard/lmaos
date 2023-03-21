@@ -52,9 +52,9 @@ SendPrefix:
 SendWaitTime:
     SBC16 SystemClockUptime, StartTime, StartTime   ; subtract StartTime from the current time and store it back since we're done with this value
     LDA StartTime + 1
-    JSR PrintByte
+    JSR SerialSendByteAsString
     LDA StartTime
-    JSR PrintByte
+    JSR SerialSendByteAsString
 SendSuffix:
     LDA #<ResponseMessageSuffix
     STA r0
@@ -62,17 +62,6 @@ SendSuffix:
     STA r0 + 1
     JSR SerialSendString
 Done:
-    RTS
-
-; byte to print in A
-PrintByte:
-    PHA
-    JSR ByteToHexString
-    LDA r7
-    JSR SerialSendByte
-    LDA r7 + 1
-    JSR SerialSendByte
-    PLA
     RTS
 
 FrameInterrupt:

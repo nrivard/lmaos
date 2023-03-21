@@ -1,5 +1,4 @@
 .include "lmaos.inc"
-.include "lcd1602.inc"
 .include "pseudoinstructions.inc"
 .include "strings.inc"
 .include "system.inc"
@@ -38,7 +37,7 @@ Fat32Init:
     JMP @SDCardInitError
 @SDCardInitialized:
     COPYADDR SDCardInitSuccess, r0
-    JSR ACIASendString
+    JSR SerialSendString
 @FetchMBR:
     LDA #0
     TAX
@@ -60,18 +59,18 @@ Fat32Init:
     JMP @Fat32PartitionNotFound
 @ReadPartitionStart:
     COPYADDR SDCardFat32PartitionFoundPrefix, r0
-    JSR ACIASendString
+    JSR SerialSendString
     LDX #3
 @ReadPartitionLoop:
     ; partition LBA sector offset is little-endian
     LDA SDCardDataPacketBuffer + FAT32_MBR_PARTITION_TABLE_OFFSET + FAT32_PARTITION_RECORD_LBA_OFFSET, X
     STA FAT32PartitionBlock, X          ; save partition location for calculations later
-    JSR ACIASendByteAsString
+    JSR SerialSendByteAsString
     DEX
     CPX #$FF
     BNE @ReadPartitionLoop
     LDA #(ASCII_CARRIAGE_RETURN)
-    JSR ACIASendByte
+    JSR SerialSendByte
 @ReadVolumeID:
     ; TODO: this means we will blow away the cached MBR...
     LDA SDCardDataPacketBuffer + FAT32_MBR_PARTITION_TABLE_OFFSET + FAT32_PARTITION_RECORD_LBA_OFFSET + 0
@@ -107,11 +106,11 @@ Fat32Init:
 
 @PrintDirListingHeader:
     LDA #(ASCII_CARRIAGE_RETURN)
-    JSR ACIASendByte
+    JSR SerialSendByte
     COPYADDR Fat32DirectoryListingHeader, r0
-    JSR ACIASendString
+    JSR SerialSendString
     COPYADDR Fat32DirectoryListingSeparator, r0
-    JSR ACIASendString
+    JSR SerialSendString
 
 @FetchRootDir:
     LDA FAT32RootDirCluster
@@ -151,7 +150,7 @@ Fat32Init:
     BRA @SendErrorString    ; just in case there are more errors :)
 
 @SendErrorString:
-    JSR ACIASendString
+    JSR SerialSendString
     JMP @Done
 
 ; a sample file handler. `Fat32CurrentFileRecordPtr` is already filled out
@@ -166,35 +165,35 @@ FileHandler:
 @PrintFilename:
     JSR Fat32FileReadName       ; read the filename
     COPYADDR Fat32Filename, r0
-    JSR ACIASendString
+    JSR SerialSendString
 @PrintFileCluster:
     LDA #(ASCII_TAB)
-    JSR ACIASendByte
+    JSR SerialSendByte
     LDY #(Fat32FileRecord::clusterHigh)
     LDA (Fat32CurrentFileRecordPtr), Y
-    JSR ACIASendByteAsString
+    JSR SerialSendByteAsString
     INY
     LDA (Fat32CurrentFileRecordPtr), Y
-    JSR ACIASendByteAsString
+    JSR SerialSendByteAsString
     LDY #(Fat32FileRecord::clusterLow)
     LDA (Fat32CurrentFileRecordPtr), Y
-    JSR ACIASendByteAsString
+    JSR SerialSendByteAsString
     INY
     LDA (Fat32CurrentFileRecordPtr), Y
-    JSR ACIASendByteAsString
+    JSR SerialSendByteAsString
 @PrintSize:
     LDA #(ASCII_TAB)
-    JSR ACIASendByte
+    JSR SerialSendByte
     LDY #(Fat32FileRecord::size + 3)    ; little endian, so start at the end of the size field
 @PrintSizeLoop:
     LDA (Fat32CurrentFileRecordPtr), Y
-    JSR ACIASendByteAsString
+    JSR SerialSendByteAsString
     DEY
     CPY #(Fat32FileRecord::size - 1)    ; past the size field?
     BNE @PrintSizeLoop
 @PrintTerminator:
     LDA #(ASCII_CARRIAGE_RETURN)
-    JSR ACIASendByte
+    JSR SerialSendByte
 @Done:
     PLY
     PLA
@@ -428,21 +427,6 @@ Fat32FileReadName:
     STA Fat32Filename, Y
 @Done:
     PLY
-    PLA
-    RTS
-
-
-;; sends the byte in `A` as a hex string via the ACIA sychronously
-;; this is a convenience and destroys r7
-ACIASendByteAsString:
-    PHA
-@ConvertAndSend:
-    JSR ByteToHexString
-    LDA r7
-    JSR ACIASendByte
-    LDA r7 + 1
-    JSR ACIASendByte
-@Done:
     PLA
     RTS
 
