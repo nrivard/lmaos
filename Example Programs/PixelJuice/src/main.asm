@@ -7,11 +7,17 @@
 
 .feature string_escapes
 
+SECONDS_DELAY := 3
+
 FontPtr := $A0
 ShellCursorPos := $A2    ; word value for current cursor position
 
 Main:
     JMP Init
+
+SystemInterrupt: .res 2
+Delay:           .res 1
+Colors:          .res 1
     
     .include "vdp.asm"
     .include "ascii.asm"
@@ -19,14 +25,23 @@ Main:
 Init:
     JSR VDPInit
     JSR VRAMInit
+@SetupIRQ:
+    SEI
+    LDA #SECONDS_DELAY
+    STA Delay
+    COPY16 InterruptVector, SystemInterrupt     ; preserve old value of the interrupt vector
+    COPYADDR FrameInterrupt, InterruptVector
+    CLI
 @EnableDisplay:
-    LDA #(CONTROL_2_VRAM_16K | CONTROL_2_DISP_EN | CONTROL_2_MODE_TEXT)
-    STA VDP_BASE+REGISTERS
-    VDPWait
-    LDA #(REG_WR | CONTROL_2)
-    STA VDP_BASE+REGISTERS
-    VDPWait
+    VDPRegisterSet CONTROL_2, (CONTROL_2_VRAM_16K | CONTROL_2_DISP_EN | CONTROL_2_MODE_TEXT)
+    LDA #(COLOR_GRN_LT << 4 | COLOR_BLK)
+    STA Colors
+    VDPRegisterSet TEXT_COLOR                   ; colors already in A
     JSR VDPShell
+@RestoreIRQ:
+    SEI
+    COPY16 SystemInterrupt, InterruptVector
+    CLI
 @Done:
     RTS
 
@@ -59,22 +74,92 @@ VRAMInit:
 
 VDPShell:
 @ShellPreamble:
-    STZ ShellCursorPos
-    STZ ShellCursorPos + 1
     LDA #<(NAME_TABLE_START)
     STA ShellCursorPos
-    STA VDP_BASE+REGISTERS
-    VDPWait
     LDA #>(NAME_TABLE_START)
-    STA ShellCursorPos
-    ORA #(VRAM_WR)          ; high byte already in A
-    STA VDP_BASE+REGISTERS
-    VDPWait
+    STA ShellCursorPos + 1
 @ShellLoop:
+    JSR VDPShellSetPos
+    LDA #'_'
+    VDPVramPut                  ; this is the cursor
     JSR SerialGetByte
     CMP #(ASCII_ESCAPE)
     BEQ @Done
+    CMP #(ASCII_BACKSPACE)
+    BEQ @HandleBS
+@PrintChar:
+    JSR VDPShellSetPos
     VDPVramPut
+    INC16 ShellCursorPos
+    BRA @ShellLoop
+@HandleBS:
+    JSR VDPShellSetPos
+    LDA #' '
+    VDPVramPut
+    DEC16 ShellCursorPos
     BRA @ShellLoop
 @Done:
     RTS
+
+; sets VRAM ptr equal to current ShellCursorPos
+VDPShellSetPos:
+    PHA
+@SetVRAMPtr:
+    LDA ShellCursorPos
+    STA VDP_BASE+REGISTERS
+    VDPWait
+    LDA ShellCursorPos + 1
+    ORA #(VRAM_WR)
+    STA VDP_BASE+REGISTERS
+    VDPWait
+@Done:
+    PLA
+    RTS
+
+VDPShellUpdateCursor:
+    PHA
+    PHY
+@CalculatePtr:
+    TXA                         ; start with x position
+    CLC
+    ADC #<(NAME_TABLE_START)    ; add to the nametable start
+    STA ShellCursorPos
+    LDA #>(NAME_TABLE_START)
+    STA ShellCursorPos + 1
+    CPY #0                      ; bail early if y is zero
+    BEQ @SetVRAMPtr
+@RowLoop:
+    ADD16 ShellCursorPos, 40   ; each row is 40 chars
+    DEY
+    BNE @RowLoop
+@SetVRAMPtr:
+    LDA ShellCursorPos
+    STA VDP_BASE+REGISTERS
+    JSR SerialSendByteAsString
+    VDPWait
+    LDA ShellCursorPos + 1
+    ORA #(VRAM_WR)
+    STA VDP_BASE+REGISTERS
+    JSR SerialSendByteAsString
+    VDPWait
+@Done:
+    PLY
+    PLA
+    RTS
+
+FrameInterrupt:
+    PHA
+    LDA SystemClockJiffies
+    CMP #(ClockRateHz)
+    BNE @Done
+    DEC Delay
+    BNE @Done
+    LDA #SECONDS_DELAY
+    STA Delay
+@AdvanceBG:
+    INC Colors
+    LDA Colors
+    VDPRegisterSet TEXT_COLOR
+@Done:
+    PLA
+    JMP (SystemInterrupt)

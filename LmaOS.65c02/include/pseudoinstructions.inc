@@ -52,10 +52,10 @@ PSEUDOINSTRUCTIONS_INC = 1
 .macro ADD16 addr, imm
     CLC
     LDA addr
-    ADC #<imm
+    ADC #<(imm)
     STA addr
     LDA addr + 1
-    ADC #>imm
+    ADC #>(imm)
     STA addr + 1
 .endmacro
 
@@ -117,6 +117,7 @@ PSEUDOINSTRUCTIONS_INC = 1
 ;; NOTE: Caller can check for zero bit in SR as it will only be zero when _both_
 ;; high and low bytes are zero
 .macro INC16 addr
+.local @NoWrap
     INC addr
     BNE @NoWrap
     INC addr + 1
@@ -129,6 +130,7 @@ PSEUDOINSTRUCTIONS_INC = 1
 ;;
 ;; NOTE: SR status is based on lower byte only
 .macro DEC16 addr
+.local @NoWrap
     LDA addr
     BNE @NoWrap
     DEC addr + 1

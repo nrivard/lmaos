@@ -85,6 +85,20 @@ COLOR_WHITE     := $F
     NOP
 .endmacro
 
+; imm is an optional immediate value. if not provided, it's assumed data is already in A
+.macro VDPRegisterSet register, imm
+.ifnblank imm
+    LDA #(imm)
+.endif
+    STA VDP_BASE+REGISTERS
+    VDPWait
+    LDA #(register | REG_WR)
+    STA VDP_BASE+REGISTERS
+    VDPWait
+.endmacro
+
+; .macro VDPVRAMAddrSet addr, 
+
 ; byte to send to VRAM should be in A
 .macro VDPVramPut
     STA VDP_BASE+VRAM
