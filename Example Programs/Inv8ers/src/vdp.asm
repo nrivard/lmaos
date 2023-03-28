@@ -7,28 +7,54 @@ VDP_ASM = 1
 
 .include "vdp.inc"
 
-.export VDPInit, VDPWaitLong
+.export VDPInit, VDPClearVRAM, VDPWaitLong
 
-NAME_TABLE_START := $0800
-PATTERN_TABLE_START := $0000
+VDP_NAME_TABLE_START := $0800
+VDP_PATTERN_TABLE_START := $0000
 
 .code
 
+; initialize VDP according to pointer in A/X
+; register table should be 8 bytes long, starting with CONTROL_1 and ending with TEXT_COLOR
+; A: low byte of register pointer
+; X: high byte of register pointer
 VDPInit:
+    STA r0                          ; setup table pointer
+    STX r0 + 1
     BIT VDP_BASE+REGISTERS          ; reset status register in case memory check touched it
     JSR VDPWaitLong
-    LDX #$00
+    LDY #$00
 @RegisterLoop:
-    LDA VDPDefaultRegisters, X
+    LDA (r0), Y
     STA VDP_BASE+REGISTERS
     JSR VDPWaitLong
-    TXA
+    TYA
     ORA #(REG_WR)
     STA VDP_BASE+REGISTERS
     JSR VDPWaitLong
-    INX
-    CPX #(VDPDefaultRegistersEnd - VDPDefaultRegisters)
+    INY
+    CPY #(8)
     BNE @RegisterLoop
+@Done:
+    RTS
+
+; zeroes out all of vram
+VDPClearVRAM:
+    LDA #0
+    STA VDP_BASE+REGISTERS
+    VDPWait
+    LDA #(VRAM_WR)
+    STA VDP_BASE+REGISTERS
+    VDPWait
+    LDX #$40                    ; write 40 pages of data
+    LDY #0
+@WriteByte:
+    STZ VDP_BASE+VRAM
+    VDPWait
+    INY
+    BNE @WriteByte
+    DEX
+    BNE @WriteByte
 @Done:
     RTS
 
@@ -51,12 +77,12 @@ VDPPutN:
 VDPDefaultRegisters:
     .byte (CONTROL_1_MODE_TEXT)                         ; control reg 1
     .byte (CONTROL_2_VRAM_16K | CONTROL_2_MODE_TEXT)    ; control reg 2
-    .byte (NAME_TABLE_START / NAME_TABLE_MULT)          ; nametable addr at $0800 (2 * $400)
+    .byte (VDP_NAME_TABLE_START / NAME_TABLE_MULT)      ; nametable addr at $0800 (2 * $400)
     .byte ($00)                                         ; color table not used
-    .byte (PATTERN_TABLE_START / PATTERN_TABLE_MULT)    ; pattern table at $0000 (0 * $800)
+    .byte (VDP_PATTERN_TABLE_START / PATTERN_TABLE_MULT) ; pattern table at $0000 (0 * $800)
     .byte ($20)                                         ; sprites not used (but manual has this value...)
     .byte ($00)                                         ; sprites not used
-    .byte (COLOR_GRN_LT << 4 | COLOR_BLK)                  ; lt green text on a black background. classic!
+    .byte (COLOR_GRN_LT << 4 | COLOR_BLK)               ; lt green text on a black background. classic!
 VDPDefaultRegistersEnd:
 
 .endif

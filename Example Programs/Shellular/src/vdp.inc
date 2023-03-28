@@ -97,7 +97,16 @@ COLOR_WHITE     := $F
     VDPWait
 .endmacro
 
-; .macro VDPVRAMAddrSet addr, 
+.macro VDPVRAMAddrSet addr, isWrite
+    LDA #<(addr)
+    STA VDP_BASE+REGISTERS 
+.if isWrite
+    LDA #>(addr) | VRAM_WR
+.else
+    LDA #>(addr)
+.endif
+    STA VDP_BASE+REGISTERS
+.endmacro
 
 ; byte to send to VRAM should be in A
 .macro VDPVramPut

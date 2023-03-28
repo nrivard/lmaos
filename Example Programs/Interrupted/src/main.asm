@@ -68,8 +68,7 @@ FrameInterrupt:
     PHA
     LDA SystemClockJiffies
     CMP #(ClockRateHz)
-    BEQ @SendHeartbeat
-    JMP @Done
+    BNE @Done
 @SendHeartbeat:
     LDA #'*'
     JSR SerialSendByte

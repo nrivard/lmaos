@@ -17,6 +17,16 @@ DUART_BASE := DUART_PORT
 @Done:
 .endmacro
 
+.macro DUART_IRQ_ENABLE
+    LDA #(IMR_CT_ENABLE)
+    STA DUART_BASE+IMR
+.endmacro
+
+.macro DUART_IRQ_DISABLE
+    LDA #$00
+    STA DUART_BASE+IMR
+.endmacro
+
 ; register offsets for the DUART. 
 ; Registers marked with `(~RD)` are accessed on a read of that address
 ; Registers marked with `(~WR)` are accessed on a write of that address
