@@ -23,6 +23,9 @@ Main:
 SystemInterrupt: .res 2
 FrameDelay:      .res 1
 PatternZero:     .res 1
+
+PlayerMoveDelay: .res 1
+PlayerMoveDir:   .res 1
     
     .include "vdp.asm"
     .include "bitmaps.asm"
@@ -30,6 +33,8 @@ PatternZero:     .res 1
 Init:
     STZ FrameDelay
     STZ PatternZero
+    STZ PlayerMoveDelay
+    STZ PlayerMoveDir
     SEI
     LDA #<(RegisterTable)
     LDX #>(RegisterTable)
@@ -38,6 +43,7 @@ Init:
     JSR PatternTableInit
     JSR NameTableInit
     JSR ColorTableInit
+    JSR SpritePatternInit
 @SetupIRQ:
     DUART_IRQ_DISABLE                           ; turn off timer interrupts, we are going to use VDP frames instead
     COPY16 InterruptVector, SystemInterrupt     ; preserve old value of the interrupt vector
@@ -62,7 +68,22 @@ Init:
 GameLoop:
     JSR SerialGetByte
     CMP #(ASCII_ESCAPE)
-    BNE GameLoop
+    BEQ @Done
+@CheckLeft:
+    CMP #('a')
+    BNE @CheckRight
+    DEC PlayerMoveDir
+    DEC PlayerMoveDir
+    BRA @ReadInput
+@CheckRight:
+    CMP #('d')
+    BNE @ReadInput
+    INC PlayerMoveDir
+    INC PlayerMoveDir
+@ReadInput:
+    ; WAI
+    BRA GameLoop
+@Done:
     RTS
 
 PatternTableInit:
@@ -94,7 +115,7 @@ NameTableInit:
 @SetupVRAMAddr:
     VDPVramAddrSet NameTable, 1
 @WritePatterns:
-    LDX #3
+    LDX #2
 @WriteVRAMLoop:
     LDY #$00                    ; 32 * 24 tiles so loop $C0 4 times
 @InnerLoop:
@@ -124,14 +145,49 @@ ColorTableInit:
 @Done:
     RTS
 
+SpritePatternInit:
+    COPYADDR SpritePatternsStart, VramPtr
+    VDPVramAddrSet SpritePatterns, 1
+    ; LDX #(SpritePatternsEnd - SpritePatternsStart) / 8  ; this is how many sprite patterns we have
+@SpriteLoop:
+    LDY #0
+@WriteVRAMLoop:
+    LDA (VramPtr), Y
+    VDPVramPut
+    INY
+    CPY #16
+    BNE @WriteVRAMLoop
+    ; DEX
+    ; BNE @SpriteLoop
+@Xwing:
+    VDPVramAddrSet SpriteAttributes, 1
+    LDA PlayerLeft+SpriteAttr::yPos
+    VDPVramPut
+    LDA PlayerLeft+SpriteAttr::xPos
+    VDPVramPut
+    LDA PlayerLeft+SpriteAttr::patternIndex
+    VDPVramPut
+    LDA PlayerLeft+SpriteAttr::color
+    VDPVramPut
+    LDA PlayerRight+SpriteAttr::yPos
+    VDPVramPut
+    LDA PlayerRight+SpriteAttr::xPos
+    VDPVramPut
+    LDA PlayerRight+SpriteAttr::patternIndex
+    VDPVramPut
+    LDA PlayerRight+SpriteAttr::color
+    VDPVramPut
+@Done:
+    RTS
+
 FrameInterrupt:
     PHA
     BIT VDP_BASE+REGISTERS      ; clear IRQ request
-    BPL @Done                   ; not the VDP (though this shouldn't happen!)
+    BPL @MovePlayer             ; not the VDP (though this shouldn't happen!)
     INC FrameDelay
     LDA FrameDelay
-    CMP #60                     ; change each sec
-    BNE @Done
+    CMP #10                     ; change each 1/3 sec
+    BNE @MovePlayer
     STZ FrameDelay
 @ChangePattern:
     VDPVramAddrSet NameTable, 1 ; we'll change the first pattern
@@ -142,6 +198,23 @@ FrameInterrupt:
     VDPVramPut
     INC A
     VDPVramPut
+@MovePlayer:
+    LDA #2                      ; should be PlayerMoveDir but for this demo i just want to see smooth animation
+    BEQ @Done
+    CLC
+    ADC PlayerLeft+SpriteAttr::xPos
+    STA PlayerLeft+SpriteAttr::xPos
+    CLC
+    ADC #8
+    STA PlayerRight+SpriteAttr::xPos
+@UpdatePlayerPos:
+    VDPVramAddrSet SpriteAttributes+SpriteAttr::xPos, 1
+    LDA PlayerLeft+SpriteAttr::xPos
+    VDPVramPut
+    VDPVramAddrSet SpriteAttributes+SpriteAttr::xPos + .sizeof(SpriteAttr), 1
+    LDA PlayerRight+SpriteAttr::xPos
+    VDPVramPut
+    STZ PlayerMoveDir           ; reset player movement
 @Done:
     PLA
     RTI
@@ -159,3 +232,8 @@ RegisterTable:
 Colors:
     .byte $21, $41, $61, $71, $A1, $C1, $D1, $E1, $31, $51, $F1, $91, $B1, $81
 ColorsEnd:
+
+PlayerLeft:                     ; treat as a SpriteAttr struct
+    .byte $B0, $80, $00, COLOR_RED_MED
+PlayerRight:
+    .byte $B0, $88, $01, COLOR_RED_MED

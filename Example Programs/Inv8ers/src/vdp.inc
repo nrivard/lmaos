@@ -8,12 +8,12 @@ VDP_INC = 1
 VDP_BASE := N8BUS_PORT0
 
 ; register offsets for the VDP
-VRAM        := $0
-REGISTERS   := $1                   ; writing: 8 registers accessible. reading: status register is available
+VRAM            := $0
+REGISTERS       := $1                   ; writing: 8 registers accessible. reading: status register is available
 
 ; Register masks
-REG_WR      := $80                  ; used to write to a register
-VRAM_WR     := $40                  ; used to write to vram
+REG_WR          := $80                  ; used to write to a register
+VRAM_WR         := $40                  ; used to write to vram
 
 ; Register indices
 CONTROL_1       := $0
@@ -75,6 +75,15 @@ COLOR_MAG       := $D
 COLOR_GRAY      := $E
 COLOR_WHITE     := $F
 
+.struct SpriteAttr
+    yPos            .byte
+    xPos            .byte
+    patternIndex    .byte
+    color           .byte       ; low nibble contains color. high bit contains EARLY_CLOCK
+.endstruct
+
+SPRITE_ATTR_EARLY_CLOCK := %10000000
+
 ; waits 2µs, the non-active display max wait time
 ; these routines are based on 3.6874Mhz so each cycle is just over .25µs
 ; each NOP is 2 cycles. at ~3.6Mhz, NOP is .5µs
@@ -107,8 +116,6 @@ COLOR_WHITE     := $F
 .endif
     STA VDP_BASE+REGISTERS
 .endmacro
-
-; .macro VDPVRAMAddrSet addr, 
 
 ; byte to send to VRAM should be in A
 .macro VDPVramPut
