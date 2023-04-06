@@ -35,6 +35,7 @@ PatternsEnd:
 SpritePatternsStart:
     .byte $01, $03, $03, $83, $87, $87, $FF, $FF
     .byte $80, $C0, $C0, $C1, $E1, $E1, $FF, $FF
+    .byte $00, $18, $18, $18, $18, $18, $18, $00    ; lazer
 SpritePatternsEnd:
 
 .endif

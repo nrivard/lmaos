@@ -101,7 +101,7 @@ SPRITE_ATTR_EARLY_CLOCK := %10000000
 .endif
     STA VDP_BASE+REGISTERS
     VDPWait
-    LDA #(register | REG_WR)
+    LDA #(register) | REG_WR
     STA VDP_BASE+REGISTERS
     VDPWait
 .endmacro

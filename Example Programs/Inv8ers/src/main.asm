@@ -69,20 +69,29 @@ GameLoop:
     JSR SerialGetByte
     CMP #(ASCII_ESCAPE)
     BEQ @Done
+@ReadInput:
+    JSR CheckPlayerMovement
+    WAI
+    BRA GameLoop
+@Done:
+    RTS
+
+CheckPlayerMovement:
 @CheckLeft:
     CMP #('a')
     BNE @CheckRight
-    DEC PlayerMoveDir
-    DEC PlayerMoveDir
-    BRA @ReadInput
+    DEC PlayerLeft+SpriteAttr::xPos
+    DEC PlayerLeft+SpriteAttr::xPos
+    DEC PlayerRight+SpriteAttr::xPos
+    DEC PlayerRight+SpriteAttr::xPos
+    BRA @Done
 @CheckRight:
     CMP #('d')
-    BNE @ReadInput
-    INC PlayerMoveDir
-    INC PlayerMoveDir
-@ReadInput:
-    ; WAI
-    BRA GameLoop
+    BNE @Done
+    INC PlayerLeft+SpriteAttr::xPos
+    INC PlayerLeft+SpriteAttr::xPos
+    INC PlayerRight+SpriteAttr::xPos
+    INC PlayerRight+SpriteAttr::xPos
 @Done:
     RTS
 
@@ -155,28 +164,12 @@ SpritePatternInit:
     LDA (VramPtr), Y
     VDPVramPut
     INY
-    CPY #16
+    CPY #24
     BNE @WriteVRAMLoop
     ; DEX
     ; BNE @SpriteLoop
 @Xwing:
-    VDPVramAddrSet SpriteAttributes, 1
-    LDA PlayerLeft+SpriteAttr::yPos
-    VDPVramPut
-    LDA PlayerLeft+SpriteAttr::xPos
-    VDPVramPut
-    LDA PlayerLeft+SpriteAttr::patternIndex
-    VDPVramPut
-    LDA PlayerLeft+SpriteAttr::color
-    VDPVramPut
-    LDA PlayerRight+SpriteAttr::yPos
-    VDPVramPut
-    LDA PlayerRight+SpriteAttr::xPos
-    VDPVramPut
-    LDA PlayerRight+SpriteAttr::patternIndex
-    VDPVramPut
-    LDA PlayerRight+SpriteAttr::color
-    VDPVramPut
+    JSR CopySpriteTable
 @Done:
     RTS
 
@@ -199,25 +192,29 @@ FrameInterrupt:
     INC A
     VDPVramPut
 @MovePlayer:
-    LDA #2                      ; should be PlayerMoveDir but for this demo i just want to see smooth animation
-    BEQ @Done
-    CLC
-    ADC PlayerLeft+SpriteAttr::xPos
-    STA PlayerLeft+SpriteAttr::xPos
-    CLC
-    ADC #8
-    STA PlayerRight+SpriteAttr::xPos
-@UpdatePlayerPos:
-    VDPVramAddrSet SpriteAttributes+SpriteAttr::xPos, 1
-    LDA PlayerLeft+SpriteAttr::xPos
-    VDPVramPut
-    VDPVramAddrSet SpriteAttributes+SpriteAttr::xPos + .sizeof(SpriteAttr), 1
-    LDA PlayerRight+SpriteAttr::xPos
-    VDPVramPut
+    JSR CopySpriteTable
     STZ PlayerMoveDir           ; reset player movement
 @Done:
     PLA
     RTI
+
+CopySpriteTable:
+    PHA
+    PHY
+    VDPVramAddrSet SpriteAttributes, 1
+    COPYADDR SpriteTable, VramPtr
+    LDY #0
+@SpriteVramLoop:
+    LDA (VramPtr), Y
+    VDPVramPut
+    INY
+    CPY #(SpriteTableEnd - SpriteTable)
+    BNE @SpriteVramLoop
+@Done:
+    PLY
+    PLA
+    RTS
+
 
 RegisterTable:
     .byte (CONTROL_1_MODE_GFX_1)
@@ -233,7 +230,11 @@ Colors:
     .byte $21, $41, $61, $71, $A1, $C1, $D1, $E1, $31, $51, $F1, $91, $B1, $81
 ColorsEnd:
 
+SpriteTable:
 PlayerLeft:                     ; treat as a SpriteAttr struct
     .byte $B0, $80, $00, COLOR_RED_MED
 PlayerRight:
     .byte $B0, $88, $01, COLOR_RED_MED
+Bullet:
+    .byte $00, $00, $00, COLOR_CLR
+SpriteTableEnd:

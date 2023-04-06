@@ -40,12 +40,7 @@ VDPInit:
 
 ; zeroes out all of vram
 VDPClearVRAM:
-    LDA #0
-    STA VDP_BASE+REGISTERS
-    VDPWait
-    LDA #(VRAM_WR)
-    STA VDP_BASE+REGISTERS
-    VDPWait
+    VDPVramAddrSet 0, 1
     LDX #$40                    ; write 40 pages of data
     LDY #0
 @WriteByte:
@@ -69,7 +64,7 @@ VDPWaitLong:
 @Done:
     RTS
 
-; X: should contain number of bytes to send. use `0` to send a full page
+; X: should contain number of bytes to send, up to one full page. use `0` to send a full page
 VDPPutN:
     RTS
 

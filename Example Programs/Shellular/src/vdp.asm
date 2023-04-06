@@ -40,12 +40,7 @@ VDPInit:
 
 ; zeroes out all of vram
 VDPClearVRAM:
-    LDA #0
-    STA VDP_BASE+REGISTERS
-    VDPWait
-    LDA #(VRAM_WR)
-    STA VDP_BASE+REGISTERS
-    VDPWait
+    VDPVramAddrSet 0, 1
     LDX #$40                    ; write 40 pages of data
     LDY #0
 @WriteByte:
@@ -58,7 +53,7 @@ VDPClearVRAM:
 @Done:
     RTS
 
-; during active display, you must wait 8µs
+; during active display, you must wait 8µs when accessing VRAM
 ; JSR takes 6 cycles (1.5µs) and RTS takes 6 cycles (1.5µs)
 ; NOTE: this is a subroutine! not a macro like `VDPWait`. it uses the cycle counts of jumping + returning
 VDPWaitLong:
