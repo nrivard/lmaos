@@ -2,6 +2,7 @@
 .include "pseudoinstructions.inc"
 .include "strings.inc"
 .include "system.inc"
+.include "vdp.inc"
 
 .org $0600
 
@@ -17,16 +18,13 @@ Main:
 
 SystemInterrupt: .res 2
 CursorDelay:     .res 1
-    
-    .include "vdp.asm"
-    .include "ascii.asm"
 
 Init:
     LDA #<VDPDefaultRegisters
     LDX #>VDPDefaultRegisters
     JSR VDPInit
     JSR VDPClearVRAM
-    JSR VRAMInit
+    JSR VDPCopyDefaultCharset
 @SetupIRQ:
     SEI
     LDA #FRAME_DELAY
@@ -41,24 +39,6 @@ Init:
     SEI
     COPY16 SystemInterrupt, InterruptVector
     CLI
-@Done:
-    RTS
-
-VRAMInit:
-@Preamble:
-    VDPVramAddrSet VDP_PATTERN_TABLE_START, 1
-    COPYADDR FontStart, FontPtr
-    LDY #0                      ; to get all 256 chars, we can copy 8 bytes 256 times
-    LDX #8                      ; or copy 256 bytes 8 times :)
-@WriteVRAMLoop:
-    LDA (FontPtr), Y
-    VDPVramPut
-    INY
-    BNE @WriteVRAMLoop
-    DEX
-    BEQ @Done
-    INC FontPtr + 1
-    BRA @WriteVRAMLoop
 @Done:
     RTS
 

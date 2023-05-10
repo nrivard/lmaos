@@ -7,10 +7,7 @@ VDP_ASM = 1
 
 .include "vdp.inc"
 
-.export VDPInit, VDPClearVRAM, VDPWaitLong
-
-VDP_NAME_TABLE_START := $0800
-VDP_PATTERN_TABLE_START := $0000
+.export VDPInit, VDPClearVRAM, VDPWaitLong, VDPCopyDefaultCharset, VDPDefaultRegisters, VDPVramPutN
 
 .code
 
@@ -22,16 +19,13 @@ VDPInit:
     STA r0                          ; setup table pointer
     STX r0 + 1
     BIT VDP_BASE+REGISTERS          ; reset status register in case memory check touched it
-    JSR VDPWaitLong
     LDY #$00
 @RegisterLoop:
     LDA (r0), Y
     STA VDP_BASE+REGISTERS
-    JSR VDPWaitLong
     TYA
     ORA #(REG_WR)
     STA VDP_BASE+REGISTERS
-    JSR VDPWaitLong
     INY
     CPY #(8)
     BNE @RegisterLoop
@@ -41,7 +35,7 @@ VDPInit:
 ; zeroes out all of vram
 VDPClearVRAM:
     VDPVramAddrSet 0, 1
-    LDX #$40                    ; write 40 pages of data
+    LDX #$40                    ; write 40 pages of data ($40 * $100 = 16k)
     LDY #0
 @WriteByte:
     STZ VDP_BASE+VRAM
@@ -53,7 +47,15 @@ VDPClearVRAM:
 @Done:
     RTS
 
-; during active display, you must wait 8µs when accessing VRAM
+VDPCopyDefaultCharset:
+    VDPVramAddrSet VDP_PATTERN_TABLE_START, 1
+    COPYADDR CharsetStart, r0
+    COPYADDR (CharsetEnd - CharsetStart), r1
+    JSR VDPVramPutN
+@Done:
+    RTS
+
+; during active display, you must wait 8µs
 ; JSR takes 6 cycles (1.5µs) and RTS takes 6 cycles (1.5µs)
 ; NOTE: this is a subroutine! not a macro like `VDPWait`. it uses the cycle counts of jumping + returning
 VDPWaitLong:
@@ -64,8 +66,25 @@ VDPWaitLong:
 @Done:
     RTS
 
-; X: should contain number of bytes to send. use `0` to send a full page
-VDPPutN:
+; r0: pointer to start of data. subroutine will fetch data from the ptr, send to VDP, increment until
+; number of bytes to send is reached
+; r1: 16-bit count of number of bytes to transfer
+;
+; NOTE: this uses the normal VDPVramPut macro, it does _not_ use VDPWaitLong so is only appropriate to use
+; when VDP output is disabled _or_ during blanking periods 
+VDPVramPutN:
+@Preamble:
+    PHA
+@Loop:
+    LDA (r0)
+    VDPVramPut
+    INC16 r0
+    DEC16 r1
+    BNE @Loop
+    LDA r1 + 1		; DEC16 only returns flags on lower-byte, so test high-byte
+    BNE @Loop
+@Done:
+    PLA
     RTS
 
 ; default register values
@@ -79,5 +98,7 @@ VDPDefaultRegisters:
     .byte ($00)                                         ; sprites not used
     .byte (COLOR_GRN_LT << 4 | COLOR_BLK)               ; lt green text on a black background. classic!
 VDPDefaultRegistersEnd:
+
+.include "charset.asm"
 
 .endif

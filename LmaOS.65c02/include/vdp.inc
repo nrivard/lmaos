@@ -5,7 +5,11 @@
 .ifndef VDP_INC
 VDP_INC = 1
 
-VDP_BASE := N8BUS_PORT0
+VDP_BASE := N8BUS_PORT2
+
+; default VRAM locations
+VDP_NAME_TABLE_START := $0800
+VDP_PATTERN_TABLE_START := $0000
 
 ; register offsets for the VDP
 VRAM            := $0

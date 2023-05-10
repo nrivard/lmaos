@@ -3,6 +3,7 @@
 .include "strings.inc"
 .include "system.inc"
 .include "duart.inc"
+.include "vdp.inc"
 
 .org $0600
 
@@ -27,7 +28,6 @@ PatternZero:     .res 1
 PlayerMoveDelay: .res 1
 PlayerMoveDir:   .res 1
     
-    .include "vdp.asm"
     .include "bitmaps.asm"
 
 Init:
@@ -96,7 +96,6 @@ CheckPlayerMovement:
     RTS
 
 PatternTableInit:
-@SetupVRAMAddr:
     VDPVramAddrSet PatternTable, 1
 @Preamble:
     LDA #<(PatternsStart)
@@ -202,14 +201,16 @@ CopySpriteTable:
     PHA
     PHY
     VDPVramAddrSet SpriteAttributes, 1
-    COPYADDR SpriteTable, VramPtr
-    LDY #0
-@SpriteVramLoop:
-    LDA (VramPtr), Y
-    VDPVramPut
-    INY
-    CPY #(SpriteTableEnd - SpriteTable)
-    BNE @SpriteVramLoop
+    COPYADDR SpriteTable, r0
+    COPYADDR (SpriteTableEnd - SpriteTable), r1
+    JSR VDPVramPutN
+;     LDY #0
+; @SpriteVramLoop:
+;     LDA (VramPtr), Y
+;     VDPVramPut
+;     INY
+;     CPY #(SpriteTableEnd - SpriteTable)
+;     BNE @SpriteVramLoop
 @Done:
     PLY
     PLA

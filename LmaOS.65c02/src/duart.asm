@@ -56,10 +56,10 @@ DuartInitTable:
     .byte CTPU,     >(MpuRateHz / (ClockRateHz * 2))    ; upper nibble of jiffy rate
     .byte CRA,      CR_COMMAND_RTS_SET                  ; assert RTS
     .byte CRA,      CR_TX_ENABLE | CR_RX_ENABLE         ; enable transmitter, enable receiver
-    .byte CSRA,     $CC                                 ; 19200 baud on Tx and Rx
+    .byte CSRA,     $CC                                 ; 115200 baud on Tx and Rx
     .byte MRA,      MR2_TX_USE_CTS | MR2_STOP_BITS_1    ; normal channel mode, use CTS, 1 stop bit
     .byte MRA,      MR1_RX_USE_RTS | MR1_FIFO_RX_INT | MR1_PARITY_MODE_NONE | MR1_BITS_PER_CHAR_8   ; use RTS, big fifo, no parity, 8 bits
-    .byte MRA,      MR0_RX_WATCHDOG | MR0_FIFO_16 | MR0_FIFO_RX_INT  ; turn on Rx watchdog, big fifo, normal baud table
+    .byte MRA,      MR0_RX_WATCHDOG | MR0_FIFO_16 | MR0_FIFO_RX_INT| MR0_BAUD_EXT1  ; turn on Rx watchdog, big fifo, extended 1 baud table
     .byte CRA,      CR_COMMAND_MR_0                     ; reset to MR0
     .byte ACR,      ACR_BRG_SELECT | ACR_TIMER_XTL_CLK  ; use 2nd group of BRG values, use xtl clk for timer
     .byte CRA,      CR_COMMAND_TO_MODE_OFF              ; disable timeout mode
