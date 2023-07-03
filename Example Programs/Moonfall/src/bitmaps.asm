@@ -9,7 +9,7 @@ map_start:
             .byte empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp
             .byte empty_sp, big_star, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp
 
-            .byte empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, two_star, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp
+            .byte empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, twinkl_r, two_star, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp
             .byte empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp
 
             .byte empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp
@@ -45,7 +45,7 @@ map_start:
             .byte empty_sp, twinkl_0, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp
             .byte empty_sp, empty_sp, twinkl_0, empty_sp, empty_sp, empty_sp, empty_sp, big_star, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp
 
-            .byte empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp
+            .byte empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, twinkl_r, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp
             .byte empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp
 
             .byte empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp, empty_sp
@@ -61,14 +61,14 @@ moon_start:
             .byte empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd
             .byte empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd
 
-            .byte empty_gd, empty_gd, empty_gd, crtr_lft, crtr_rgt, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd
-            .byte empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd
-
             .byte empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd
             .byte empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd
 
             .byte empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd
-            .byte empty_gd, empty_gd, crtr_lft, crtr_rgt, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd
+            .byte empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd
+
+            .byte empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd
+            .byte empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd
 
             .byte empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd
             .byte empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd, empty_gd
@@ -93,6 +93,10 @@ empty_gd := $08
 crtr_lft := $09
 crtr_rgt := $0A
 
+; red space
+big_st_r := big_star + 16
+twinkl_r := twinkl_0 + 16
+
 ; sprites
 asterd_0 := $00
 asterd_1 := $01
@@ -105,14 +109,21 @@ patterns_start:
     .byte $00, $00, $00, $08, $00, $00, $00, $00
     .byte $00, $00, $08, $1C, $08, $00, $00, $00
     ; padding
-    .byte $00, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $00, $00
+    .res 8 * 3
 
     ; black on grey bgnd
     .byte $00, $00, $00, $00, $00, $00, $00, $00
     .byte $0F, $10, $20, $24, $50, $9F, $24, $4A
     .byte $F0, $08, $84, $24, $0A, $F9, $94, $A2
+    ; padding
+    .res 8 * 5
+
+    ; red on black background
+    .byte $00, $00, $00, $00, $00, $00, $00, $00
+    .byte $00, $00, $30, $30, $00, $00, $00, $00
+    .byte $00, $08, $00, $00, $00, $00, $40, $00
+    .byte $00, $00, $00, $08, $00, $00, $00, $00
+    .byte $00, $00, $08, $1C, $08, $00, $00, $00
 patterns_end:
 
 sprites_start:
@@ -123,6 +134,7 @@ sprites_end:
 colors_start:
     .byte (COLOR_WHITE << 4 | COLOR_BLK)
     .byte (COLOR_BLK << 4 | COLOR_GRAY)
+    .byte (COLOR_RED_MED << 4 | COLOR_BLK)
 colors_end:
 
 .endif

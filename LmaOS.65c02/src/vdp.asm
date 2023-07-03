@@ -7,7 +7,7 @@ VDP_ASM = 1
 
 .include "vdp.inc"
 
-.export VDPInit, VDPClearVRAM, VDPWaitLong, VDPCopyDefaultCharset, VDPDefaultRegisters, VDPVramPutN
+.export VDPInit, VDPClearVRAM, VDPWaitLong, VDPCopyDefaultCharset, VDPDefaultRegisters, VDPVramPutN, VDPCharset
 
 .code
 
@@ -99,6 +99,7 @@ VDPDefaultRegisters:
     .byte (COLOR_GRN_LT << 4 | COLOR_BLK)               ; lt green text on a black background. classic!
 VDPDefaultRegistersEnd:
 
+VDPCharset:
 .include "charset.asm"
 
 .endif

@@ -51,6 +51,7 @@ VDPCopyDefaultCharset         := $C0AD
 VDPWaitLong                   := $C0CB
 VDPVramPutN                   := $C0D6
 VDPDefaultRegisters           := $C0F6
+VDPCharset                    := $C0FE
 StringLength                  := $CAEE
 StringCompareN                := $CAF9
 StringCompare                 := $CB09

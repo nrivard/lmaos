@@ -1,0 +1,34 @@
+Modules list:
+-------------
+main.o:
+    CODE              Offs=000000  Size=0005A0  Align=00001  Fill=0000
+
+
+Segment list:
+-------------
+Name                   Start     End    Size  Align
+----------------------------------------------------
+CODE                  001000  00159F  0005A0  00001
+
+
+Exports list by name:
+---------------------
+__STACKSIZE__             000800 REA    __STACKSTART__            008000 REA    
+__ZPSTART__               000080 REA    
+
+
+Exports list by value:
+----------------------
+__ZPSTART__               000080 REA    __STACKSIZE__             000800 REA    
+__STACKSTART__            008000 REA    
+
+
+Imports list:
+-------------
+__STACKSIZE__ ([linker generated]):
+    [linker generated]        /opt/homebrew/Cellar/cc65/2.19/share/cc65/cfg/none.cfg(11)
+__STACKSTART__ ([linker generated]):
+    [linker generated]        /opt/homebrew/Cellar/cc65/2.19/share/cc65/cfg/none.cfg(11)
+__ZPSTART__ ([linker generated]):
+    [linker generated]        /opt/homebrew/Cellar/cc65/2.19/share/cc65/cfg/none.cfg(10)
+

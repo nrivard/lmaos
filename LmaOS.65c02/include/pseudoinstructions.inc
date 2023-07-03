@@ -173,7 +173,7 @@ PSEUDOINSTRUCTIONS_INC = 1
 .endmacro
 
 ;; -A (negate accumulator)
-.macro NEG
+.macro NEG ignored ; allow a param to so you can write `NEG A` but it's ignored. only operates on A
     EOR #$FF
     INC A
 .endmacro

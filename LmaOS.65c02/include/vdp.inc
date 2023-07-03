@@ -87,6 +87,7 @@ COLOR_WHITE     := $F
 .endstruct
 
 SPRITE_ATTR_EARLY_CLOCK := %10000000
+SPRITE_DISABLE_Y_POS    := $D0  ; set as Y pos to disable this sprite and ALL sprites after this index
 
 ; waits 2µs, the non-active display max wait time
 ; these routines are based on 3.6874Mhz so each cycle is just over .25µs
