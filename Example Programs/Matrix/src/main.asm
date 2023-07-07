@@ -5,12 +5,10 @@
 .include "duart.inc"
 .include "vdp.inc"
 
-.org $0600
-
 .feature string_escapes
 
-NameTablePtr := $A0                      ; ptr to the start in NameTableCopy
-FramePtr     := $A2
+NameTableOffset := $A0                      ; offset to the start in NameTableCopy
+FramePtr        := $A2
 
 ; VRAM locations for various tables
 PatternTable        := $0000
@@ -21,6 +19,8 @@ SpritePatterns      := $2400
 ColorTable          := $2000
 
 SKIP_COUNT := 30
+
+.code
 
 Main:
     JMP Init
@@ -35,6 +35,7 @@ Init:
     STA FrameCount
     LDA #1
     STA FrameBufferIdx                  ; we want to populate the odd framebuffer first. we pre-populate even buffer
+    STZ NameTableOffset                 ; offset is zero
     LDA #<(RegisterTable)
     LDX #>(RegisterTable)
     JSR VDPInit
@@ -42,7 +43,6 @@ Init:
     JSR NameTableInit
     JSR ColorTableInit
     JSR VDPCopyDefaultCharset
-    COPYADDR NameTableCopyStart, NameTablePtr    ; set the pointer to the name table
 @SetupIRQ:
     DUART_IRQ_DISABLE                           ; turn off timer interrupts, we are going to use VDP frames instead
     COPY16 InterruptVector, SystemInterrupt     ; preserve old value of the interrupt vector
@@ -66,7 +66,7 @@ Init:
 
 NameTableInit:
 @SetupVRAMAddr:
-    COPYADDR NameTableCopyStart, NameTablePtr
+    COPYADDR NameTableCopyStart, FramePtr
     VDPVramAddrSet NameTableEven, 1
     LDX #4
 @CopyNames:
@@ -74,10 +74,10 @@ NameTableInit:
 @Loop:
     TYA
     VDPVramPut
-    STA (NameTablePtr), Y
+    STA (FramePtr), Y
     INY
     BNE @Loop
-    INC NameTablePtr + 1                    ; inc high byte of our pointer
+    INC FramePtr + 1                    ; inc high byte of our pointer
     DEX
     BNE @CopyNames
 @Done:
@@ -116,7 +116,14 @@ GameLoop:
 @SetOddFrameBuffer:
     VDPVramAddrSet NameTableOdd, 1
 @FillFrameBuffer:
-    COPY16 NameTablePtr, FramePtr
+    COPY16 NameTableCopyStart, FramePtr
+    CLC
+    LDA FramePtr
+    ADC NameTableOffset
+    STA FramePtr
+    LDA FramePtr + 1
+    ADC #0
+    STA FramePtr + 1
     LDY #0
     LDX #3
 @CopyNameTableLoop:
@@ -146,9 +153,9 @@ FrameInterrupt:
     STA FrameCount
 @AdvanceNameTablePtr:
     CLC
-    LDA NameTablePtr
+    LDA NameTableOffset
     ADC #$20
-    STA NameTablePtr            ; we don't care if it wraps around!
+    STA NameTableOffset         ; we don't care if it wraps around!
 @SwapNameTable:
     BIT FrameBufferIdx
     BNE @SwapToOdd
@@ -181,6 +188,8 @@ ColorTableStart:
     .byte (COLOR_RED_DK << 4 | COLOR_BLU_DK)
     .byte (COLOR_YEL_DK << 4 | COLOR_CLR)
 ColorTableEnd:
+
+.segment "BUFFERS"
 
 ; we have the name table to copy here
 NameTableCopyStart: .res $400
