@@ -116,7 +116,7 @@ GameLoop:
 @SetOddFrameBuffer:
     VDPVramAddrSet NameTableOdd, 1
 @FillFrameBuffer:
-    COPY16 NameTableCopyStart, FramePtr
+    COPYADDR NameTableCopyStart, FramePtr
     CLC
     LDA FramePtr
     ADC NameTableOffset

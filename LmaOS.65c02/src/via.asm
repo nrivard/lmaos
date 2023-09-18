@@ -7,6 +7,8 @@ VIA_ASM = 1
 
 .include "via.inc"
 
+.export VIAInit
+
 .code
 
 VIAInit:

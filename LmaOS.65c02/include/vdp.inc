@@ -7,6 +7,9 @@ VDP_INC = 1
 
 VDP_BASE := N8BUS_PORT2
 
+; this is the color carrier frequency that the VDP outputs
+VDPClockHz      :=  3579545
+
 ; default VRAM locations
 VDP_NAME_TABLE_START := $0800
 VDP_PATTERN_TABLE_START := $0000

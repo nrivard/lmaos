@@ -1,0 +1,74 @@
+; LmaOS
+;
+; Copyright Nate Rivard 2023
+
+.ifndef PSG_ASM
+PSG_ASM = 1
+
+.include "psg.inc"
+.include "via.inc"
+
+; A: register number
+; X: value to write
+PSGWrite:
+    PHA
+    PHX
+@SetRegister:
+    STA VIA+PORT_A
+    LDA #PSG_MODE_REG
+    STA VIA+PERIPHERAL_CONTROL
+    NOP
+    NOP
+    LDA #PSG_MODE_IDLE
+    STA VIA+PERIPHERAL_CONTROL
+    NOP
+    NOP
+@WriteData:
+    TXA
+    STA VIA+PORT_A
+    LDA #PSG_MODE_WR
+    STA VIA+PERIPHERAL_CONTROL
+    NOP
+    NOP
+    LDA #PSG_MODE_IDLE
+    STA VIA+PERIPHERAL_CONTROL
+    NOP
+    NOP
+@Done:
+    PLX
+    PLA
+    RTS
+
+; A: register number to read
+; read value will be returned back in A
+PSGRead:
+@SetRegister:
+    STA VIA+PORT_A
+    LDA #PSG_MODE_REG
+    STA VIA+PERIPHERAL_CONTROL
+    NOP
+    NOP
+    LDA #PSG_MODE_IDLE
+    STA VIA+PERIPHERAL_CONTROL
+    NOP
+    NOP
+@SetPortAsInput:
+    LDA #0
+    STA VIA+DDRA
+@ReadData:
+    LDA #PSG_MODE_RD
+    STA VIA+PERIPHERAL_CONTROL
+    NOP
+    NOP
+    LDA VIA+PORT_A                  ; read from PSG
+    PHA                             ; save the value
+    LDA #PSG_MODE_IDLE
+    STA VIA+PERIPHERAL_CONTROL
+@SetPortAsOutput:
+    LDA #$FF
+    STA VIA+DDRA
+@Done:
+    PLA
+    RTS
+
+.endif

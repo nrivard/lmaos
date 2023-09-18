@@ -12,6 +12,7 @@
 .include "duart.asm"
 .include "vdp.asm"
 .include "via.asm"
+.include "psg.asm"
 .include "monitaur.asm"
 .include "interrupt.asm"
 
