@@ -12,7 +12,6 @@ PSG_ASM = 1
 ; X: value to write
 PSGWrite:
     PHA
-    PHX
 @SetRegister:
     STA VIA+PORT_A
     LDA #PSG_MODE_REG
@@ -27,7 +26,6 @@ PSGWrite:
     LDA #PSG_MODE_IDLE
     STA VIA+PERIPHERAL_CONTROL
 @Done:
-    PLX
     PLA
     RTS
 

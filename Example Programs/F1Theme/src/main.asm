@@ -40,13 +40,16 @@ Init:
     STZ VIA+PORT_A
     STZ VIA+PORT_B
     LDA #$FF
-    STA VIA+DDRA    ; make VIA_PORT_A all outputs
-    STA VIA+DDRB    ; make VIA_PORT_B all outputs
+    STA VIA+DDRA               ; make VIA_PORT_A all outputs
+    STA VIA+DDRB               ; make VIA_PORT_B all outputs
 @SetupPSG:
     LDA #PSG_REG_MIXER         ; target mixer + i/o settings register
-    LDX #$FE                   ; i/o ports are output, turn off all noise, turn on tone output
+    LDX #$F9                   ; i/o ports are output, turn off all noise, turn on tone output
     JSR PSGWrite
-    LDA #PSG_REG_LVL_A
+    LDA #PSG_REG_LVL_B
+    LDX #$0A
+    JSR PSGWrite
+    LDA #PSG_REG_LVL_C
     LDX #$0A
     JSR PSGWrite
     CLI
@@ -91,52 +94,29 @@ FrameInterrupt:
     DEC ChordDuration
     BRA @Done
 @PlayChord:
-    LDA #20
+    LDA #60
     STA ChordDuration
     LDY ChordIndex
-@SetFine:
-    LDA #PSG_REG_FREQ_A
-    LDX Scale, Y
+@ChB:
+    LDA #PSG_REG_FREQ_B         ; lower bits of Ch B
+    LDX ChB, Y
+    JSR PSGWrite
+    LDA #PSG_REG_FREQ_B + 1     ; upper bits of Ch B
+    LDX ChB + 1, Y
+    JSR PSGWrite
+@ChC:
+    LDA #PSG_REG_FREQ_C         ; lower bits of Ch C
+    LDX ChC, Y
+    JSR PSGWrite
+    LDA #PSG_REG_FREQ_C + 1     ; upper bits of Ch C
+    LDX ChC + 1, Y
     JSR PSGWrite
     INY
-@SetRough:
-    LDA #PSG_REG_FREQ_A + 1
-    LDX Scale, Y
-    JSR PSGWrite
     INY
 @CheckMax:
-    CPY #192
+    CPY #(4 * 2)                ; length of our song
     BNE @WriteChordIndex
     LDY #0
-
-; @CheckChord:
-    ; LDA #60
-    ; STA ChordDuration       ; reset chord duration to 1 sec, 60 frames
-;     LDA ChordCount
-;     BEQ @AdvanceChord
-;     DEC ChordCount
-;     BRA @PlayCurrentChord
-; @AdvanceChord:
-;     INC ChordIndex
-;     LDA #2
-;     STA ChordCount
-; @PlayCurrentChord:
-;     LDY ChordIndex
-; @Rough:
-;     LDA #PSG_REG_FREQ_B
-;     LDX ChB, Y
-;     JSR PSGWrite
-;     LDA #PSG_REG_FREQ_C
-;     LDX ChC, Y
-;     JSR PSGWrite
-; @Fine:
-;     INC ChordIndex
-;     LDA #PSG_REG_FREQ_B + 1
-;     LDX ChB, Y
-;     JSR PSGWrite
-;     LDA #PSG_REG_FREQ_C + 1
-;     LDX ChC, Y
-;     JSR PSGWrite
 @WriteChordIndex:
     STY ChordIndex
 @Done:
@@ -151,9 +131,9 @@ ChA:
 
 ; rhythm chords
 ChB:
-    .word A__+3, Bb_+3, C__+4, B__+3
+    .word A__+5, Bb_+5, C__+6, B__+5
 ChC:
-    .word F__+3, F__+3, F__+3, G__+3
+    .word F__+5, F__+5, F__+6, G__+5
 
 
 

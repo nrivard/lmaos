@@ -25,4 +25,11 @@ SerialSendByte := DuartSendByte
 ; NOTE: may destroy `A`!
 .define SERIAL_BYTE_AVAIL   DUART_BYTE_AVAIL
 
+.macro SerialSendNewLine
+    LDA #(ASCII_CARRIAGE_RETURN)
+    JSR SerialSendByte
+    LDA #(ASCII_LINE_FEED)
+    JSR SerialSendByte
+.endmacro
+
 .endif

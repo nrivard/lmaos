@@ -1,0 +1,3 @@
+[submodule "Example Programs/6502_EhBASIC_V2.22"]
+	path = Example Programs/6502_EhBASIC_V2.22
+	url = git@github.com:nrivard/6502_EhBASIC_V2.22.git

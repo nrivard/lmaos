@@ -69,8 +69,7 @@ Fat32Init:
     DEX
     CPX #$FF
     BNE @ReadPartitionLoop
-    LDA #(ASCII_CARRIAGE_RETURN)
-    JSR SerialSendByte
+    SerialSendNewLine
 @ReadVolumeID:
     ; TODO: this means we will blow away the cached MBR...
     LDA SDCardDataPacketBuffer + FAT32_MBR_PARTITION_TABLE_OFFSET + FAT32_PARTITION_RECORD_LBA_OFFSET + 0
@@ -105,8 +104,7 @@ Fat32Init:
     COPY32 SDCardDataPacketBuffer + FAT32_VOLUME_ID_ROOT_DIR_CLUSTER_OFFSET, FAT32RootDirCluster
 
 @PrintDirListingHeader:
-    LDA #(ASCII_CARRIAGE_RETURN)
-    JSR SerialSendByte
+    SerialSendNewLine
     COPYADDR Fat32DirectoryListingHeader, r0
     JSR SerialSendString
     COPYADDR Fat32DirectoryListingSeparator, r0
@@ -192,8 +190,7 @@ FileHandler:
     CPY #(Fat32FileRecord::size - 1)    ; past the size field?
     BNE @PrintSizeLoop
 @PrintTerminator:
-    LDA #(ASCII_CARRIAGE_RETURN)
-    JSR SerialSendByte
+    SerialSendNewLine
 @Done:
     PLY
     PLA
@@ -430,16 +427,16 @@ Fat32FileReadName:
     PLA
     RTS
 
-SDCardInitError:     .asciiz "SD card could not be initialized\r"
-SDCardInitSuccess:   .asciiz "SD card initialized\r"
-SDCardMBRError:      .asciiz "Could not read MBR\r"
-SDCardFat32PartitionNotFound: .asciiz "No FAT32 partition could be found\r"
+SDCardInitError:     .asciiz "SD card could not be initialized\n"
+SDCardInitSuccess:   .asciiz "SD card initialized\n"
+SDCardMBRError:      .asciiz "Could not read MBR\n"
+SDCardFat32PartitionNotFound: .asciiz "No FAT32 partition could be found\n"
 SDCardFat32PartitionFoundPrefix: .asciiz "FAT32 partition found at sector: "
-SDCardVolumeIDError: .asciiz "Could not read volume ID\r"
-Fat32RootDirError: .asciiz "Could not read root directory\r"
+SDCardVolumeIDError: .asciiz "Could not read volume ID\n"
+Fat32RootDirError: .asciiz "Could not read root directory\n"
 
-Fat32DirectoryListingHeader:    .asciiz "Filename    \tCluster \tSize\r"
-Fat32DirectoryListingSeparator: .asciiz "------------\t--------\t--------\r"
+Fat32DirectoryListingHeader:    .asciiz "Filename    \tCluster \tSize\n"
+Fat32DirectoryListingSeparator: .asciiz "------------\t--------\t--------\n"
 
 HahaPrefix: .asciiz "File: "
 ; storage

@@ -22,13 +22,13 @@ r4                            := $08
 r5                            := $0A
 r6                            := $0C
 r7                            := $0E
-SystemClockJiffies            := $10
-SystemClockUptime             := $11
-SystemRAMCapacity             := $13
-InterruptVector               := $15
-MonitorCommandDebugTokens     := $17
-XModemDestinationAddress      := $18
-XModemTimeout                 := $1A
+MonitorCommandDebugTokens     := $10
+XModemDestinationAddress      := $11
+XModemTimeout                 := $13
+SystemClockJiffies            := $E8
+SystemClockUptime             := $E9
+SystemRAMCapacity             := $EB
+InterruptVector               := $ED
 
 ; RAM reserved
 ; TODO: Open a MR if you have figured this out :)
@@ -53,15 +53,16 @@ VDPVramPutN                   := $C0D6
 VDPDefaultRegisters           := $C0F6
 VDPCharset                    := $C0FE
 VIAInit                       := $C8FE
-StringLength                  := $CAEE
-StringCompareN                := $CAF9
-StringCompare                 := $CB09
-StringCopy                    := $CB2E
-HexStringToWord               := $CB3B
-ByteToHexString               := $CB87
-NibbleToHexString             := $CB98
-XModemReceive                 := $CBA3
-InterruptRouter               := $CC59
-InterruptHandleSystemTimer    := $CC5C
+StringLength                  := $CB0F
+StringCompareN                := $CB1A
+StringCompare                 := $CB2A
+StringCopy                    := $CB4F
+HexStringToWord               := $CB5C
+CharToByte                    := $CB97
+ByteToHexString               := $CBA9
+NibbleToChar                  := $CBBA
+XModemReceive                 := $CBC5
+InterruptRouter               := $CC7B
+InterruptHandleSystemTimer    := $CC7E
 
 .endif

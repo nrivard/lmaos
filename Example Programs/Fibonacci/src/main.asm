@@ -44,8 +44,7 @@ CalculateNextTerm:
     BRA CalculateNextTerm
 
 Done:
-    LDA #(ASCII_CARRIAGE_RETURN)
-    JSR SerialSendByte
+    SerialSendNewLine
     RTS
 
 SendN:
@@ -58,9 +57,8 @@ SendN:
     JSR SerialSendByteAsString
     LDA N
     JSR SerialSendByteAsString
-    LDA #' '
-    JSR SerialSendByte
+    SerialSendNewLine
     PLA
     RTS
 
-StartMessage: .asciiz "The Fibonacci sequence (in 32-bits)\r"
+StartMessage: .asciiz "The Fibonacci sequence (in 32-bits)\n"

@@ -38,8 +38,7 @@ MonitorCommandBuffer: .res $80
 	CPY #(length)
 	BNE @Loop
 @Done:
-	LDA #(ASCII_CARRIAGE_RETURN)
-	JSR SerialSendByte
+	SerialSendNewLine
     PLY
     PLA
 .endmacro

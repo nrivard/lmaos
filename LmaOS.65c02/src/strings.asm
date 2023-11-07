@@ -7,7 +7,7 @@ STRINGS_ASM = 1
 
 .include "strings.inc"
 
-.export StringLength, StringCompareN, StringCompare, StringCopy, HexStringToWord, ByteToHexString, NibbleToHexString
+.export StringLength, StringCompareN, StringCompare, StringCopy, HexStringToWord, CharToByte, ByteToHexString, NibbleToChar
 
 .code
 
@@ -116,17 +116,8 @@ HexStringToWord:
     LDA (r0), Y
     BEQ @Done			;; null-terminator
 @ExtractByte:
-    SEC
-    SBC #'0'
-    CMP #$0A			;; check 0…9
-    BCC @NibbleShift
-    SBC #$07            ;; 'A' - '9' - 1
-    CMP #$10			;; check A…F
-    BCC @NibbleShift
-    SBC #$20            ; 'a' - 'A'
-    CMP #$10
-    BCC @NibbleShift	;; check a…f though no one should write it lowercase, it's dumb A…F (lolz)
-    JMP @Done			;; Error, not a digit
+    JSR CharToByte
+    BCS @Done
 @NibbleShift:
     STX r4
     BBR0 r4, @StoreNibble ;; odd index need to be shifted
@@ -151,6 +142,30 @@ HexStringToWord:
 @Done:
     RTS
 
+; converts an ascii value representing a hex digit (0…F) into a native byte
+; this return will treat both lowercase a…f and uppercase A…F as valid
+;
+; Params
+; A: the char to convert
+;
+; Returns
+; A: the converted byte
+; Flags: Carry will be set if ascii value is not a valid digit
+;
+; ex: the character '7' will be returned as $07
+CharToByte:
+    SEC
+    SBC #'0'
+    CMP #$0A            ; check 0…9
+    BCC @Done
+    SBC #$07            ; 'A' - '9' - 1
+    CMP #$10            ; check A…F
+    BCC @Done
+    SBC #$20            ; 'a' - 'A'
+    CMP #$10			; check a…f though no one should write it lowercase, it's dumb A…F (lolz)
+@Done:
+	RTS
+
 ;;; converts a native byte to 2 ascii bytes (not null-terminated!)
 ;;; Lifted from Wozmon. Thanks Woz!
 ;;;
@@ -167,11 +182,11 @@ ByteToHexString:
     LSR
     LSR
     LSR
-    JSR NibbleToHexString
+    JSR NibbleToChar
     STA r7
 @LowerNibble:
     PLA
-    JSR NibbleToHexString
+    JSR NibbleToChar
     STA r7 + 1
 @Done:
     RTS
@@ -181,7 +196,7 @@ ByteToHexString:
 ;
 ; Results
 ; A: ascii code for the nibble
-NibbleToHexString:
+NibbleToChar:
     AND #$0F
     ORA #'0'
     CMP #('9' + 1) 		; digit?

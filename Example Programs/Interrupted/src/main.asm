@@ -42,8 +42,7 @@ RestoreInterrupt:
     CLI
 
 SendPrefix:
-    LDA #(ASCII_CARRIAGE_RETURN)
-    JSR SerialSendByte
+    SerialSendNewLine
     LDA #<ResponseMessagePrefix
     STA r0
     LDA #>ResponseMessagePrefix
@@ -76,6 +75,6 @@ FrameInterrupt:
     PLA
     JMP (SystemInterrupt) 
 
-StartMessage: .asciiz "Press ESC when you can take no more suspense!\r"
+StartMessage: .asciiz "Press ESC when you can take no more suspense!\n"
 ResponseMessagePrefix: .asciiz "You waited for "
-ResponseMessageSuffix: .asciiz " seconds! Wow!\r"
+ResponseMessageSuffix: .asciiz " seconds! Wow!\n"

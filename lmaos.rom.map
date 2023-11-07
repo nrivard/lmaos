@@ -1,11 +1,11 @@
 Modules list:
 -------------
 main.o:
-    CODE              Offs=000000  Size=000D19  Align=00001  Fill=0000
-    RODATA            Offs=000000  Size=0000F6  Align=00001  Fill=0000
+    CODE              Offs=000000  Size=000D3B  Align=00001  Fill=0000
+    RODATA            Offs=000000  Size=0000FC  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000105  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
-    ZEROPAGE          Offs=000000  Size=00001B  Align=00001  Fill=0000
+    ZEROPAGE          Offs=000000  Size=000014  Align=00001  Fill=0000
     NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
     VECTORS           Offs=000000  Size=000006  Align=00001  Fill=0000
 
@@ -15,100 +15,101 @@ Segment list:
 Name                   Start     End    Size  Align
 ----------------------------------------------------
 NULL                  000000  000000  000000  00001
-ZEROPAGE              000000  00001A  00001B  00001
+ZEROPAGE              000000  000013  000014  00001
 BSS                   000200  000304  000105  00001
 DATA                  000200  000200  000000  00001
-CODE                  00C000  00CD18  000D19  00001
-RODATA                00CD19  00CE0E  0000F6  00001
+CODE                  00C000  00CD3A  000D3B  00001
+RODATA                00CD3B  00CE36  0000FC  00001
 VECTORS               00FFFA  00FFFF  000006  00001
 
 
 Exports list by name:
 ---------------------
-ByteToHexString           00CB87  LA    HexStringToWord           00CB3B  LA    
-InterruptHandleSystemTimer 00CC5C  LA    InterruptRouter           00CC59  LA    
-InterruptVector           000015  LZ    MonitorCommandBuffer      000200  LA    
-MonitorCommandDebugTokens 000017  LZ    NibbleToHexString         00CB98  LA    
-SerialGetByte             00C03B  LA    SerialSendByte            00C046  LA    
-SerialSendByteAsString    00C011  LA    SerialSendString          00C000  LA    
-StringCompare             00CB09  LA    StringCompareN            00CAF9  LA    
-StringCopy                00CB2E  LA    StringLength              00CAEE  LA    
-SystemClockJiffies        000010  LZ    SystemClockUptime         000011  LZ    
-SystemRAMCapacity         000013  LZ    VDPCharset                00C0FE  LA    
-VDPClearVRAM              00C091  LA    VDPCopyDefaultCharset     00C0AD  LA    
-VDPDefaultRegisters       00C0F6  LA    VDPInit                   00C077  LA    
-VDPVramPutN               00C0D6  LA    VDPWaitLong               00C0CB  LA    
-VIAInit                   00C8FE  LA    XModemCalculatedChecksum  000303  LA    
-XModemDestinationAddress  000018  LZ    XModemPacketChecksum      000302  LA    
-XModemPacketData          000280  LA    XModemPacketNumber        000300  LA    
-XModemPacketNumberComplement 000301  LA    XModemPacketNumberExpected 000304  LA    
-XModemReceive             00CBA3  LA    XModemTimeout             00001A  LZ    
-__BSS_LOAD__              000200  LA    __BSS_RUN__               000200  LA    
-__BSS_SIZE__              000105  EA    __DATA_LOAD__             00C000  LA    
-__DATA_RUN__              000200  LA    __DATA_SIZE__             000000  EA    
-__IO_FILEOFFS__           000000  EA    __IO_LAST__               00BF00  LA    
-__IO_SIZE__               000100  EA    __IO_START__              00BF00  LA    
-__RAM_FILEOFFS__          000000  EA    __RAM_LAST__              000305  LA    
-__RAM_SIZE__              00BD00  EA    __RAM_START__             000200  LA    
-__STACK_FILEOFFS__        000000  EA    __STACK_LAST__            000100  LA    
-__STACK_SIZE__            000100  EA    __STACK_START__           000100  LA    
-__ZEROPAGE_FILEOFFS__     000000  EA    __ZEROPAGE_LAST__         00001B  LA    
-__ZEROPAGE_SIZE__         000100  EA    __ZEROPAGE_START__        000000  LA    
-r0                        000000  LZ    r1                        000002  LZ    
-r2                        000004  LZ    r3                        000006  LZ    
-r4                        000008  LZ    r5                        00000A  LZ    
-r6                        00000C  LZ    r7                        00000E  LZ    
-
+ByteToHexString           00CBA9  LA    CharToByte                00CB97  LA    
+HexStringToWord           00CB5C  LA    InterruptHandleSystemTimer 00CC7E  LA    
+InterruptRouter           00CC7B  LA    InterruptVector           0000ED  LZ    
+MonitorCommandBuffer      000200  LA    MonitorCommandDebugTokens 000010  LZ    
+NibbleToChar              00CBBA  LA    SerialGetByte             00C03B  LA    
+SerialSendByte            00C046  LA    SerialSendByteAsString    00C011  LA    
+SerialSendString          00C000  LA    StringCompare             00CB2A  LA    
+StringCompareN            00CB1A  LA    StringCopy                00CB4F  LA    
+StringLength              00CB0F  LA    SystemClockJiffies        0000E8  LZ    
+SystemClockUptime         0000E9  LZ    SystemRAMCapacity         0000EB  LZ    
+VDPCharset                00C0FE  LA    VDPClearVRAM              00C091  LA    
+VDPCopyDefaultCharset     00C0AD  LA    VDPDefaultRegisters       00C0F6  LA    
+VDPInit                   00C077  LA    VDPVramPutN               00C0D6  LA    
+VDPWaitLong               00C0CB  LA    VIAInit                   00C8FE  LA    
+XModemCalculatedChecksum  000303  LA    XModemDestinationAddress  000011  LZ    
+XModemPacketChecksum      000302  LA    XModemPacketData          000280  LA    
+XModemPacketNumber        000300  LA    XModemPacketNumberComplement 000301  LA    
+XModemPacketNumberExpected 000304  LA    XModemReceive             00CBC5  LA    
+XModemTimeout             000013  LZ    __BSS_LOAD__              000200  LA    
+__BSS_RUN__               000200  LA    __BSS_SIZE__              000105  EA    
+__DATA_LOAD__             00C000  LA    __DATA_RUN__              000200  LA    
+__DATA_SIZE__             000000  EA    __IO_FILEOFFS__           000000  EA    
+__IO_LAST__               00BF00  LA    __IO_SIZE__               000100  EA    
+__IO_START__              00BF00  LA    __RAM_FILEOFFS__          000000  EA    
+__RAM_LAST__              000305  LA    __RAM_SIZE__              00BD00  EA    
+__RAM_START__             000200  LA    __STACK_FILEOFFS__        000000  EA    
+__STACK_LAST__            000100  LA    __STACK_SIZE__            000100  EA    
+__STACK_START__           000100  LA    __ZEROPAGE_FILEOFFS__     000000  EA    
+__ZEROPAGE_LAST__         000014  LA    __ZEROPAGE_SIZE__         000100  EA    
+__ZEROPAGE_START__        000000  LA    r0                        000000  LZ    
+r1                        000002  LZ    r2                        000004  LZ    
+r3                        000006  LZ    r4                        000008  LZ    
+r5                        00000A  LZ    r6                        00000C  LZ    
+r7                        00000E  LZ    
 
 
 Exports list by value:
 ----------------------
-__STACK_FILEOFFS__        000000  EA    __ZEROPAGE_FILEOFFS__     000000  EA    
-__DATA_SIZE__             000000  EA    __RAM_FILEOFFS__          000000  EA    
-__ZEROPAGE_START__        000000  LA    __IO_FILEOFFS__           000000  EA    
-r0                        000000  LZ    r1                        000002  LZ    
+__STACK_FILEOFFS__        000000  EA    __RAM_FILEOFFS__          000000  EA    
+__ZEROPAGE_FILEOFFS__     000000  EA    __IO_FILEOFFS__           000000  EA    
+__ZEROPAGE_START__        000000  LA    r0                        000000  LZ    
+__DATA_SIZE__             000000  EA    r1                        000002  LZ    
 r2                        000004  LZ    r3                        000006  LZ    
 r4                        000008  LZ    r5                        00000A  LZ    
 r6                        00000C  LZ    r7                        00000E  LZ    
-SystemClockJiffies        000010  LZ    SystemClockUptime         000011  LZ    
-SystemRAMCapacity         000013  LZ    InterruptVector           000015  LZ    
-MonitorCommandDebugTokens 000017  LZ    XModemDestinationAddress  000018  LZ    
-XModemTimeout             00001A  LZ    __ZEROPAGE_LAST__         00001B  LA    
-__STACK_SIZE__            000100  EA    __STACK_LAST__            000100  LA    
-__STACK_START__           000100  LA    __ZEROPAGE_SIZE__         000100  EA    
-__IO_SIZE__               000100  EA    __BSS_SIZE__              000105  EA    
-__BSS_RUN__               000200  LA    __RAM_START__             000200  LA    
-__DATA_RUN__              000200  LA    MonitorCommandBuffer      000200  LA    
-__BSS_LOAD__              000200  LA    XModemPacketData          000280  LA    
+MonitorCommandDebugTokens 000010  LZ    XModemDestinationAddress  000011  LZ    
+XModemTimeout             000013  LZ    __ZEROPAGE_LAST__         000014  LA    
+SystemClockJiffies        0000E8  LZ    SystemClockUptime         0000E9  LZ    
+SystemRAMCapacity         0000EB  LZ    InterruptVector           0000ED  LZ    
+__IO_SIZE__               000100  EA    __ZEROPAGE_SIZE__         000100  EA    
+__STACK_LAST__            000100  LA    __STACK_SIZE__            000100  EA    
+__STACK_START__           000100  LA    __BSS_SIZE__              000105  EA    
+__BSS_LOAD__              000200  LA    __RAM_START__             000200  LA    
+MonitorCommandBuffer      000200  LA    __DATA_RUN__              000200  LA    
+__BSS_RUN__               000200  LA    XModemPacketData          000280  LA    
 XModemPacketNumber        000300  LA    XModemPacketNumberComplement 000301  LA    
 XModemPacketChecksum      000302  LA    XModemCalculatedChecksum  000303  LA    
 XModemPacketNumberExpected 000304  LA    __RAM_LAST__              000305  LA    
 __RAM_SIZE__              00BD00  EA    __IO_LAST__               00BF00  LA    
-__IO_START__              00BF00  LA    SerialSendString          00C000  LA    
-__DATA_LOAD__             00C000  LA    SerialSendByteAsString    00C011  LA    
+__IO_START__              00BF00  LA    __DATA_LOAD__             00C000  LA    
+SerialSendString          00C000  LA    SerialSendByteAsString    00C011  LA    
 SerialGetByte             00C03B  LA    SerialSendByte            00C046  LA    
 VDPInit                   00C077  LA    VDPClearVRAM              00C091  LA    
 VDPCopyDefaultCharset     00C0AD  LA    VDPWaitLong               00C0CB  LA    
 VDPVramPutN               00C0D6  LA    VDPDefaultRegisters       00C0F6  LA    
 VDPCharset                00C0FE  LA    VIAInit                   00C8FE  LA    
-StringLength              00CAEE  LA    StringCompareN            00CAF9  LA    
-StringCompare             00CB09  LA    StringCopy                00CB2E  LA    
-HexStringToWord           00CB3B  LA    ByteToHexString           00CB87  LA    
-NibbleToHexString         00CB98  LA    XModemReceive             00CBA3  LA    
-InterruptRouter           00CC59  LA    InterruptHandleSystemTimer 00CC5C  LA    
-
+StringLength              00CB0F  LA    StringCompareN            00CB1A  LA    
+StringCompare             00CB2A  LA    StringCopy                00CB4F  LA    
+HexStringToWord           00CB5C  LA    CharToByte                00CB97  LA    
+ByteToHexString           00CBA9  LA    NibbleToChar              00CBBA  LA    
+XModemReceive             00CBC5  LA    InterruptRouter           00CC7B  LA    
+InterruptHandleSystemTimer 00CC7E  LA    
 
 
 Imports list:
 -------------
 ByteToHexString (main.o):
+CharToByte (main.o):
 HexStringToWord (main.o):
 InterruptHandleSystemTimer (main.o):
 InterruptRouter (main.o):
 InterruptVector (main.o):
 MonitorCommandBuffer (main.o):
 MonitorCommandDebugTokens (main.o):
-NibbleToHexString (main.o):
+NibbleToChar (main.o):
 SerialGetByte (main.o):
 SerialSendByte (main.o):
 SerialSendByteAsString (main.o):
