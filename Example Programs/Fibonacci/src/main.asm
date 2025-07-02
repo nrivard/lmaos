@@ -62,3 +62,10 @@ SendN:
     RTS
 
 StartMessage: .asciiz "The Fibonacci sequence (in 32-bits)\n"
+
+.macro SerialSendNewLine
+    LDA #(ASCII_CARRIAGE_RETURN)
+    JSR SerialSendByte
+    LDA #(ASCII_LINE_FEED)
+    JSR SerialSendByte
+.endmacro
