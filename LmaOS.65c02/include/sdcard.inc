@@ -58,6 +58,6 @@ SDCARD_COMMAND_READ_BLOCK   := $51          ; command index for reading a single
 SDTransferR1Response: .res 1 ; stores the last received R1 response
 SDTransferR7Response: .res 4 ; stores additional received arguments
 
-SDCardInitPhase: .res 1      ; last successful init phase completed
+SDCardInitPhase := $DF      ; last successful init phase completed
 
 .endif
