@@ -1,0 +1,1001 @@
+ca65 V2.18 - N/A
+Main file   : src/main.asm
+Current file: src/main.asm
+
+000000r 1               .include "lmaos.inc"
+000000r 2               ; LmaOS
+000000r 2               ;
+000000r 2               ; Copyright Nate Rivard 2021
+000000r 2               ;
+000000r 2               ; A full listing of system provided storage and subroutines.
+000000r 2               ;
+000000r 2               ; THIS FILE IS GENERATED
+000000r 2               ;
+000000r 2               ; NOTE: This is not imported in LmaOS itself, it is for your external program use _only_!
+000000r 2               ; You should copy and paste this file into your program's project to expose system utility subroutines
+000000r 2               ; and any allocated system storage you should avoid using.
+000000r 2               
+000000r 2               .ifndef LMAOS_INC
+000000r 2               LMAOS_INC = 1
+000000r 2               
+000000r 2               ; Zero-page reserved
+000000r 2               r0                            := $00
+000000r 2               r1                            := $02
+000000r 2               r2                            := $04
+000000r 2               r3                            := $06
+000000r 2               r4                            := $08
+000000r 2               r5                            := $0A
+000000r 2               r6                            := $0C
+000000r 2               r7                            := $0E
+000000r 2               MonitorCommandDebugTokens     := $10
+000000r 2               XModemDestinationAddress      := $11
+000000r 2               XModemTimeout                 := $13
+000000r 2               SystemClockJiffies            := $E8
+000000r 2               SystemClockUptime             := $E9
+000000r 2               SystemRAMCapacity             := $EB
+000000r 2               InterruptVector               := $ED
+000000r 2               
+000000r 2               ; RAM reserved
+000000r 2               ; TODO: Open a MR if you have figured this out :)
+000000r 2               
+000000r 2               ; Read-only
+000000r 2               MonitorCommandBuffer          := $0200
+000000r 2               XModemPacketData              := $0280
+000000r 2               XModemPacketNumber            := $0300
+000000r 2               XModemPacketNumberComplement  := $0301
+000000r 2               XModemPacketChecksum          := $0302
+000000r 2               XModemCalculatedChecksum      := $0303
+000000r 2               XModemPacketNumberExpected    := $0304
+000000r 2               SerialSendString              := $C000
+000000r 2               SerialSendByteAsString        := $C011
+000000r 2               SerialGetByte                 := $C03B
+000000r 2               SerialSendByte                := $C046
+000000r 2               VDPInit                       := $C077
+000000r 2               VDPClearVRAM                  := $C091
+000000r 2               VDPCopyDefaultCharset         := $C0AD
+000000r 2               VDPWaitLong                   := $C0CB
+000000r 2               VDPVramPutN                   := $C0D6
+000000r 2               VDPDefaultRegisters           := $C0F2
+000000r 2               VDPCharset                    := $C0FA
+000000r 2               VIAInit                       := $C8FA
+000000r 2               StringLength                  := $CB0B
+000000r 2               StringCompareN                := $CB16
+000000r 2               StringCompare                 := $CB26
+000000r 2               StringCopy                    := $CB4B
+000000r 2               HexStringToWord               := $CB58
+000000r 2               CharToByte                    := $CB93
+000000r 2               ByteToHexString               := $CBA5
+000000r 2               NibbleToChar                  := $CBB6
+000000r 2               XModemReceive                 := $CBC1
+000000r 2               InterruptRouter               := $CC77
+000000r 2               InterruptHandleSystemTimer    := $CC7A
+000000r 2               
+000000r 2               .endif
+000000r 2               
+000000r 1               .include "pseudoinstructions.inc"
+000000r 2               ; LmaOS
+000000r 2               ;
+000000r 2               ; Copyright Nate Rivard 2020
+000000r 2               
+000000r 2               .ifndef PSEUDOINSTRUCTIONS_INC
+000000r 2               PSEUDOINSTRUCTIONS_INC = 1
+000000r 2               
+000000r 2               ;; 1 byte copy from one address to another
+000000r 2               ;;
+000000r 2               ;; {PARAM} address of source value
+000000r 2               ;; {PARAM} address of destination value
+000000r 2               .macro COPY source, destination
+000000r 2                   LDA source
+000000r 2                   STA destination
+000000r 2               .endmacro
+000000r 2               
+000000r 2               ;; 16 bit data copy from one address to another
+000000r 2               ;;
+000000r 2               ;; {PARAM} low-byte address of source 16 bit value
+000000r 2               ;; {PARAM} low-byte address of destination 16 bit value
+000000r 2               .macro COPY16 source, destination
+000000r 2                   LDA source
+000000r 2                   STA destination
+000000r 2                   LDA source + 1
+000000r 2                   STA destination + 1
+000000r 2               .endmacro
+000000r 2               
+000000r 2               .macro COPY32 source, destination
+000000r 2                   COPY16 source, destination
+000000r 2                   COPY16 source + 2, destination + 2
+000000r 2               .endmacro
+000000r 2               
+000000r 2               .macro COPYADDR addr, destination
+000000r 2                   LDA #(<addr)
+000000r 2                   STA destination
+000000r 2                   LDA #(>addr)
+000000r 2                   STA destination + 1
+000000r 2               .endmacro
+000000r 2               
+000000r 2               .macro SWAP lhs, rhs
+000000r 2               	LDA lhs
+000000r 2               	LDX rhs
+000000r 2               	STX lhs
+000000r 2               	STA rhs
+000000r 2               .endmacro
+000000r 2               
+000000r 2               .macro SWAP16 lhs, rhs
+000000r 2               	SWAP lhs, rhs
+000000r 2               	SWAP lhs + 1, rhs + 1
+000000r 2               .endmacro
+000000r 2               
+000000r 2               .macro ADD16 addr, imm
+000000r 2                   CLC
+000000r 2                   LDA addr
+000000r 2                   ADC #<(imm)
+000000r 2                   STA addr
+000000r 2                   LDA addr + 1
+000000r 2                   ADC #>(imm)
+000000r 2                   STA addr + 1
+000000r 2               .endmacro
+000000r 2               
+000000r 2               ;; 16 bit ADC
+000000r 2               ;;
+000000r 2               ;; { PARAM } low-byte address of 16-bit value
+000000r 2               ;; { PARAM } low-byte address of 16-bit value
+000000r 2               ;; { PARAM } low-byte address of desired 16-bit result
+000000r 2               .macro ADC16 lhs, rhs, result
+000000r 2                   CLC
+000000r 2                   LDA lhs
+000000r 2                   ADC rhs
+000000r 2                   STA result
+000000r 2                   LDA lhs + 1
+000000r 2                   ADC rhs + 1
+000000r 2                   STA result + 1
+000000r 2               .endmacro
+000000r 2               
+000000r 2               ;; 32 bit ADC
+000000r 2               ;;
+000000r 2               ;; { PARAM } low-byte address of 32-bit value
+000000r 2               ;; { PARAM } low-byte address of 32-bit value
+000000r 2               ;; { PARAM } low-byte address of desired 32-bit result
+000000r 2               .macro ADC32 lhs, rhs, result
+000000r 2                   CLC
+000000r 2                   LDA lhs
+000000r 2                   ADC rhs
+000000r 2                   STA result
+000000r 2                   LDA lhs + 1
+000000r 2                   ADC rhs + 1
+000000r 2                   STA result + 1
+000000r 2                   LDA lhs + 2
+000000r 2                   ADC rhs + 2
+000000r 2                   STA result + 2
+000000r 2                   LDA lhs + 3
+000000r 2                   ADC rhs + 3
+000000r 2                   STA result + 3
+000000r 2               .endmacro
+000000r 2               
+000000r 2               ;; 16 bit SUB
+000000r 2               ;;
+000000r 2               ;; { PARAM } low-byte address of 16-bit value
+000000r 2               ;; { PARAM } low-byte address of 16-bit value
+000000r 2               ;; { PARAM } low-byte address of desired 16-bit result
+000000r 2               .macro SBC16 lhs, rhs, result
+000000r 2               	SEC
+000000r 2               	LDA lhs
+000000r 2               	SBC rhs
+000000r 2               	STA result
+000000r 2               	LDA lhs + 1
+000000r 2               	SBC rhs + 1
+000000r 2               	STA result + 1
+000000r 2               .endmacro
+000000r 2               
+000000r 2               ;; 16 bit CMP where SR flags are correct
+000000r 2               ;;
+000000r 2               ;; { PARAM } low-byte address of 16 bit value
+000000r 2               ;; { PARAM } low-byte address of 16 bit value
+000000r 2               .macro CMP16 lhs, rhs
+000000r 2               .local @Done
+000000r 2                   SEC
+000000r 2                   LDA lhs + 1
+000000r 2                   SBC rhs + 1
+000000r 2                   BNE @Done
+000000r 2                   LDA lhs
+000000r 2                   SBC rhs
+000000r 2               @Done:
+000000r 2               .endmacro
+000000r 2               
+000000r 2               ;; 16 bit INC
+000000r 2               ;;
+000000r 2               ;; {PARAM} low-byte address of 16-bit value
+000000r 2               ;;
+000000r 2               ;; NOTE: Caller can check for zero bit in SR as it will only be zero when _both_
+000000r 2               ;; high and low bytes are zero
+000000r 2               .macro INC16 addr
+000000r 2               .local @NoWrap
+000000r 2                   INC addr
+000000r 2                   BNE @NoWrap
+000000r 2                   INC addr + 1
+000000r 2               @NoWrap:
+000000r 2               .endmacro
+000000r 2               
+000000r 2               ;; 16 bit DEC
+000000r 2               ;;
+000000r 2               ;; {PARAM} low-byte address of 16-bit value
+000000r 2               ;;
+000000r 2               ;; NOTE: SR status is based on lower byte only
+000000r 2               .macro DEC16 addr
+000000r 2               .local @NoWrap
+000000r 2                   LDA addr
+000000r 2                   BNE @NoWrap
+000000r 2                   DEC addr + 1
+000000r 2               @NoWrap:
+000000r 2                   DEC addr
+000000r 2               .endmacro
+000000r 2               
+000000r 2               .macro ROL16 addr
+000000r 2                   ROL addr
+000000r 2                   ROL addr + 1
+000000r 2               .endmacro
+000000r 2               
+000000r 2               .macro ROR16 addr
+000000r 2                   ROR addr + 1
+000000r 2                   ROR addr
+000000r 2               .endmacro
+000000r 2               
+000000r 2               .macro ASL16 addr
+000000r 2                   ASL addr
+000000r 2                   ROL addr + 1
+000000r 2               .endmacro
+000000r 2               
+000000r 2               .macro LSR16 addr
+000000r 2                   LSR addr + 1
+000000r 2                   ROR addr
+000000r 2               .endmacro
+000000r 2               
+000000r 2               .macro ASL32 addr
+000000r 2                   ASL addr
+000000r 2                   ROL addr + 1
+000000r 2                   ROL addr + 2
+000000r 2                   ROL addr + 3
+000000r 2               .endmacro
+000000r 2               
+000000r 2               .macro LSR32 addr
+000000r 2                   LSR addr + 3
+000000r 2                   ROR addr + 2
+000000r 2                   ROR addr + 1
+000000r 2                   ROR addr
+000000r 2               .endmacro
+000000r 2               
+000000r 2               ;; -A (negate accumulator)
+000000r 2               .macro NEG ignored ; allow a param to so you can write `NEG A` but it's ignored. only operates on A
+000000r 2                   EOR #$FF
+000000r 2                   INC A
+000000r 2               .endmacro
+000000r 2               
+000000r 2               ;; Invert the carry bit. destroys `A`, and N, Z flags
+000000r 2               .macro INVC
+000000r 2                   ROL A
+000000r 2                   EOR #$01
+000000r 2                   ROR A
+000000r 2               .endmacro
+000000r 2               
+000000r 2               .endif
+000000r 2               
+000000r 1               .include "strings.inc"
+000000r 2               ; LmaOS
+000000r 2               ;
+000000r 2               ; Copyright Nate Rivard 2021
+000000r 2               
+000000r 2               .ifndef STRINGS_INC
+000000r 2               STRINGS_INC = 1
+000000r 2               
+000000r 2               ASCII_TAB = $09
+000000r 2               ASCII_LINE_FEED = $0A
+000000r 2               ASCII_CARRIAGE_RETURN = $0D
+000000r 2               ASCII_ESCAPE = $1B
+000000r 2               ASCII_BACKSPACE = $08
+000000r 2               
+000000r 2               .endif
+000000r 2               
+000000r 1               .include "system.inc"
+000000r 2               ; LmaOS
+000000r 2               ;
+000000r 2               ; Copyright Nate Rivard 2020
+000000r 2               
+000000r 2               .ifndef SYSTEM_INC
+000000r 2               SYSTEM_INC = 1
+000000r 2               
+000000r 2               ; microprocessor clock speed
+000000r 2               MpuRateHz := 3686400
+000000r 2               
+000000r 2               ; system uptime interrupt rate
+000000r 2               ClockRateHz := 100
+000000r 2               
+000000r 2               ; Port Addresses
+000000r 2               N8BUS_PORT0 := $BF00
+000000r 2               N8BUS_PORT1 := $BF40
+000000r 2               N8BUS_PORT2 := $BF80
+000000r 2               DUART_PORT  := $BFC0
+000000r 2               
+000000r 2               .endif
+000000r 2               
+000000r 1               .include "duart.inc"
+000000r 2               ; LmaOS
+000000r 2               ;
+000000r 2               ; Copyright Nate Rivard 2022
+000000r 2               
+000000r 2               .ifndef DUART_INC
+000000r 2               DUART_INC = 1
+000000r 2               
+000000r 2               DUART_BASE := DUART_PORT
+000000r 2               
+000000r 2               .macro DUART_BYTE_AVAIL
+000000r 2               .local @Done
+000000r 2                   SEC                 ; no byte available by default
+000000r 2                   LDA DUART_BASE+SRA
+000000r 2                   BIT #(SR_RX_RDY)
+000000r 2                   BEQ @Done           ; no byte available
+000000r 2                   CLC                 ; byte is available
+000000r 2               @Done:
+000000r 2               .endmacro
+000000r 2               
+000000r 2               .macro DUART_IRQ_ENABLE
+000000r 2                   LDA #(IMR_CT_ENABLE)
+000000r 2                   STA DUART_BASE+IMR
+000000r 2               .endmacro
+000000r 2               
+000000r 2               .macro DUART_IRQ_DISABLE
+000000r 2                   LDA #$00
+000000r 2                   STA DUART_BASE+IMR
+000000r 2               .endmacro
+000000r 2               
+000000r 2               ; register offsets for the DUART.
+000000r 2               ; Registers marked with `(~RD)` are accessed on a read of that address
+000000r 2               ; Registers marked with `(~WR)` are accessed on a write of that address
+000000r 2               ; Registers marked with `(R/W)` are read-write and accessed on either
+000000r 2               
+000000r 2               MRA         := $00 ; mode register, channel A (R/W)
+000000r 2               
+000000r 2               SRA         := $01 ; status register, channel A (~RD)
+000000r 2               CSRA        := SRA ; clock select register, channel A (~WR)
+000000r 2               
+000000r 2               ; NOTE: a ~RD at $02 is `reserved` and could have undesired effects
+000000r 2               CRA         := $02 ; command register, channel A (~WR)
+000000r 2               
+000000r 2               RxFIFOA     := $03 ; Rx holding register, channel A (~RD)
+000000r 2               TxFIFOA     := RxFIFOA ; Tx holding register, channel A (~WR)
+000000r 2               
+000000r 2               IPCR        := $04 ; input port change register (~RD)
+000000r 2               ACR         := IPCR ; auxiliary control register (~WR)
+000000r 2               
+000000r 2               ISR         := $05 ; interrupt status register (~RD)
+000000r 2               IMR         := ISR ; interrupt mask register (~WR)
+000000r 2               
+000000r 2               CTU         := $06 ; counter/timer register, upper (~RD)
+000000r 2               CTPU        := CTU ; counter/timer preset register, upper (~WR)
+000000r 2               
+000000r 2               CTL         := $07 ; counter/timer register, lower (~RD)
+000000r 2               CTPL        := CTL ; counter/timer preset register, lower (~WR)
+000000r 2               
+000000r 2               MISC        := $0C ; miscellaneous do what you want with it register (R/W)
+000000r 2               
+000000r 2               IPR         := $0D ; input port register (~RD)
+000000r 2               OPCR        := IPR ; output port configuration register (~WR)
+000000r 2               
+000000r 2               CTR_STRT    := $0E ; counter/timer start (~RD)
+000000r 2               SOPR        := CTR_STRT ; set output bits register (~WR)
+000000r 2               
+000000r 2               CTR_STOP    := $0F ; counter/timer stop (~RD)
+000000r 2               ROPR        := CTR_STOP ; reset output bits register (~WR)
+000000r 2               
+000000r 2               ; ACR masks
+000000r 2               ACR_TIMER_XTL_CLK   := (%110) << 4    ; timer-mode, use external clock unchanged
+000000r 2               ACR_BRG_SELECT      := 1 << 7         ; select the 2nd group of BRG values
+000000r 2               
+000000r 2               ; IRQ masks
+000000r 2               IMR_TX_RDY_A            := %00000001
+000000r 2               IMR_RX_RDY_A            := %00000010
+000000r 2               IMR_CT_ENABLE           := %00001000
+000000r 2               
+000000r 2               ; MR options
+000000r 2               MR0_RX_WATCHDOG         := %10000000
+000000r 2               MR0_FIFO_16             := %00001000
+000000r 2               MR0_FIFO_RX_INT         := %01000000  ; bit 1 of Rx fifo interrupt level
+000000r 2               
+000000r 2               MR0_BAUD_NORMAL         := %000       ; use normal baud rate table
+000000r 2               MR0_BAUD_EXT1           := %001       ; use extended 1 baud rate table
+000000r 2               MR0_BAUD_EXT2           := %100       ; use extended 2 baud rate table
+000000r 2               
+000000r 2               MR1_RX_USE_RTS          := %10000000  ; receiver should use RTS control
+000000r 2               MR1_FIFO_RX_INT         := %01000000  ; bit 2 of Rx fifo interrupt level
+000000r 2               MR1_PARITY_MODE_NONE    := %10 << 3   ; no parity
+000000r 2               MR1_BITS_PER_CHAR_8     := %11        ; 8 bits per character
+000000r 2               
+000000r 2               MR2_CHANNEL_MODE_NORMAL := %00 << 6   ; normal channel mode
+000000r 2               MR2_CHANNEL_MODE_ECHO   := %01 << 6   ; echo mode
+000000r 2               MR2_TX_USE_RTS          := %00100000  ; TX should use RTS control
+000000r 2               MR2_TX_USE_CTS          := %00010000  ; TX should use CTS control
+000000r 2               MR2_STOP_BITS_1         := %00000111  ; 1.0 stop bits
+000000r 2               
+000000r 2               ; SR masks
+000000r 2               SR_RX_RDY               := %00000001  ; a char has been received
+000000r 2               SR_RX_FULL              := %00000010  ; the receive FIFO is full
+000000r 2               SR_TX_RDY               := %00000100  ; a char can be added to Tx fifo
+000000r 2               SR_TX_EMPTY             := %00001000  ; Tx fifo is empty
+000000r 2               
+000000r 2               ; CR options and commands
+000000r 2               CR_RX_ENABLE            := %00000001
+000000r 2               CR_RX_DISABLE           := %00000010
+000000r 2               CR_TX_ENABLE            := %00000100
+000000r 2               CR_TX_DISABLE           := %00001000
+000000r 2               
+000000r 2               CR_COMMAND_NOP          := %0000 << 4 ; nop
+000000r 2               CR_COMMAND_MR_1         := %0001 << 4 ; reset MR pointer to MR1
+000000r 2               CR_COMMAND_RX_RES       := %0010 << 4 ; reset receiver. Rx disabled and FIFO is flushed
+000000r 2               CR_COMMAND_TX_RES       := %0011 << 4 ; reset transmitter
+000000r 2               CR_COMMAND_ERR_RES      := %0100 << 4 ; reset error status. clears all error statuses (break, parity, etc.)
+000000r 2               CR_COMMAND_BRK_IRQ_RES  := %0101 << 4 ; reset break change interrupt
+000000r 2               CR_COMMAND_BRK_STRT     := %0110 << 4 ; force TxD low. Tx must be active to be accepted
+000000r 2               CR_COMMAND_BRK_STP      := %0111 << 4 ; force TxD high
+000000r 2               CR_COMMAND_RTS_SET      := %1000 << 4 ; assert ~RTS (take low)
+000000r 2               CR_COMMAND_RTS_RES      := %1001 << 4 ; negate ~RTS (take high)
+000000r 2               CR_COMMAND_TO_MODE_ON   := %1010 << 4 ; turn timeout mode on (read docs for details)
+000000r 2               CR_COMMAND_MR_0         := %1011 << 4 ; sets MR pointer to MR0
+000000r 2               CR_COMMAND_TO_MODE_OFF  := %1100 << 4 ; turn timeout mode off (read docs for details)
+000000r 2               CR_COMMAND_UNUSED       := %1101 << 4 ; not used so don't use it!
+000000r 2               CR_COMMAND_PWR_DOWN_ON  := %1110 << 4 ; turn power-down mode on. ONLY AVAILABLE ON CHANNEL A
+000000r 2               CR_COMMAND_PWR_DOWN_OFF := %1111 << 4 ; turn power-down mode off. ONLY AVAILABLE ON CHANNEL A
+000000r 2               
+000000r 2               ; OPCR masks
+000000r 2               
+000000r 2               
+000000r 2               .endif
+000000r 2               
+000000r 1               .include "vdp.inc"
+000000r 2               ; LmaOS
+000000r 2               ;
+000000r 2               ; Copyright Nate Rivard 2023
+000000r 2               
+000000r 2               .ifndef VDP_INC
+000000r 2               VDP_INC = 1
+000000r 2               
+000000r 2               VDP_BASE := N8BUS_PORT2
+000000r 2               
+000000r 2               ; this is the color carrier frequency that the VDP outputs
+000000r 2               VDPClockHz      :=  3579545
+000000r 2               
+000000r 2               ; default VRAM locations
+000000r 2               VDP_NAME_TABLE_START := $0800
+000000r 2               VDP_PATTERN_TABLE_START := $0000
+000000r 2               
+000000r 2               ; register offsets for the VDP
+000000r 2               VRAM            := $0
+000000r 2               REGISTERS       := $1                   ; writing: 8 registers accessible. reading: status register is available
+000000r 2               
+000000r 2               ; Register masks
+000000r 2               REG_WR          := $80                  ; used to write to a register
+000000r 2               VRAM_WR         := $40                  ; used to write to vram
+000000r 2               
+000000r 2               ; Register indices
+000000r 2               CONTROL_1       := $0
+000000r 2               CONTROL_2       := $1
+000000r 2               NAME_TABLE      := $2
+000000r 2               COLOR_TABLE     := $3
+000000r 2               PATTERN_TABLE   := $4
+000000r 2               SPR_ATTR_TABLE  := $5
+000000r 2               SPR_PTRN_TABLE  := $6
+000000r 2               TEXT_COLOR      := $7
+000000r 2               
+000000r 2               ; control register 1 masks
+000000r 2               CONTROL_1_MODE_GFX_1    := %0 << 1
+000000r 2               CONTROL_1_MODE_GFX_2    := %1 << 1
+000000r 2               CONTROL_1_MODE_MULTI    := %0 << 1
+000000r 2               CONTROL_1_MODE_TEXT     := %0 << 1
+000000r 2               
+000000r 2               ; control register 2 masks
+000000r 2               CONTROL_2_MODE_GFX_1    := %00 << 3
+000000r 2               CONTROL_2_MODE_GFX_2    := %00 << 3
+000000r 2               CONTROL_2_MODE_MULTI    := %01 << 3
+000000r 2               CONTROL_2_MODE_TEXT     := %10 << 3
+000000r 2               
+000000r 2               CONTROL_2_VRAM_16K      := %10000000
+000000r 2               CONTROL_2_DISP_EN       := %01000000
+000000r 2               CONTROL_2_INT_EN        := %00100000
+000000r 2               CONTROL_2_SPR_SIZE_2X   := %00000010
+000000r 2               CONTROL_2_SPR_ZOOM      := %00000001
+000000r 2               
+000000r 2               ; table start multipliers. Divide your intended VRAM address by these
+000000r 2               ; to get the appropriate register values
+000000r 2               NAME_TABLE_MULT         := $0400
+000000r 2               COLOR_TABLE_MULT        := $0040
+000000r 2               PATTERN_TABLE_MULT      := $0800
+000000r 2               SPR_ATTR_TABLE_MULT     := $0080
+000000r 2               SPR_PATTERN_TABLE_MULT  := $0800
+000000r 2               
+000000r 2               ; status register masks
+000000r 2               STATUS_FRAME_FLAG       := %10000000
+000000r 2               STATUS_SPR_5TH          := %01000000
+000000r 2               STATUS_SPR_COLLISION    := %00100000
+000000r 2               STATUS_5TH_SPR_NUM      := %00011111            ; ANDing STATUS with this mask will give you the index to the 5th sprite (not displayed)
+000000r 2               
+000000r 2               ; colors :)
+000000r 2               COLOR_CLR       := $0
+000000r 2               COLOR_BLK       := $1
+000000r 2               COLOR_GRN_MED   := $2
+000000r 2               COLOR_GRN_LT    := $3
+000000r 2               COLOR_BLU_DK    := $4
+000000r 2               COLOR_BLU_LT    := $5
+000000r 2               COLOR_RED_DK    := $6
+000000r 2               COLOR_CYAN      := $7
+000000r 2               COLOR_RED_MED   := $8
+000000r 2               COLOR_RED_LT    := $9
+000000r 2               COLOR_YEL_DK    := $A
+000000r 2               COLOR_YEL_LT    := $B
+000000r 2               COLOR_GRN_DK    := $C
+000000r 2               COLOR_MAG       := $D
+000000r 2               COLOR_GRAY      := $E
+000000r 2               COLOR_WHITE     := $F
+000000r 2               
+000000r 2               .struct SpriteAttr
+000000r 2                   yPos            .byte
+000000r 2                   xPos            .byte
+000000r 2                   patternIndex    .byte
+000000r 2                   color           .byte       ; low nibble contains color. high bit contains EARLY_CLOCK
+000000r 2               .endstruct
+000000r 2               
+000000r 2               SPRITE_ATTR_EARLY_CLOCK := %10000000
+000000r 2               SPRITE_DISABLE_Y_POS    := $D0  ; set as Y pos to disable this sprite and ALL sprites after this index
+000000r 2               
+000000r 2               ; waits 2µs, the non-active display max wait time
+000000r 2               ; these routines are based on 3.6874Mhz so each cycle is just over .25µs
+000000r 2               ; each NOP is 2 cycles. at ~3.6Mhz, NOP is .5µs
+000000r 2               .macro VDPWait
+000000r 2                   NOP
+000000r 2                   NOP
+000000r 2                   NOP
+000000r 2                   NOP
+000000r 2               .endmacro
+000000r 2               
+000000r 2               ; imm is an optional immediate value. if not provided, it's assumed data is already in A
+000000r 2               .macro VDPRegisterSet register, imm
+000000r 2               .ifnblank imm
+000000r 2                   LDA #(imm)
+000000r 2               .endif
+000000r 2                   STA VDP_BASE+REGISTERS
+000000r 2                   VDPWait
+000000r 2                   LDA #(register) | REG_WR
+000000r 2                   STA VDP_BASE+REGISTERS
+000000r 2                   VDPWait
+000000r 2               .endmacro
+000000r 2               
+000000r 2               .macro VDPVramAddrSet addr, isWrite
+000000r 2                   LDA #<(addr)
+000000r 2                   STA VDP_BASE+REGISTERS
+000000r 2               .if isWrite
+000000r 2                   LDA #>(addr) | VRAM_WR
+000000r 2               .else
+000000r 2                   LDA #>(addr)
+000000r 2               .endif
+000000r 2                   STA VDP_BASE+REGISTERS
+000000r 2               .endmacro
+000000r 2               
+000000r 2               ; byte to send to VRAM should be in A
+000000r 2               .macro VDPVramPut
+000000r 2                   STA VDP_BASE+VRAM
+000000r 2                   VDPWait
+000000r 2               .endmacro
+000000r 2               
+000000r 2               ; read byte from VRAM and put in A
+000000r 2               .macro VDPVramGet
+000000r 2                   LDA VDP_BASE+VRAM
+000000r 2                   VDPWait
+000000r 2               .endmacro
+000000r 2               
+000000r 2               .endif
+000000r 2               
+000000r 1               
+000000r 1               .org $0600
+000600  1               
+000600  1               .feature string_escapes
+000600  1               
+000600  1               ; constants
+000600  1               FRAMES_PER_GEN  := 60   ; comparator for number of frames per generation
+000600  1               
+000600  1               ; zero page locations
+000600  1               GenCalc     := $A0  ; 16 bit counter for the calculated generation
+000600  1               GenRndr     := $A2  ; 16 bit counter for the rendered generation
+000600  1               BoardCurr   := $A4  ; Zero if BoardA, non-zero if BoardB
+000600  1               FrameBfr    := $A5  ; Zero if FB_A, non-zero if FB_B
+000600  1               FrameCount  := $A6  ; current frame count
+000600  1               
+000600  1               GenASCII_Hi := $C0  ; 4 byte ASCII representation for current generation count
+000600  1               GenASCII_Lo := $C2
+000600  1               
+000600  1               ; RAM locations for our 2 boards which are both 32 * 22 boards
+000600  1               ; with an extra 1 cell "dead" border all around (34 * 24)
+000600  1               ; each cell is a byte with current nonzero being alive, zero being dead
+000600  1               BoardA      := $8000
+000600  1               BoardB      := $9000
+000600  1               
+000600  1               ; VRAM locations for various tables
+000600  1               PatternTable        := VDP_PATTERN_TABLE_START
+000600  1               SpriteAttributes    := $0800
+000600  1               ColorTable          := $1400
+000600  1               SpritePatterns      := $2000
+000600  1               FrameBufA           := $3000
+000600  1               FrameBufB           := $3500
+000600  1               
+000600  1               ; sets VRAM address and then copies all bytes from start to end to vram
+000600  1               .macro VDPInitTable vramAddr, ramStart, ramEnd
+000600  1                   VDPVramAddrSet  vramAddr, 1
+000600  1                   COPYADDR    ramStart, r0
+000600  1                   COPYADDR    (ramEnd - ramStart), r1
+000600  1                   JSR VDPVramPutN
+000600  1               .endmacro
+000600  1               
+000600  1               Main:
+000600  1  4C 26 09         JMP Init
+000603  1               
+000603  1  xx xx        SystemInterrupt: .res 2
+000605  1               
+000605  1                   .include "bitmaps.asm"
+000605  2               ; LmaOS
+000605  2               ;
+000605  2               ; Copyright Nate Rivard 2022
+000605  2               
+000605  2               .ifndef BITMAPS_ASM
+000605  2               BITMAPS_ASM = 1
+000605  2               
+000605  2               ; bg tiles
+000605  2               Dead    := $00
+000605  2               Aliv    := $01
+000605  2               
+000605  2               PatternsStart:
+000605  2                   ; green on black
+000605  2  00 00 00 00      .byte $00, $00, $00, $00, $00, $00, $00, $00    ; dead
+000609  2  00 00 00 00  
+00060D  2  00 7F 7F 7F      .byte $00, $7F, $7F, $7F, $7F, $7F, $7F, $7F    ; alive
+000611  2  7F 7F 7F 7F  
+000615  2               PatternsEnd:
+000615  2               
+000615  2               NamesStart:
+000615  2  43 6F 6E 77      .byte "Conway's Game of Life v01", $00, $00, $00, $00, $00, $00, $00 ; string is 25 bytes
+000619  2  61 79 27 73  
+00061D  2  20 47 61 6D  
+000635  2               
+000635  2                   ; padding
+000635  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+000639  2  00 00 00 00  
+00063D  2  00 00 00 00  
+000655  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+000659  2  00 00 00 00  
+00065D  2  00 00 00 00  
+000675  2  00 00 00 00      .byte 0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+000679  2  00 00 00 01  
+00067D  2  01 01 00 00  
+000695  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+000699  2  00 00 00 00  
+00069D  2  00 00 00 00  
+0006B5  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0006B9  2  00 00 00 00  
+0006BD  2  00 00 00 00  
+0006D5  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0006D9  2  00 00 00 00  
+0006DD  2  00 00 00 00  
+0006F5  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0006F9  2  00 00 00 00  
+0006FD  2  00 00 00 00  
+000715  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+000719  2  00 00 00 00  
+00071D  2  00 00 00 00  
+000735  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+000739  2  00 00 00 00  
+00073D  2  00 00 00 00  
+000755  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+000759  2  00 00 00 00  
+00075D  2  00 00 00 00  
+000775  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+000779  2  00 00 00 00  
+00077D  2  00 00 00 00  
+000795  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+000799  2  00 00 00 00  
+00079D  2  00 00 00 00  
+0007B5  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0
+0007B9  2  00 00 00 00  
+0007BD  2  00 00 00 00  
+0007D5  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0
+0007D9  2  00 00 00 00  
+0007DD  2  00 00 00 00  
+0007F5  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0007F9  2  00 00 00 00  
+0007FD  2  00 00 00 00  
+000815  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+000819  2  00 00 00 00  
+00081D  2  00 00 00 00  
+000835  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+000839  2  00 00 00 00  
+00083D  2  00 00 00 00  
+000855  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+000859  2  00 00 00 00  
+00085D  2  00 00 00 00  
+000875  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+000879  2  00 00 00 00  
+00087D  2  00 00 00 00  
+000895  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+000899  2  00 00 00 00  
+00089D  2  00 00 00 00  
+0008B5  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0008B9  2  00 00 00 00  
+0008BD  2  00 00 00 00  
+0008D5  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+0008D9  2  00 00 00 00  
+0008DD  2  00 00 00 00  
+0008F5  2               
+0008F5  2  30 30 30 30      .asciiz "0000 Generations"
+0008F9  2  20 47 65 6E  
+0008FD  2  65 72 61 74  
+000906  2               NamesEnd:
+000906  2               
+000906  2               ColorsStart:
+000906  2  31               .byte (COLOR_GRN_LT << 4 | COLOR_BLK)
+000907  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000908  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000909  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+00090A  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+00090B  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+00090C  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+00090D  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+00090E  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+00090F  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000910  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000911  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000912  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000913  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000914  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000915  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000916  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000917  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000918  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000919  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+00091A  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+00091B  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+00091C  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+00091D  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+00091E  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+00091F  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000920  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000921  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000922  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000923  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000924  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000925  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000926  2               ColorsEnd:
+000926  2               
+000926  2               .endif
+000926  2               
+000926  1               
+000926  1               Init:
+000926  1  78               SEI
+000927  1  A9 00 85 A0      COPYADDR $0000, $A0
+00092B  1  A9 00 85 A1  
+00092F  1  A9 00 85 A2      COPYADDR $0000, $A2
+000933  1  A9 00 85 A3  
+000937  1  A9 77            LDA #<(RegisterTable)
+000939  1  A2 0B            LDX #>(RegisterTable)
+00093B  1  20 77 C0         JSR VDPInit
+00093E  1  20 91 C0         JSR VDPClearVRAM
+000941  1  20 AD C0         JSR VDPCopyDefaultCharset                   ; use default charset and overwrite $0 and $1 patterns
+000944  1  A9 00 8D 81      VDPInitTable PatternTable, PatternsStart, PatternsEnd
+000948  1  BF A9 40 8D  
+00094C  1  81 BF A9 05  
+000961  1  A9 00 8D 81      VDPInitTable FrameBufA, NamesStart, NamesEnd
+000965  1  BF A9 70 8D  
+000969  1  81 BF A9 15  
+00097E  1  A9 00 8D 81      VDPInitTable ColorTable, ColorsStart, ColorsEnd
+000982  1  BF A9 54 8D  
+000986  1  81 BF A9 06  
+00099B  1  20 EE 0A         JSR GameInit
+00099E  1  20 37 0A         JSR CalcGenerationsText
+0009A1  1               @SetupIRQ:
+0009A1  1  A9 00 8D C5      DUART_IRQ_DISABLE                           ; turn off timer interrupts, we are going to use VDP frames instead
+0009A5  1  BF           
+0009A6  1  A5 ED 8D 03      COPY16 InterruptVector, SystemInterrupt     ; preserve old value of the interrupt vector
+0009AA  1  06 A5 EE 8D  
+0009AE  1  04 06        
+0009B0  1  A9 52 85 ED      COPYADDR FrameInterrupt, InterruptVector
+0009B4  1  A9 0A 85 EE  
+0009B8  1  A9 3C            LDA #FRAMES_PER_GEN                         ; setup our frame counter
+0009BA  1  85 A6            STA FrameCount
+0009BC  1               @EnableDisplay:
+0009BC  1  2C 81 BF         BIT VDP_BASE+REGISTERS                      ; clear INT line
+0009BF  1  A9 E0 8D 81      VDPRegisterSet CONTROL_2, (CONTROL_2_VRAM_16K | CONTROL_2_DISP_EN | CONTROL_2_INT_EN | CONTROL_2_MODE_GFX_1)
+0009C3  1  BF EA EA EA  
+0009C7  1  EA A9 81 8D  
+0009D1  1  58               CLI
+0009D2  1               @StartGame:
+0009D2  1  20 0E 0A         JSR GameLoop
+0009D5  1               @RestoreIRQ:
+0009D5  1  78               SEI
+0009D6  1  2C 81 BF         BIT VDP_BASE+REGISTERS                      ; clear INT line
+0009D9  1  A9 00 8D 81      VDPRegisterSet CONTROL_1, (CONTROL_1_MODE_TEXT)
+0009DD  1  BF EA EA EA  
+0009E1  1  EA A9 80 8D  
+0009EB  1  A9 90 8D 81      VDPRegisterSet CONTROL_2, (CONTROL_2_VRAM_16K | CONTROL_2_MODE_TEXT)    ; turn off INTs and display
+0009EF  1  BF EA EA EA  
+0009F3  1  EA A9 81 8D  
+0009FD  1  AD 03 06 85      COPY16 SystemInterrupt, InterruptVector
+000A01  1  ED AD 04 06  
+000A05  1  85 EE        
+000A07  1  A9 08 8D C5      DUART_IRQ_ENABLE
+000A0B  1  BF           
+000A0C  1  58               CLI
+000A0D  1               @Done:
+000A0D  1  60               RTS
+000A0E  1               
+000A0E  1               GameLoop:
+000A0E  1  78               SEI
+000A0F  1  38 AD C1 BF      DUART_BYTE_AVAIL
+000A13  1  89 01 F0 01  
+000A17  1  18           
+000A18  1  B0 07            BCS @AdvanceGame
+000A1A  1  20 3B C0         JSR SerialGetByte
+000A1D  1  C9 1B            CMP #(ASCII_ESCAPE)
+000A1F  1  F0 14            BEQ @Done
+000A21  1               @AdvanceGame:
+000A21  1  58               CLI
+000A22  1  CB               WAI
+000A23  1  C6 A6            DEC FrameCount
+000A25  1  D0 E7            BNE GameLoop
+000A27  1  A9 3C            LDA #FRAMES_PER_GEN
+000A29  1  85 A6            STA FrameCount
+000A2B  1               @NextGen:
+000A2B  1  78               SEI
+000A2C  1  E6 A0 D0 02      INC16 GenCalc
+000A30  1  E6 A1        
+000A32  1  58               CLI
+000A33  1  80 D9            BRA GameLoop
+000A35  1               @Done:
+000A35  1  58               CLI
+000A36  1  60               RTS
+000A37  1               
+000A37  1               CalcGenerationsText:
+000A37  1  A5 A3            LDA GenRndr + 1
+000A39  1  20 A5 CB         JSR ByteToHexString
+000A3C  1  A5 0E 85 C0      COPY16 r7, GenASCII_Hi
+000A40  1  A5 0F 85 C1  
+000A44  1  A5 A2            LDA GenRndr
+000A46  1  20 A5 CB         JSR ByteToHexString
+000A49  1  A5 0E 85 C2      COPY16 r7, GenASCII_Lo
+000A4D  1  A5 0F 85 C3  
+000A51  1  60               RTS
+000A52  1               
+000A52  1               ; clobbers r0 and r1 bc VDPVramPutN clobbers them
+000A52  1               ; game loop should choose 2 different 16 bit registers to use if it needs them
+000A52  1               FrameInterrupt:
+000A52  1  48               PHA
+000A53  1  DA               PHX
+000A54  1  5A               PHY
+000A55  1  2C 81 BF         BIT VDP_BASE+REGISTERS      ; clear IRQ request
+000A58  1  38 A5 A3 E5      CMP16 GenRndr, GenCalc
+000A5C  1  A1 D0 04 A5  
+000A60  1  A2 E5 A0     
+000A63  1  D0 03            BNE @NextGen
+000A65  1  4C EA 0A         JMP @Done
+000A68  1               @NextGen:
+000A68  1  A5 A0 85 A2      COPY16 GenCalc, GenRndr
+000A6C  1  A5 A1 85 A3  
+000A70  1  A9 20 8D 81      VDPVramAddrSet (FrameBufA+32), 1
+000A74  1  BF A9 70 8D  
+000A78  1  81 BF        
+000A7A  1  A5 A4            LDA BoardCurr
+000A7C  1  D0 0A            BNE @BoardB
+000A7E  1  A9 23 85 00      COPYADDR (BoardA+35), r0
+000A82  1  A9 80 85 01  
+000A86  1  80 08            BRA @BoardSet
+000A88  1               @BoardB:
+000A88  1  A9 23 85 00      COPYADDR (BoardB+35), r0
+000A8C  1  A9 90 85 01  
+000A90  1               @BoardSet:
+000A90  1  A9 20 85 02      COPYADDR 32, r1
+000A94  1  A9 00 85 03  
+000A98  1  A2 16            LDX #22         ; 22 rows of board data
+000A9A  1               @NextGenLoop:
+000A9A  1  20 D6 C0         JSR VDPVramPutN
+000A9D  1  18 A5 00 69      ADD16 r0, 2    ; next row, skipping dead border
+000AA1  1  02 85 00 A5  
+000AA5  1  01 69 00 85  
+000AAA  1  A9 20 85 02      COPYADDR 32, r1
+000AAE  1  A9 00 85 03  
+000AB2  1  CA               DEX
+000AB3  1  D0 E5            BNE @NextGenLoop
+000AB5  1               @GenerationsText:
+000AB5  1  20 37 0A         JSR CalcGenerationsText
+000AB8  1  A9 E0 8D 81      VDPVramAddrSet (FrameBufA+(32 * 23)), 1
+000ABC  1  BF A9 72 8D  
+000AC0  1  81 BF        
+000AC2  1  EA EA EA EA      VDPWait
+000AC6  1  A5 C0            LDA GenASCII_Hi + 0
+000AC8  1  8D 80 BF EA      VDPVramPut
+000ACC  1  EA EA EA     
+000ACF  1  A5 C1            LDA GenASCII_Hi + 1
+000AD1  1  8D 80 BF EA      VDPVramPut
+000AD5  1  EA EA EA     
+000AD8  1  A5 C2            LDA GenASCII_Hi + 2
+000ADA  1  8D 80 BF EA      VDPVramPut
+000ADE  1  EA EA EA     
+000AE1  1  A5 C3            LDA GenASCII_Hi + 3
+000AE3  1  8D 80 BF EA      VDPVramPut
+000AE7  1  EA EA EA     
+000AEA  1               @Done:
+000AEA  1  7A               PLY
+000AEB  1  FA               PLX
+000AEC  1  68               PLA
+000AED  1  40               RTI
+000AEE  1               
+000AEE  1               ; Zeroes out game board memory (dead) and then copies initial state to game board A
+000AEE  1               GameInit:
+000AEE  1  A9 00 85 A2      COPYADDR 0, GenRndr
+000AF2  1  A9 00 85 A3  
+000AF6  1  A9 00 85 A0      COPYADDR 0, GenCalc
+000AFA  1  A9 00 85 A1  
+000AFE  1  64 A4            STZ BoardCurr               ; BoardA
+000B00  1               @BoardA:
+000B00  1  A9 00 85 00      COPYADDR BoardA, r0
+000B04  1  A9 80 85 01  
+000B08  1  A0 04            LDY #4
+000B0A  1  A2 00            LDX #0                      ; 34 * 24 = 816 which is 4 * 204
+000B0C  1               @BoardALoop:
+000B0C  1  A9 00            LDA #0
+000B0E  1  92 00            STA (r0)
+000B10  1  E6 00 D0 02      INC16 r0
+000B14  1  E6 01        
+000B16  1  E8               INX
+000B17  1  E0 CC            CPX #204
+000B19  1  D0 F1            BNE @BoardALoop
+000B1B  1  88               DEY
+000B1C  1  D0 EE            BNE @BoardALoop
+000B1E  1               @BoardB:
+000B1E  1  A9 00 85 00      COPYADDR BoardB, r0
+000B22  1  A9 90 85 01  
+000B26  1  A0 04            LDY #4
+000B28  1  A2 00            LDX #0
+000B2A  1               @BoardBLoop:
+000B2A  1  A9 00            LDA #0
+000B2C  1  92 00            STA (r0)
+000B2E  1  E6 00 D0 02      INC16 r0
+000B32  1  E6 01        
+000B34  1  E8               INX
+000B35  1  E0 CC            CPX #204
+000B37  1  D0 F1            BNE @BoardBLoop
+000B39  1  88               DEY
+000B3A  1  D0 EE            BNE @BoardBLoop
+000B3C  1               @CopyState:
+000B3C  1  A9 35 85 00      COPYADDR (NamesStart+32), r0  ; 2nd row of names table is initial state
+000B40  1  A9 06 85 01  
+000B44  1  A9 23 85 02      COPYADDR (BoardA+35), r1      ; skip entire top row (34) + 1st cell (border)
+000B48  1  A9 80 85 03  
+000B4C  1  A2 16            LDX #22                     ; 22 rows of data
+000B4E  1  A0 00            LDY #0
+000B50  1               @CopyStateLoop:
+000B50  1  B1 00            LDA (r0), Y
+000B52  1  91 02            STA (r1), Y
+000B54  1  C8               INY
+000B55  1  C0 20            CPY #32
+000B57  1  D0 F7            BNE @CopyStateLoop
+000B59  1  18 A5 00 69      ADD16 r0, 32
+000B5D  1  20 85 00 A5  
+000B61  1  01 69 00 85  
+000B66  1  18 A5 02 69      ADD16 r1, 34
+000B6A  1  22 85 02 A5  
+000B6E  1  03 69 00 85  
+000B73  1  CA               DEX
+000B74  1  D0 DA            BNE @CopyStateLoop
+000B76  1               @Done:
+000B76  1  60               RTS
+000B77  1               
+000B77  1               RegisterTable:
+000B77  1  00               .byte (CONTROL_1_MODE_GFX_1)
+000B78  1  80               .byte (CONTROL_2_VRAM_16K | CONTROL_2_MODE_GFX_1)
+000B79  1  0C               .byte (FrameBufA / NAME_TABLE_MULT)
+000B7A  1  50               .byte (ColorTable / COLOR_TABLE_MULT)
+000B7B  1  00               .byte (PatternTable / PATTERN_TABLE_MULT)
+000B7C  1  10               .byte (SpriteAttributes / SPR_ATTR_TABLE_MULT)
+000B7D  1  04               .byte (SpritePatterns / SPR_PATTERN_TABLE_MULT)
+000B7E  1  01               .byte (COLOR_CLR << 4 | COLOR_BLK)
+000B7E  1               

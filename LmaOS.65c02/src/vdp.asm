@@ -70,14 +70,13 @@ VDPWaitLong:
 ; number of bytes to send is reached
 ; r1: 16-bit count of number of bytes to transfer
 ;
-; NOTE: this uses the normal VDPVramPut macro, it does _not_ use VDPWaitLong so is only appropriate to use
-; when VDP output is disabled _or_ during blanking periods 
+; NOTE: this is only appropriate to use when VDP output is disabled _or_ during blanking periods 
 VDPVramPutN:
 @Preamble:
     PHA
 @Loop:
     LDA (r0)
-    VDPVramPut
+    STA VDP_BASE+VRAM   ; no VDPWait bc we're counting the cycles in subsequent INCs and DECs
     INC16 r0
     DEC16 r1
     BNE @Loop

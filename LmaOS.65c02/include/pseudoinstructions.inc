@@ -110,6 +110,21 @@ PSEUDOINSTRUCTIONS_INC = 1
 	STA result + 1
 .endmacro
 
+;; 16 bit CMP where SR flags are correct
+;;
+;; { PARAM } low-byte address of 16 bit value
+;; { PARAM } low-byte address of 16 bit value
+.macro CMP16 lhs, rhs
+.local @Done
+    SEC
+    LDA lhs + 1
+    SBC rhs + 1
+    BNE @Done
+    LDA lhs
+    SBC rhs
+@Done:
+.endmacro
+
 ;; 16 bit INC
 ;;
 ;; {PARAM} low-byte address of 16-bit value
