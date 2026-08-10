@@ -15,8 +15,12 @@ FRAMES_PER_GEN  := 60   ; comparator for number of frames per generation
 ; zero page locations
 GenCalc     := $A0  ; 16 bit counter for the calculated generation
 GenRndr     := $A2  ; 16 bit counter for the rendered generation
-BoardCurr   := $A4  ; Zero if BoardA, non-zero if BoardB
-FrameBfr    := $A5  ; Zero if FB_A, non-zero if FB_B
+
+; Board and Frame buffer state
+; For the GameLoop, `BoardCurr` signifies the _currently displayed_ board. which means
+; that calculations, copies, etc. should happen on the _opposite_ board/framebuffer!
+; For the FrameInterrupt, it will treat this value as the one to set the nametable to!
+BoardCurr   := $A4  ; 0 if BoardA, non-zero if BoardB
 FrameCount  := $A6  ; current frame count
 
 GenASCII_Hi := $C0  ; 4 byte ASCII representation for current generation count
@@ -64,7 +68,7 @@ Init:
     VDPInitTable FrameBufA, NamesStart, NamesEnd
     VDPInitTable ColorTable, ColorsStart, ColorsEnd
     JSR GameInit
-    JSR CalcGenerationsText
+    JSR CopyGenTextToVram
 @SetupIRQ:
     DUART_IRQ_DISABLE                           ; turn off timer interrupts, we are going to use VDP frames instead
     COPY16 InterruptVector, SystemInterrupt     ; preserve old value of the interrupt vector
@@ -111,17 +115,58 @@ GameLoop:
     CLI
     RTS
 
-CalcGenerationsText:
-    LDA GenRndr + 1
-    JSR ByteToHexString
-    COPY16 r7, GenASCII_Hi
-    LDA GenRndr
-    JSR ByteToHexString
-    COPY16 r7, GenASCII_Lo
+CopyBoardToFrameBuffer:
+    LDA BoardCurr
+    BEQ @FrameBfrB
+    VDPVramAddrSet FrameBufA, 1
+    COPYADDR (BoardA+35), r0    ; skip entire top row (34) + 1st cell (border)
+    BRA @CopyFB
+@FrameBfrB:
+    VDPVramAddrSet FrameBufB, 1
+    COPYADDR (BoardB+35), r0    ; skip entire top row (34) + 1st cell (border)
+@CopyFB:
+    JSR VDPWaitLong     ; do we need this?
+    LDX #22                     ; 22 rows of data
+    LDY #0
+@CopyFBLoop:
+    LDA (r0), Y
+    STA VDP_BASE+VRAM
+    INY
+    CPY #32
+    BNE @CopyFBLoop
+    ADD16 r0, 32
+    DEX
+    BNE @CopyFBLoop
+@Done:
     RTS
 
-; clobbers r0 and r1 bc VDPVramPutN clobbers them
-; game loop should choose 2 different 16 bit registers to use if it needs them
+CopyGenTextToVram:
+    LDA BoardCurr
+    BEQ @FrameBfrB
+    VDPVramAddrSet FrameBufA + (31 * 23), 1
+    BRA @CopyHiByte
+@FrameBfrB:
+    VDPVramAddrSet FrameBufB + (31 * 23), 1
+@CopyHiByte:
+    LDA GenRndr + 1
+    JSR ByteToHexString
+    LDA r7
+    STA VDP_BASE+VRAM
+    JSR VDPWaitLong
+    LDA r7 + 1
+    STA VDP_BASE+VRAM
+    JSR VDPWaitLong
+@CopyLoByte:
+    LDA GenRndr
+    JSR ByteToHexString
+    LDA r7
+    STA VDP_BASE+VRAM
+    JSR VDPWaitLong
+    LDA r7 + 1
+    STA VDP_BASE+VRAM
+    JSR VDPWaitLong
+    RTS
+
 FrameInterrupt:
     PHA
     PHX
@@ -132,34 +177,40 @@ FrameInterrupt:
     JMP @Done
 @NextGen:
     COPY16 GenCalc, GenRndr
-    VDPVramAddrSet (FrameBufA+32), 1
     LDA BoardCurr
     BNE @BoardB
-    COPYADDR (BoardA+35), r0
-    BRA @BoardSet
+    VDPRegisterSet 2, (FrameBufA / NAME_TABLE_MULT)
+    BRA @Done
 @BoardB:
-    COPYADDR (BoardB+35), r0
-@BoardSet:
-    COPYADDR 32, r1
-    LDX #22         ; 22 rows of board data
-@NextGenLoop:
-    JSR VDPVramPutN
-    ADD16 r0, 2    ; next row, skipping dead border
-    COPYADDR 32, r1
-    DEX
-    BNE @NextGenLoop
-@GenerationsText:
-    JSR CalcGenerationsText
-    VDPVramAddrSet (FrameBufA+(32 * 23)), 1
-    VDPWait
-    LDA GenASCII_Hi + 0
-    VDPVramPut
-    LDA GenASCII_Hi + 1
-    VDPVramPut
-    LDA GenASCII_Hi + 2
-    VDPVramPut
-    LDA GenASCII_Hi + 3
-    VDPVramPut
+    VDPRegisterSet 2, (FrameBufB / NAME_TABLE_MULT)
+;     VDPVramAddrSet (FrameBufA+32), 1
+;     LDA BoardCurr
+;     BNE @BoardB
+;     COPYADDR (BoardA+35), r0
+;     BRA @BoardSet
+; @BoardB:
+;     COPYADDR (BoardB+35), r0
+; @BoardSet:
+;     COPYADDR 32, r1
+;     LDX #22         ; 22 rows of board data
+; @NextGenLoop:
+;     JSR VDPVramPutN
+;     ADD16 r0, 2    ; next row, skipping dead border
+;     COPYADDR 32, r1
+;     DEX
+;     BNE @NextGenLoop
+; @GenerationsText:
+;     JSR CalcGenerationsText
+;     VDPVramAddrSet (FrameBufA+(32 * 23)), 1
+;     VDPWait
+;     LDA GenASCII_Hi + 0
+;     VDPVramPut
+;     LDA GenASCII_Hi + 1
+;     VDPVramPut
+;     LDA GenASCII_Hi + 2
+;     VDPVramPut
+;     LDA GenASCII_Hi + 3
+;     VDPVramPut
 @Done:
     PLY
     PLX
