@@ -595,21 +595,18 @@ Current file: src/main.asm
 000600  1               .feature string_escapes
 000600  1               
 000600  1               ; constants
-000600  1               FRAMES_PER_GEN  := 60   ; comparator for number of frames per generation
+000600  1               FRAMES_PER_GEN  := 20   ; comparator for number of frames per generation
 000600  1               
 000600  1               ; zero page locations
-000600  1               GenCalc     := $A0  ; 16 bit counter for the calculated generation
-000600  1               GenRndr     := $A2  ; 16 bit counter for the rendered generation
+000600  1               Gens        := $A0  ; 16 bit counter for the calculated generation
 000600  1               
 000600  1               ; Board and Frame buffer state
 000600  1               ; For the GameLoop, `BoardCurr` signifies the _currently displayed_ board. which means
 000600  1               ; that calculations, copies, etc. should happen on the _opposite_ board/framebuffer!
 000600  1               ; For the FrameInterrupt, it will treat this value as the one to set the nametable to!
-000600  1               BoardCurr   := $A4  ; 0 if BoardA, non-zero if BoardB
-000600  1               FrameCount  := $A6  ; current frame count
-000600  1               
-000600  1               GenASCII_Hi := $C0  ; 4 byte ASCII representation for current generation count
-000600  1               GenASCII_Lo := $C2
+000600  1               BoardCurr   := $A2  ; 0 if BoardA, non-zero if BoardB
+000600  1               FrameCount  := $A3  ; current frame count
+000600  1               CalcNextGen := $A4  ; non-zero if the next generation calc is in progress, 0 if complete
 000600  1               
 000600  1               ; RAM locations for our 2 boards which are both 32 * 22 boards
 000600  1               ; with an extra 1 cell "dead" border all around (34 * 24)
@@ -623,7 +620,19 @@ Current file: src/main.asm
 000600  1               ColorTable          := $1400
 000600  1               SpritePatterns      := $2000
 000600  1               FrameBufA           := $3000
-000600  1               FrameBufB           := $3500
+000600  1               FrameBufB           := $3400
+000600  1               
+000600  1               ; Offsets for cardinal directions in our 34 * 24 board from top left corner
+000600  1               CELL_OFFSET := -35
+000600  1               NW  := 0    ; nw corner
+000600  1               N   := 1    ; n cell
+000600  1               NE  := 2    ; ne corner
+000600  1               E   := 36   ; e cell
+000600  1               SE  := 70   ; se corner
+000600  1               S   := 69   ; s cell
+000600  1               SW  := 68   ; sw corner
+000600  1               W   := 34   ; w cell
+000600  1               C   := 35   ; center, the cell itself
 000600  1               
 000600  1               ; sets VRAM address and then copies all bytes from start to end to vram
 000600  1               .macro VDPInitTable vramAddr, ramStart, ramEnd
@@ -634,7 +643,7 @@ Current file: src/main.asm
 000600  1               .endmacro
 000600  1               
 000600  1               Main:
-000600  1  4C 26 09         JMP Init
+000600  1  4C 39 09         JMP Init
 000603  1               
 000603  1  xx xx        SystemInterrupt: .res 2
 000605  1               
@@ -664,15 +673,19 @@ Current file: src/main.asm
 00061D  2  20 47 61 6D  
 000635  2               
 000635  2                   ; padding
-000635  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+000635  2                   ; row 1 (interior)
+000635  2  00 00 00 01      .byte 0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 000639  2  00 00 00 00  
 00063D  2  00 00 00 00  
-000655  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-000659  2  00 00 00 00  
+000655  2                   ; row 2
+000655  2  00 00 00 00      .byte 0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+000659  2  01 00 00 00  
 00065D  2  00 00 00 00  
-000675  2  00 00 00 00      .byte 0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-000679  2  00 00 00 01  
-00067D  2  01 01 00 00  
+000675  2                   ; row 3
+000675  2  00 00 01 01      .byte 0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+000679  2  01 00 00 00  
+00067D  2  00 00 00 00  
+000695  2               
 000695  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 000699  2  00 00 00 00  
 00069D  2  00 00 00 00  
@@ -703,8 +716,8 @@ Current file: src/main.asm
 0007B5  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0
 0007B9  2  00 00 00 00  
 0007BD  2  00 00 00 00  
-0007D5  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0
-0007D9  2  00 00 00 00  
+0007D5  2  00 00 00 01      .byte 0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0
+0007D9  2  01 01 00 00  
 0007DD  2  00 00 00 00  
 0007F5  2  00 00 00 00      .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0007F9  2  00 00 00 00  
@@ -731,28 +744,13 @@ Current file: src/main.asm
 0008D9  2  00 00 00 00  
 0008DD  2  00 00 00 00  
 0008F5  2               
-0008F5  2  30 30 30 30      .asciiz "0000 Generations"
+0008F5  2  30 30 30 30      .byte "0000 Generations",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 0008F9  2  20 47 65 6E  
 0008FD  2  65 72 61 74  
-000906  2               NamesEnd:
-000906  2               
-000906  2               ColorsStart:
-000906  2  31               .byte (COLOR_GRN_LT << 4 | COLOR_BLK)
-000907  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
-000908  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
-000909  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
-00090A  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
-00090B  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
-00090C  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
-00090D  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
-00090E  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
-00090F  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
-000910  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
-000911  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
-000912  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
-000913  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
-000914  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
-000915  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000915  2               NamesEnd:
+000915  2               
+000915  2               ColorsStart:
+000915  2  31               .byte (COLOR_GRN_LT << 4 | COLOR_BLK)
 000916  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
 000917  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
 000918  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
@@ -769,284 +767,364 @@ Current file: src/main.asm
 000923  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
 000924  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
 000925  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
-000926  2               ColorsEnd:
-000926  2               
-000926  2               .endif
-000926  2               
-000926  1               
-000926  1               Init:
-000926  1  78               SEI
-000927  1  A9 00 85 A0      COPYADDR $0000, $A0
-00092B  1  A9 00 85 A1  
-00092F  1  A9 00 85 A2      COPYADDR $0000, $A2
-000933  1  A9 00 85 A3  
-000937  1  A9 9D            LDA #<(RegisterTable)
-000939  1  A2 0B            LDX #>(RegisterTable)
-00093B  1  20 77 C0         JSR VDPInit
-00093E  1  20 91 C0         JSR VDPClearVRAM
-000941  1  20 AD C0         JSR VDPCopyDefaultCharset                   ; use default charset and overwrite $0 and $1 patterns
-000944  1  A9 00 8D 81      VDPInitTable PatternTable, PatternsStart, PatternsEnd
-000948  1  BF A9 40 8D  
-00094C  1  81 BF A9 05  
-000961  1  A9 00 8D 81      VDPInitTable FrameBufA, NamesStart, NamesEnd
-000965  1  BF A9 70 8D  
-000969  1  81 BF A9 15  
-00097E  1  A9 00 8D 81      VDPInitTable ColorTable, ColorsStart, ColorsEnd
-000982  1  BF A9 54 8D  
-000986  1  81 BF A9 06  
-00099B  1  20 14 0B         JSR GameInit
-00099E  1  20 83 0A         JSR CopyGenTextToVram
-0009A1  1               @SetupIRQ:
-0009A1  1  A9 00 8D C5      DUART_IRQ_DISABLE                           ; turn off timer interrupts, we are going to use VDP frames instead
-0009A5  1  BF           
-0009A6  1  A5 ED 8D 03      COPY16 InterruptVector, SystemInterrupt     ; preserve old value of the interrupt vector
-0009AA  1  06 A5 EE 8D  
-0009AE  1  04 06        
-0009B0  1  A9 C8 85 ED      COPYADDR FrameInterrupt, InterruptVector
-0009B4  1  A9 0A 85 EE  
-0009B8  1  A9 3C            LDA #FRAMES_PER_GEN                         ; setup our frame counter
-0009BA  1  85 A6            STA FrameCount
-0009BC  1               @EnableDisplay:
-0009BC  1  2C 81 BF         BIT VDP_BASE+REGISTERS                      ; clear INT line
-0009BF  1  A9 E0 8D 81      VDPRegisterSet CONTROL_2, (CONTROL_2_VRAM_16K | CONTROL_2_DISP_EN | CONTROL_2_INT_EN | CONTROL_2_MODE_GFX_1)
-0009C3  1  BF EA EA EA  
-0009C7  1  EA A9 81 8D  
-0009D1  1  58               CLI
-0009D2  1               @StartGame:
-0009D2  1  20 0E 0A         JSR GameLoop
-0009D5  1               @RestoreIRQ:
-0009D5  1  78               SEI
-0009D6  1  2C 81 BF         BIT VDP_BASE+REGISTERS                      ; clear INT line
-0009D9  1  A9 00 8D 81      VDPRegisterSet CONTROL_1, (CONTROL_1_MODE_TEXT)
-0009DD  1  BF EA EA EA  
-0009E1  1  EA A9 80 8D  
-0009EB  1  A9 90 8D 81      VDPRegisterSet CONTROL_2, (CONTROL_2_VRAM_16K | CONTROL_2_MODE_TEXT)    ; turn off INTs and display
-0009EF  1  BF EA EA EA  
-0009F3  1  EA A9 81 8D  
-0009FD  1  AD 03 06 85      COPY16 SystemInterrupt, InterruptVector
-000A01  1  ED AD 04 06  
-000A05  1  85 EE        
-000A07  1  A9 08 8D C5      DUART_IRQ_ENABLE
-000A0B  1  BF           
-000A0C  1  58               CLI
-000A0D  1               @Done:
-000A0D  1  60               RTS
-000A0E  1               
-000A0E  1               GameLoop:
-000A0E  1  78               SEI
-000A0F  1  38 AD C1 BF      DUART_BYTE_AVAIL
-000A13  1  89 01 F0 01  
-000A17  1  18           
-000A18  1  B0 07            BCS @AdvanceGame
-000A1A  1  20 3B C0         JSR SerialGetByte
-000A1D  1  C9 1B            CMP #(ASCII_ESCAPE)
-000A1F  1  F0 14            BEQ @Done
-000A21  1               @AdvanceGame:
-000A21  1  58               CLI
-000A22  1  CB               WAI
-000A23  1  C6 A6            DEC FrameCount
-000A25  1  D0 E7            BNE GameLoop
-000A27  1  A9 3C            LDA #FRAMES_PER_GEN
-000A29  1  85 A6            STA FrameCount
-000A2B  1               @NextGen:
-000A2B  1  78               SEI
-000A2C  1  E6 A0 D0 02      INC16 GenCalc
-000A30  1  E6 A1        
-000A32  1  58               CLI
-000A33  1  80 D9            BRA GameLoop
-000A35  1               @Done:
-000A35  1  58               CLI
-000A36  1  60               RTS
-000A37  1               
-000A37  1               CopyBoardToFrameBuffer:
-000A37  1  A5 A4            LDA BoardCurr
-000A39  1  F0 14            BEQ @FrameBfrB
-000A3B  1  A9 00 8D 81      VDPVramAddrSet FrameBufA, 1
-000A3F  1  BF A9 70 8D  
-000A43  1  81 BF        
-000A45  1  A9 23 85 00      COPYADDR (BoardA+35), r0    ; skip entire top row (34) + 1st cell (border)
-000A49  1  A9 80 85 01  
-000A4D  1  80 12            BRA @CopyFB
-000A4F  1               @FrameBfrB:
-000A4F  1  A9 00 8D 81      VDPVramAddrSet FrameBufB, 1
-000A53  1  BF A9 75 8D  
-000A57  1  81 BF        
-000A59  1  A9 23 85 00      COPYADDR (BoardB+35), r0    ; skip entire top row (34) + 1st cell (border)
-000A5D  1  A9 90 85 01  
-000A61  1               @CopyFB:
-000A61  1  20 CB C0         JSR VDPWaitLong     ; do we need this?
-000A64  1  A2 16            LDX #22                     ; 22 rows of data
-000A66  1  A0 00            LDY #0
-000A68  1               @CopyFBLoop:
-000A68  1  B1 00            LDA (r0), Y
-000A6A  1  8D 80 BF         STA VDP_BASE+VRAM
-000A6D  1  C8               INY
-000A6E  1  C0 20            CPY #32
-000A70  1  D0 F6            BNE @CopyFBLoop
-000A72  1  18 A5 00 69      ADD16 r0, 32
-000A76  1  20 85 00 A5  
-000A7A  1  01 69 00 85  
-000A7F  1  CA               DEX
-000A80  1  D0 E6            BNE @CopyFBLoop
-000A82  1               @Done:
-000A82  1  60               RTS
-000A83  1               
-000A83  1               CopyGenTextToVram:
-000A83  1  A5 A4            LDA BoardCurr
-000A85  1  F0 0C            BEQ @FrameBfrB
-000A87  1  A9 C9 8D 81      VDPVramAddrSet FrameBufA + (31 * 23), 1
-000A8B  1  BF A9 72 8D  
-000A8F  1  81 BF        
-000A91  1  80 0A            BRA @CopyHiByte
-000A93  1               @FrameBfrB:
-000A93  1  A9 C9 8D 81      VDPVramAddrSet FrameBufB + (31 * 23), 1
-000A97  1  BF A9 77 8D  
-000A9B  1  81 BF        
-000A9D  1               @CopyHiByte:
-000A9D  1  A5 A3            LDA GenRndr + 1
-000A9F  1  20 A5 CB         JSR ByteToHexString
-000AA2  1  A5 0E            LDA r7
-000AA4  1  8D 80 BF         STA VDP_BASE+VRAM
-000AA7  1  20 CB C0         JSR VDPWaitLong
-000AAA  1  A5 0F            LDA r7 + 1
-000AAC  1  8D 80 BF         STA VDP_BASE+VRAM
-000AAF  1  20 CB C0         JSR VDPWaitLong
-000AB2  1               @CopyLoByte:
-000AB2  1  A5 A2            LDA GenRndr
-000AB4  1  20 A5 CB         JSR ByteToHexString
-000AB7  1  A5 0E            LDA r7
-000AB9  1  8D 80 BF         STA VDP_BASE+VRAM
-000ABC  1  20 CB C0         JSR VDPWaitLong
-000ABF  1  A5 0F            LDA r7 + 1
-000AC1  1  8D 80 BF         STA VDP_BASE+VRAM
-000AC4  1  20 CB C0         JSR VDPWaitLong
-000AC7  1  60               RTS
-000AC8  1               
-000AC8  1               FrameInterrupt:
-000AC8  1  48               PHA
-000AC9  1  DA               PHX
-000ACA  1  5A               PHY
-000ACB  1  2C 81 BF         BIT VDP_BASE+REGISTERS      ; clear IRQ request
-000ACE  1  38 A5 A3 E5      CMP16 GenRndr, GenCalc
-000AD2  1  A1 D0 04 A5  
-000AD6  1  A2 E5 A0     
-000AD9  1  D0 03            BNE @NextGen
-000ADB  1  4C 10 0B         JMP @Done
-000ADE  1               @NextGen:
-000ADE  1  A5 A0 85 A2      COPY16 GenCalc, GenRndr
-000AE2  1  A5 A1 85 A3  
-000AE6  1  A5 A4            LDA BoardCurr
-000AE8  1  D0 14            BNE @BoardB
-000AEA  1  A9 0C 8D 81      VDPRegisterSet 2, (FrameBufA / NAME_TABLE_MULT)
-000AEE  1  BF EA EA EA  
-000AF2  1  EA A9 82 8D  
-000AFC  1  80 12            BRA @Done
-000AFE  1               @BoardB:
-000AFE  1  A9 0D 8D 81      VDPRegisterSet 2, (FrameBufB / NAME_TABLE_MULT)
-000B02  1  BF EA EA EA  
-000B06  1  EA A9 82 8D  
-000B10  1               ;     VDPVramAddrSet (FrameBufA+32), 1
-000B10  1               ;     LDA BoardCurr
-000B10  1               ;     BNE @BoardB
-000B10  1               ;     COPYADDR (BoardA+35), r0
-000B10  1               ;     BRA @BoardSet
-000B10  1               ; @BoardB:
-000B10  1               ;     COPYADDR (BoardB+35), r0
-000B10  1               ; @BoardSet:
-000B10  1               ;     COPYADDR 32, r1
-000B10  1               ;     LDX #22         ; 22 rows of board data
-000B10  1               ; @NextGenLoop:
-000B10  1               ;     JSR VDPVramPutN
-000B10  1               ;     ADD16 r0, 2    ; next row, skipping dead border
-000B10  1               ;     COPYADDR 32, r1
-000B10  1               ;     DEX
-000B10  1               ;     BNE @NextGenLoop
-000B10  1               ; @GenerationsText:
-000B10  1               ;     JSR CalcGenerationsText
-000B10  1               ;     VDPVramAddrSet (FrameBufA+(32 * 23)), 1
-000B10  1               ;     VDPWait
-000B10  1               ;     LDA GenASCII_Hi + 0
-000B10  1               ;     VDPVramPut
-000B10  1               ;     LDA GenASCII_Hi + 1
-000B10  1               ;     VDPVramPut
-000B10  1               ;     LDA GenASCII_Hi + 2
-000B10  1               ;     VDPVramPut
-000B10  1               ;     LDA GenASCII_Hi + 3
-000B10  1               ;     VDPVramPut
-000B10  1               @Done:
-000B10  1  7A               PLY
-000B11  1  FA               PLX
-000B12  1  68               PLA
-000B13  1  40               RTI
-000B14  1               
-000B14  1               ; Zeroes out game board memory (dead) and then copies initial state to game board A
-000B14  1               GameInit:
-000B14  1  A9 00 85 A2      COPYADDR 0, GenRndr
-000B18  1  A9 00 85 A3  
-000B1C  1  A9 00 85 A0      COPYADDR 0, GenCalc
-000B20  1  A9 00 85 A1  
-000B24  1  64 A4            STZ BoardCurr               ; BoardA
-000B26  1               @BoardA:
-000B26  1  A9 00 85 00      COPYADDR BoardA, r0
-000B2A  1  A9 80 85 01  
-000B2E  1  A0 04            LDY #4
-000B30  1  A2 00            LDX #0                      ; 34 * 24 = 816 which is 4 * 204
-000B32  1               @BoardALoop:
-000B32  1  A9 00            LDA #0
-000B34  1  92 00            STA (r0)
-000B36  1  E6 00 D0 02      INC16 r0
-000B3A  1  E6 01        
-000B3C  1  E8               INX
-000B3D  1  E0 CC            CPX #204
-000B3F  1  D0 F1            BNE @BoardALoop
-000B41  1  88               DEY
-000B42  1  D0 EE            BNE @BoardALoop
-000B44  1               @BoardB:
-000B44  1  A9 00 85 00      COPYADDR BoardB, r0
-000B48  1  A9 90 85 01  
-000B4C  1  A0 04            LDY #4
-000B4E  1  A2 00            LDX #0
-000B50  1               @BoardBLoop:
-000B50  1  A9 00            LDA #0
-000B52  1  92 00            STA (r0)
-000B54  1  E6 00 D0 02      INC16 r0
-000B58  1  E6 01        
-000B5A  1  E8               INX
-000B5B  1  E0 CC            CPX #204
-000B5D  1  D0 F1            BNE @BoardBLoop
-000B5F  1  88               DEY
-000B60  1  D0 EE            BNE @BoardBLoop
-000B62  1               @CopyState:
-000B62  1  A9 35 85 00      COPYADDR (NamesStart+32), r0  ; 2nd row of names table is initial state
-000B66  1  A9 06 85 01  
-000B6A  1  A9 23 85 02      COPYADDR (BoardA+35), r1      ; skip entire top row (34) + 1st cell (border)
-000B6E  1  A9 80 85 03  
-000B72  1  A2 16            LDX #22                     ; 22 rows of data
-000B74  1  A0 00            LDY #0
-000B76  1               @CopyStateLoop:
-000B76  1  B1 00            LDA (r0), Y
-000B78  1  91 02            STA (r1), Y
-000B7A  1  C8               INY
-000B7B  1  C0 20            CPY #32
-000B7D  1  D0 F7            BNE @CopyStateLoop
-000B7F  1  18 A5 00 69      ADD16 r0, 32
-000B83  1  20 85 00 A5  
-000B87  1  01 69 00 85  
-000B8C  1  18 A5 02 69      ADD16 r1, 34
-000B90  1  22 85 02 A5  
-000B94  1  03 69 00 85  
-000B99  1  CA               DEX
-000B9A  1  D0 DA            BNE @CopyStateLoop
-000B9C  1               @Done:
-000B9C  1  60               RTS
-000B9D  1               
-000B9D  1               RegisterTable:
-000B9D  1  00               .byte (CONTROL_1_MODE_GFX_1)
-000B9E  1  80               .byte (CONTROL_2_VRAM_16K | CONTROL_2_MODE_GFX_1)
-000B9F  1  0C               .byte (FrameBufA / NAME_TABLE_MULT)
-000BA0  1  50               .byte (ColorTable / COLOR_TABLE_MULT)
-000BA1  1  00               .byte (PatternTable / PATTERN_TABLE_MULT)
-000BA2  1  10               .byte (SpriteAttributes / SPR_ATTR_TABLE_MULT)
-000BA3  1  04               .byte (SpritePatterns / SPR_PATTERN_TABLE_MULT)
-000BA4  1  01               .byte (COLOR_CLR << 4 | COLOR_BLK)
-000BA4  1               
+000926  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000927  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000928  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000929  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+00092A  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+00092B  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+00092C  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+00092D  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+00092E  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+00092F  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000930  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000931  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000932  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000933  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000934  2  F1               .byte (COLOR_WHITE << 4 | COLOR_BLK)
+000935  2               ColorsEnd:
+000935  2               
+000935  2               SpriteAttrs:
+000935  2  D0 00 00 00      .byte SPRITE_DISABLE_Y_POS, $00, $00, $00
+000939  2               SpriteAttrsEnd:
+000939  2               
+000939  2               .endif
+000939  2               
+000939  1               
+000939  1               Init:
+000939  1  78               SEI
+00093A  1  A9 7D            LDA #<(RegisterTable)
+00093C  1  A2 0C            LDX #>(RegisterTable)
+00093E  1  20 77 C0         JSR VDPInit
+000941  1  20 91 C0         JSR VDPClearVRAM
+000944  1  20 AD C0         JSR VDPCopyDefaultCharset                   ; use default charset and overwrite $0 and $1 patterns
+000947  1  A9 00 8D 81      VDPInitTable PatternTable, PatternsStart, PatternsEnd
+00094B  1  BF A9 40 8D  
+00094F  1  81 BF A9 05  
+000964  1  A9 00 8D 81      VDPInitTable FrameBufA, NamesStart, NamesEnd
+000968  1  BF A9 70 8D  
+00096C  1  81 BF A9 15  
+000981  1  A9 00 8D 81      VDPInitTable FrameBufB, NamesStart, NamesEnd
+000985  1  BF A9 74 8D  
+000989  1  81 BF A9 15  
+00099E  1  A9 00 8D 81      VDPInitTable ColorTable, ColorsStart, ColorsEnd
+0009A2  1  BF A9 54 8D  
+0009A6  1  81 BF A9 15  
+0009BB  1  A9 00 8D 81      VDPInitTable SpriteAttributes, SpriteAttrs, SpriteAttrsEnd  ; turn sprites off
+0009BF  1  BF A9 48 8D  
+0009C3  1  81 BF A9 35  
+0009D8  1  20 EF 0B         JSR GameInit
+0009DB  1               @SetupIRQ:
+0009DB  1  A9 00 8D C5      DUART_IRQ_DISABLE                           ; turn off timer interrupts, we are going to use VDP frames instead
+0009DF  1  BF           
+0009E0  1  A5 ED 8D 03      COPY16 InterruptVector, SystemInterrupt     ; preserve old value of the interrupt vector
+0009E4  1  06 A5 EE 8D  
+0009E8  1  04 06        
+0009EA  1  A9 AD 85 ED      COPYADDR FrameInterrupt, InterruptVector
+0009EE  1  A9 0B 85 EE  
+0009F2  1  A9 14            LDA #FRAMES_PER_GEN                         ; setup our frame counter
+0009F4  1  85 A3            STA FrameCount
+0009F6  1               @EnableDisplay:
+0009F6  1  2C 81 BF         BIT VDP_BASE+REGISTERS                      ; clear INT line
+0009F9  1  A9 E0 8D 81      VDPRegisterSet CONTROL_2, (CONTROL_2_VRAM_16K | CONTROL_2_DISP_EN | CONTROL_2_INT_EN | CONTROL_2_MODE_GFX_1)
+0009FD  1  BF EA EA EA  
+000A01  1  EA A9 81 8D  
+000A0B  1  58               CLI
+000A0C  1               @StartGame:
+000A0C  1  20 48 0A         JSR GameLoop
+000A0F  1               @RestoreIRQ:
+000A0F  1  78               SEI
+000A10  1  2C 81 BF         BIT VDP_BASE+REGISTERS                      ; clear INT line
+000A13  1  A9 00 8D 81      VDPRegisterSet CONTROL_1, (CONTROL_1_MODE_TEXT)
+000A17  1  BF EA EA EA  
+000A1B  1  EA A9 80 8D  
+000A25  1  A9 90 8D 81      VDPRegisterSet CONTROL_2, (CONTROL_2_VRAM_16K | CONTROL_2_MODE_TEXT)    ; turn off INTs and display
+000A29  1  BF EA EA EA  
+000A2D  1  EA A9 81 8D  
+000A37  1  AD 03 06 85      COPY16 SystemInterrupt, InterruptVector
+000A3B  1  ED AD 04 06  
+000A3F  1  85 EE        
+000A41  1  A9 08 8D C5      DUART_IRQ_ENABLE
+000A45  1  BF           
+000A46  1  58               CLI
+000A47  1               @Done:
+000A47  1  60               RTS
+000A48  1               
+000A48  1               GameLoop:
+000A48  1  78               SEI
+000A49  1  38 AD C1 BF      DUART_BYTE_AVAIL
+000A4D  1  89 01 F0 01  
+000A51  1  18           
+000A52  1  B0 07            BCS @AdvanceGame
+000A54  1  20 3B C0         JSR SerialGetByte
+000A57  1  C9 1B            CMP #(ASCII_ESCAPE)
+000A59  1  F0 19            BEQ @Done
+000A5B  1               @AdvanceGame:
+000A5B  1  58               CLI
+000A5C  1  20 76 0A         JSR CalculateGeneration
+000A5F  1               @NextGen:
+000A5F  1  E6 A0 D0 02      INC16 Gens
+000A63  1  E6 A1        
+000A65  1  20 19 0B         JSR CopyBoardToFrameBuffer
+000A68  1  20 68 0B         JSR CopyGenTextToFrameBuffer
+000A6B  1  64 A4            STZ CalcNextGen
+000A6D  1               @WaitLoop:
+000A6D  1  CB               WAI
+000A6E  1  A5 A4            LDA CalcNextGen
+000A70  1  F0 FB            BEQ @WaitLoop
+000A72  1  80 D4            BRA GameLoop
+000A74  1               @Done:
+000A74  1  58               CLI
+000A75  1  60               RTS
+000A76  1               
+000A76  1               CalculateGeneration:
+000A76  1  A5 A2            LDA BoardCurr
+000A78  1  F0 12            BEQ @BoardB
+000A7A  1               @BoardA:
+000A7A  1  A9 00 85 00      COPYADDR (BoardB+35+CELL_OFFSET), r0    ; source
+000A7E  1  A9 90 85 01  
+000A82  1  A9 00 85 02      COPYADDR (BoardA+35+CELL_OFFSET), r1    ; destination
+000A86  1  A9 80 85 03  
+000A8A  1  80 10            BRA @Calc
+000A8C  1               @BoardB:
+000A8C  1  A9 00 85 00      COPYADDR (BoardA+35+CELL_OFFSET), r0    ; source
+000A90  1  A9 80 85 01  
+000A94  1  A9 00 85 02      COPYADDR (BoardB+35+CELL_OFFSET), r1    ; destination
+000A98  1  A9 90 85 03  
+000A9C  1               @Calc:
+000A9C  1  A2 16            LDX #22
+000A9E  1               @CalcLoopStart:
+000A9E  1  A0 00            LDY #0
+000AA0  1               @CalcLoop:
+000AA0  1  5A               PHY                         ; cache current Y index as we need Y indexing
+000AA1  1  DA               PHX                         ; cache current X index as we need
+000AA2  1  18               CLC
+000AA3  1  A9 00            LDA #0                      ; num of alive neighbors
+000AA5  1  A0 00            LDY #NW                     ; not strictly needed, we can drop indexing for first corner
+000AA7  1  71 00            ADC (r0), Y
+000AA9  1  A0 01            LDY #N
+000AAB  1  71 00            ADC (r0), Y
+000AAD  1  A0 02            LDY #NE
+000AAF  1  71 00            ADC (r0), Y
+000AB1  1  A0 24            LDY #E
+000AB3  1  71 00            ADC (r0), Y
+000AB5  1  A0 46            LDY #SE
+000AB7  1  71 00            ADC (r0), Y
+000AB9  1  A0 45            LDY #S
+000ABB  1  71 00            ADC (r0), Y
+000ABD  1  A0 44            LDY #SW
+000ABF  1  71 00            ADC (r0), Y
+000AC1  1  A0 22            LDY #W
+000AC3  1  71 00            ADC (r0), Y
+000AC5  1  AA               TAX                         ; store neighbors in X
+000AC6  1  A0 23            LDY #C
+000AC8  1  B1 00            LDA (r0), Y
+000ACA  1  F0 10            BEQ @Dead
+000ACC  1               @Alive:
+000ACC  1  E0 02            CPX #2                      ; alive neighbors < 2?
+000ACE  1  90 06            BCC @Died
+000AD0  1  E0 04            CPX #4                      ; alive neighbors >= 4?
+000AD2  1  B0 02            BCS @Died
+000AD4  1  80 10            BRA @Unchanged
+000AD6  1               @Died:
+000AD6  1  A9 00            LDA #0
+000AD8  1  91 02            STA (r1), Y                 ; died of loneliness or overcrowding :(
+000ADA  1  80 0C            BRA @Next
+000ADC  1               @Dead:
+000ADC  1  E0 03            CPX #3                      ; if dead and exactly 3 neighbors, we're born
+000ADE  1  D0 06            BNE @Unchanged
+000AE0  1  A9 01            LDA #1
+000AE2  1  91 02            STA (r1), Y                 ; born in new board
+000AE4  1  80 02            BRA @Next
+000AE6  1               @Unchanged:
+000AE6  1  91 02            STA (r1), Y                 ; store current state into new board
+000AE8  1               @Next:
+000AE8  1  E6 00 D0 02      INC16 r0
+000AEC  1  E6 01        
+000AEE  1  E6 02 D0 02      INC16 r1
+000AF2  1  E6 03        
+000AF4  1  FA               PLX
+000AF5  1  7A               PLY
+000AF6  1  C8               INY
+000AF7  1  C0 20            CPY #32
+000AF9  1  D0 A5            BNE @CalcLoop
+000AFB  1  18 A5 00 69      ADD16 r0, 2                 ; add 2 to get base ptr for next row
+000AFF  1  02 85 00 A5  
+000B03  1  01 69 00 85  
+000B08  1  18 A5 02 69      ADD16 r1, 2
+000B0C  1  02 85 02 A5  
+000B10  1  03 69 00 85  
+000B15  1  CA               DEX
+000B16  1  D0 86            BNE @CalcLoopStart
+000B18  1               @Done:
+000B18  1  60               RTS
+000B19  1               
+000B19  1               CopyBoardToFrameBuffer:
+000B19  1  A5 A2            LDA BoardCurr
+000B1B  1  F0 14            BEQ @FrameBfrB
+000B1D  1  A9 20 8D 81      VDPVramAddrSet FrameBufA+32, 1
+000B21  1  BF A9 70 8D  
+000B25  1  81 BF        
+000B27  1  A9 23 85 00      COPYADDR (BoardA+35), r0    ; skip entire top row (34) + 1st cell (border)
+000B2B  1  A9 80 85 01  
+000B2F  1  80 15            BRA @CopyFB
+000B31  1               @FrameBfrB:
+000B31  1  A9 20 8D 81      VDPVramAddrSet FrameBufB+32, 1
+000B35  1  BF A9 74 8D  
+000B39  1  81 BF        
+000B3B  1  A9 23 85 00      COPYADDR (BoardB+35), r0    ; skip entire top row (34) + 1st cell (border)
+000B3F  1  A9 90 85 01  
+000B43  1  20 CB C0         JSR VDPWaitLong
+000B46  1               @CopyFB:
+000B46  1  A2 16            LDX #22                     ; 22 rows of data
+000B48  1               @CopyFBLoopStart:
+000B48  1  A0 00            LDY #0
+000B4A  1               @CopyFBLoop:
+000B4A  1  B1 00            LDA (r0), Y
+000B4C  1  8D 80 BF         STA VDP_BASE+VRAM
+000B4F  1  20 CB C0         JSR VDPWaitLong
+000B52  1  C8               INY
+000B53  1  C0 20            CPY #32                     ; end of data on this row?
+000B55  1  D0 F3            BNE @CopyFBLoop
+000B57  1  18 A5 00 69      ADD16 r0, 34                ; add full row to our pointer
+000B5B  1  22 85 00 A5  
+000B5F  1  01 69 00 85  
+000B64  1  CA               DEX
+000B65  1  D0 E1            BNE @CopyFBLoopStart
+000B67  1               @Done:
+000B67  1  60               RTS
+000B68  1               
+000B68  1               CopyGenTextToFrameBuffer:
+000B68  1  A5 A2            LDA BoardCurr
+000B6A  1  F0 0C            BEQ @FrameBfrB
+000B6C  1  A9 E0 8D 81      VDPVramAddrSet FrameBufA + (23 * 32), 1 ; col 0 of the 23rd row
+000B70  1  BF A9 72 8D  
+000B74  1  81 BF        
+000B76  1  80 0A            BRA @CopyHiByte
+000B78  1               @FrameBfrB:
+000B78  1  A9 E0 8D 81      VDPVramAddrSet FrameBufB + (23 * 32), 1 ; col 0 of the 23rd row
+000B7C  1  BF A9 76 8D  
+000B80  1  81 BF        
+000B82  1               @CopyHiByte:
+000B82  1  A5 A1            LDA Gens + 1
+000B84  1  20 A5 CB         JSR ByteToHexString
+000B87  1  A5 0E            LDA r7
+000B89  1  8D 80 BF         STA VDP_BASE+VRAM
+000B8C  1  20 CB C0         JSR VDPWaitLong
+000B8F  1  A5 0F            LDA r7 + 1
+000B91  1  8D 80 BF         STA VDP_BASE+VRAM
+000B94  1  20 CB C0         JSR VDPWaitLong     ; almost definitely unnecessary
+000B97  1               @CopyLoByte:
+000B97  1  A5 A0            LDA Gens
+000B99  1  20 A5 CB         JSR ByteToHexString
+000B9C  1  A5 0E            LDA r7
+000B9E  1  8D 80 BF         STA VDP_BASE+VRAM
+000BA1  1  20 CB C0         JSR VDPWaitLong
+000BA4  1  A5 0F            LDA r7 + 1
+000BA6  1  8D 80 BF         STA VDP_BASE+VRAM
+000BA9  1  20 CB C0         JSR VDPWaitLong     ; almost definitely unnecessary
+000BAC  1  60               RTS
+000BAD  1               
+000BAD  1               FrameInterrupt:
+000BAD  1  48               PHA
+000BAE  1                   ; PHX
+000BAE  1                   ; PHY
+000BAE  1  2C 81 BF         BIT VDP_BASE+REGISTERS      ; clear IRQ request
+000BB1  1               @CheckFrame:
+000BB1  1  C6 A3            DEC FrameCount
+000BB3  1  D0 38            BNE @Done
+000BB5  1  A9 14            LDA #FRAMES_PER_GEN
+000BB7  1  85 A3            STA FrameCount
+000BB9  1               @NextGen:
+000BB9  1  A5 A2            LDA BoardCurr
+000BBB  1  F0 14            BEQ @BoardB
+000BBD  1  A9 0C 8D 81      VDPRegisterSet 2, (FrameBufA / NAME_TABLE_MULT)
+000BC1  1  BF EA EA EA  
+000BC5  1  EA A9 82 8D  
+000BCF  1  80 12            BRA @TriggerCalc
+000BD1  1               @BoardB:
+000BD1  1  A9 0D 8D 81      VDPRegisterSet 2, (FrameBufB / NAME_TABLE_MULT)
+000BD5  1  BF EA EA EA  
+000BD9  1  EA A9 82 8D  
+000BE3  1               @TriggerCalc:
+000BE3  1  A5 A2            LDA BoardCurr
+000BE5  1  49 FF            EOR #$FF
+000BE7  1  85 A2            STA BoardCurr
+000BE9  1  A9 01            LDA #1
+000BEB  1  85 A4            STA CalcNextGen
+000BED  1               @Done:
+000BED  1                   ; PLY
+000BED  1                   ; PLX
+000BED  1  68               PLA
+000BEE  1  40               RTI
+000BEF  1               
+000BEF  1               ; Zeroes out game board memory (dead) and then copies initial state to both game boards
+000BEF  1               GameInit:
+000BEF  1  A9 00 85 A0      COPYADDR 0, Gens
+000BF3  1  A9 00 85 A1  
+000BF7  1  A9 01            LDA #1
+000BF9  1  85 A4            STA CalcNextGen             ; calculation is in progress to start. we copy 0th state, that's gen 0
+000BFB  1  64 A2            STZ BoardCurr               ; BoardA
+000BFD  1               @ClearBoards:
+000BFD  1  A9 00 85 00      COPYADDR BoardA, r0
+000C01  1  A9 80 85 01  
+000C05  1  A9 00 85 02      COPYADDR BoardB, r1
+000C09  1  A9 90 85 03  
+000C0D  1  A0 04            LDY #4
+000C0F  1               @ClearBoardLoopStart:
+000C0F  1  A2 00            LDX #0                      ; 34 * 24 = 816 which is 4 * 204
+000C11  1               @ClearBoardLoop:
+000C11  1  A9 00            LDA #0
+000C13  1  92 00            STA (r0)
+000C15  1  92 02            STA (r1)
+000C17  1  E6 00 D0 02      INC16 r0
+000C1B  1  E6 01        
+000C1D  1  E6 02 D0 02      INC16 r1
+000C21  1  E6 03        
+000C23  1  E8               INX
+000C24  1  E0 CC            CPX #204
+000C26  1  D0 E9            BNE @ClearBoardLoop
+000C28  1  88               DEY
+000C29  1  D0 E4            BNE @ClearBoardLoopStart
+000C2B  1               @CopyState:
+000C2B  1  A9 35 85 00      COPYADDR (NamesStart+32), r0  ; 2nd row of names table is initial state
+000C2F  1  A9 06 85 01  
+000C33  1  A9 23 85 02      COPYADDR (BoardA+35), r1      ; skip entire top row (34) + 1st cell (border)
+000C37  1  A9 80 85 03  
+000C3B  1  A9 23 85 04      COPYADDR (BoardB+35), r2
+000C3F  1  A9 90 85 05  
+000C43  1  A2 16            LDX #22                     ; 22 rows of data
+000C45  1               @CopyStateLoopStart:
+000C45  1  A0 00            LDY #0
+000C47  1               @CopyStateLoop:
+000C47  1  B1 00            LDA (r0), Y
+000C49  1  91 02            STA (r1), Y
+000C4B  1  91 04            STA (r2), Y
+000C4D  1  C8               INY
+000C4E  1  C0 20            CPY #32
+000C50  1  D0 F5            BNE @CopyStateLoop
+000C52  1  18 A5 00 69      ADD16 r0, 32
+000C56  1  20 85 00 A5  
+000C5A  1  01 69 00 85  
+000C5F  1  18 A5 02 69      ADD16 r1, 34
+000C63  1  22 85 02 A5  
+000C67  1  03 69 00 85  
+000C6C  1  18 A5 04 69      ADD16 r2, 34
+000C70  1  22 85 04 A5  
+000C74  1  05 69 00 85  
+000C79  1  CA               DEX
+000C7A  1  D0 C9            BNE @CopyStateLoopStart
+000C7C  1                   ; TODO: need to copy generations text!
+000C7C  1               @Done:
+000C7C  1  60               RTS
+000C7D  1               
+000C7D  1               RegisterTable:
+000C7D  1  00               .byte (CONTROL_1_MODE_GFX_1)
+000C7E  1  80               .byte (CONTROL_2_VRAM_16K | CONTROL_2_MODE_GFX_1)
+000C7F  1  0C               .byte (FrameBufA / NAME_TABLE_MULT)
+000C80  1  50               .byte (ColorTable / COLOR_TABLE_MULT)
+000C81  1  00               .byte (PatternTable / PATTERN_TABLE_MULT)
+000C82  1  10               .byte (SpriteAttributes / SPR_ATTR_TABLE_MULT)
+000C83  1  04               .byte (SpritePatterns / SPR_PATTERN_TABLE_MULT)
+000C84  1  01               .byte (COLOR_CLR << 4 | COLOR_BLK)
+000C84  1               

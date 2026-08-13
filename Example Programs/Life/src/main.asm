@@ -10,21 +10,18 @@
 .feature string_escapes
 
 ; constants
-FRAMES_PER_GEN  := 60   ; comparator for number of frames per generation
+FRAMES_PER_GEN  := 20   ; comparator for number of frames per generation
 
 ; zero page locations
-GenCalc     := $A0  ; 16 bit counter for the calculated generation
-GenRndr     := $A2  ; 16 bit counter for the rendered generation
+Gens        := $A0  ; 16 bit counter for the calculated generation
 
 ; Board and Frame buffer state
 ; For the GameLoop, `BoardCurr` signifies the _currently displayed_ board. which means
 ; that calculations, copies, etc. should happen on the _opposite_ board/framebuffer!
 ; For the FrameInterrupt, it will treat this value as the one to set the nametable to!
-BoardCurr   := $A4  ; 0 if BoardA, non-zero if BoardB
-FrameCount  := $A6  ; current frame count
-
-GenASCII_Hi := $C0  ; 4 byte ASCII representation for current generation count
-GenASCII_Lo := $C2
+BoardCurr   := $A2  ; 0 if BoardA, non-zero if BoardB
+FrameCount  := $A3  ; current frame count
+CalcNextGen := $A4  ; non-zero if the next generation calc is in progress, 0 if complete
 
 ; RAM locations for our 2 boards which are both 32 * 22 boards
 ; with an extra 1 cell "dead" border all around (34 * 24)
@@ -38,7 +35,19 @@ SpriteAttributes    := $0800
 ColorTable          := $1400
 SpritePatterns      := $2000
 FrameBufA           := $3000
-FrameBufB           := $3500
+FrameBufB           := $3400
+
+; Offsets for cardinal directions in our 34 * 24 board from top left corner
+CELL_OFFSET := -35
+NW  := 0    ; nw corner
+N   := 1    ; n cell
+NE  := 2    ; ne corner
+E   := 36   ; e cell
+SE  := 70   ; se corner
+S   := 69   ; s cell
+SW  := 68   ; sw corner
+W   := 34   ; w cell
+C   := 35   ; center, the cell itself
 
 ; sets VRAM address and then copies all bytes from start to end to vram
 .macro VDPInitTable vramAddr, ramStart, ramEnd
@@ -57,8 +66,6 @@ SystemInterrupt: .res 2
 
 Init:
     SEI
-    COPYADDR $0000, $A0
-    COPYADDR $0000, $A2
     LDA #<(RegisterTable)
     LDX #>(RegisterTable)
     JSR VDPInit
@@ -66,9 +73,10 @@ Init:
     JSR VDPCopyDefaultCharset                   ; use default charset and overwrite $0 and $1 patterns
     VDPInitTable PatternTable, PatternsStart, PatternsEnd
     VDPInitTable FrameBufA, NamesStart, NamesEnd
+    VDPInitTable FrameBufB, NamesStart, NamesEnd
     VDPInitTable ColorTable, ColorsStart, ColorsEnd
+    VDPInitTable SpriteAttributes, SpriteAttrs, SpriteAttrsEnd  ; turn sprites off
     JSR GameInit
-    JSR CopyGenTextToVram
 @SetupIRQ:
     DUART_IRQ_DISABLE                           ; turn off timer interrupts, we are going to use VDP frames instead
     COPY16 InterruptVector, SystemInterrupt     ; preserve old value of the interrupt vector
@@ -101,168 +109,219 @@ GameLoop:
     BEQ @Done
 @AdvanceGame:
     CLI
-    WAI
-    DEC FrameCount
-    BNE GameLoop
-    LDA #FRAMES_PER_GEN
-    STA FrameCount
+    JSR CalculateGeneration
 @NextGen:
-    SEI
-    INC16 GenCalc
-    CLI
+    INC16 Gens
+    JSR CopyBoardToFrameBuffer
+    JSR CopyGenTextToFrameBuffer
+    STZ CalcNextGen
+@WaitLoop:
+    WAI
+    LDA CalcNextGen
+    BEQ @WaitLoop
     BRA GameLoop
 @Done:
     CLI
     RTS
 
+CalculateGeneration:
+    LDA BoardCurr
+    BEQ @BoardB
+@BoardA:
+    COPYADDR (BoardB+35+CELL_OFFSET), r0    ; source
+    COPYADDR (BoardA+35+CELL_OFFSET), r1    ; destination
+    BRA @Calc
+@BoardB:    
+    COPYADDR (BoardA+35+CELL_OFFSET), r0    ; source
+    COPYADDR (BoardB+35+CELL_OFFSET), r1    ; destination
+@Calc:
+    LDX #22
+@CalcLoopStart:
+    LDY #0
+@CalcLoop:
+    PHY                         ; cache current Y index as we need Y indexing
+    PHX                         ; cache current X index as we need
+    CLC
+    LDA #0                      ; num of alive neighbors
+    LDY #NW                     ; not strictly needed, we can drop indexing for first corner
+    ADC (r0), Y
+    LDY #N
+    ADC (r0), Y
+    LDY #NE
+    ADC (r0), Y
+    LDY #E
+    ADC (r0), Y
+    LDY #SE
+    ADC (r0), Y
+    LDY #S
+    ADC (r0), Y
+    LDY #SW
+    ADC (r0), Y
+    LDY #W
+    ADC (r0), Y
+    TAX                         ; store neighbors in X
+    LDY #C
+    LDA (r0), Y
+    BEQ @Dead
+@Alive:
+    CPX #2                      ; alive neighbors < 2?
+    BCC @Died
+    CPX #4                      ; alive neighbors >= 4?
+    BCS @Died
+    BRA @Unchanged
+@Died:
+    LDA #0
+    STA (r1), Y                 ; died of loneliness or overcrowding :(
+    BRA @Next
+@Dead:
+    CPX #3                      ; if dead and exactly 3 neighbors, we're born
+    BNE @Unchanged
+    LDA #1
+    STA (r1), Y                 ; born in new board
+    BRA @Next
+@Unchanged:
+    STA (r1), Y                 ; store current state into new board
+@Next:
+    INC16 r0
+    INC16 r1
+    PLX
+    PLY
+    INY
+    CPY #32
+    BNE @CalcLoop
+    ADD16 r0, 2                 ; add 2 to get base ptr for next row
+    ADD16 r1, 2
+    DEX
+    BNE @CalcLoopStart
+@Done:
+    RTS
+
 CopyBoardToFrameBuffer:
     LDA BoardCurr
     BEQ @FrameBfrB
-    VDPVramAddrSet FrameBufA, 1
+    VDPVramAddrSet FrameBufA+32, 1
     COPYADDR (BoardA+35), r0    ; skip entire top row (34) + 1st cell (border)
     BRA @CopyFB
 @FrameBfrB:
-    VDPVramAddrSet FrameBufB, 1
+    VDPVramAddrSet FrameBufB+32, 1
     COPYADDR (BoardB+35), r0    ; skip entire top row (34) + 1st cell (border)
+    JSR VDPWaitLong
 @CopyFB:
-    JSR VDPWaitLong     ; do we need this?
     LDX #22                     ; 22 rows of data
+@CopyFBLoopStart:
     LDY #0
 @CopyFBLoop:
     LDA (r0), Y
     STA VDP_BASE+VRAM
+    JSR VDPWaitLong
     INY
-    CPY #32
+    CPY #32                     ; end of data on this row?
     BNE @CopyFBLoop
-    ADD16 r0, 32
+    ADD16 r0, 34                ; add full row to our pointer
     DEX
-    BNE @CopyFBLoop
+    BNE @CopyFBLoopStart
 @Done:
     RTS
 
-CopyGenTextToVram:
+CopyGenTextToFrameBuffer:
     LDA BoardCurr
     BEQ @FrameBfrB
-    VDPVramAddrSet FrameBufA + (31 * 23), 1
+    VDPVramAddrSet FrameBufA + (23 * 32), 1 ; col 0 of the 23rd row
     BRA @CopyHiByte
 @FrameBfrB:
-    VDPVramAddrSet FrameBufB + (31 * 23), 1
+    VDPVramAddrSet FrameBufB + (23 * 32), 1 ; col 0 of the 23rd row
 @CopyHiByte:
-    LDA GenRndr + 1
+    LDA Gens + 1
     JSR ByteToHexString
     LDA r7
     STA VDP_BASE+VRAM
     JSR VDPWaitLong
     LDA r7 + 1
     STA VDP_BASE+VRAM
-    JSR VDPWaitLong
+    JSR VDPWaitLong     ; almost definitely unnecessary
 @CopyLoByte:
-    LDA GenRndr
+    LDA Gens
     JSR ByteToHexString
     LDA r7
     STA VDP_BASE+VRAM
     JSR VDPWaitLong
     LDA r7 + 1
     STA VDP_BASE+VRAM
-    JSR VDPWaitLong
+    JSR VDPWaitLong     ; almost definitely unnecessary
     RTS
 
 FrameInterrupt:
     PHA
-    PHX
-    PHY
+    ; PHX
+    ; PHY
     BIT VDP_BASE+REGISTERS      ; clear IRQ request
-    CMP16 GenRndr, GenCalc
-    BNE @NextGen
-    JMP @Done
+@CheckFrame:
+    DEC FrameCount
+    BNE @Done
+    LDA #FRAMES_PER_GEN
+    STA FrameCount
 @NextGen:
-    COPY16 GenCalc, GenRndr
     LDA BoardCurr
-    BNE @BoardB
+    BEQ @BoardB
     VDPRegisterSet 2, (FrameBufA / NAME_TABLE_MULT)
-    BRA @Done
+    BRA @TriggerCalc
 @BoardB:
     VDPRegisterSet 2, (FrameBufB / NAME_TABLE_MULT)
-;     VDPVramAddrSet (FrameBufA+32), 1
-;     LDA BoardCurr
-;     BNE @BoardB
-;     COPYADDR (BoardA+35), r0
-;     BRA @BoardSet
-; @BoardB:
-;     COPYADDR (BoardB+35), r0
-; @BoardSet:
-;     COPYADDR 32, r1
-;     LDX #22         ; 22 rows of board data
-; @NextGenLoop:
-;     JSR VDPVramPutN
-;     ADD16 r0, 2    ; next row, skipping dead border
-;     COPYADDR 32, r1
-;     DEX
-;     BNE @NextGenLoop
-; @GenerationsText:
-;     JSR CalcGenerationsText
-;     VDPVramAddrSet (FrameBufA+(32 * 23)), 1
-;     VDPWait
-;     LDA GenASCII_Hi + 0
-;     VDPVramPut
-;     LDA GenASCII_Hi + 1
-;     VDPVramPut
-;     LDA GenASCII_Hi + 2
-;     VDPVramPut
-;     LDA GenASCII_Hi + 3
-;     VDPVramPut
+@TriggerCalc:
+    LDA BoardCurr
+    EOR #$FF
+    STA BoardCurr
+    LDA #1
+    STA CalcNextGen
 @Done:
-    PLY
-    PLX
+    ; PLY
+    ; PLX
     PLA
     RTI
 
-; Zeroes out game board memory (dead) and then copies initial state to game board A
+; Zeroes out game board memory (dead) and then copies initial state to both game boards
 GameInit:
-    COPYADDR 0, GenRndr
-    COPYADDR 0, GenCalc
+    COPYADDR 0, Gens
+    LDA #1
+    STA CalcNextGen             ; calculation is in progress to start. we copy 0th state, that's gen 0
     STZ BoardCurr               ; BoardA
-@BoardA:
+@ClearBoards:
     COPYADDR BoardA, r0
+    COPYADDR BoardB, r1
     LDY #4
+@ClearBoardLoopStart:
     LDX #0                      ; 34 * 24 = 816 which is 4 * 204
-@BoardALoop:
+@ClearBoardLoop:
     LDA #0
     STA (r0)
+    STA (r1)
     INC16 r0
+    INC16 r1
     INX
     CPX #204
-    BNE @BoardALoop
+    BNE @ClearBoardLoop
     DEY
-    BNE @BoardALoop
-@BoardB:
-    COPYADDR BoardB, r0
-    LDY #4
-    LDX #0
-@BoardBLoop:
-    LDA #0
-    STA (r0)
-    INC16 r0
-    INX
-    CPX #204
-    BNE @BoardBLoop
-    DEY
-    BNE @BoardBLoop
+    BNE @ClearBoardLoopStart
 @CopyState:
     COPYADDR (NamesStart+32), r0  ; 2nd row of names table is initial state
     COPYADDR (BoardA+35), r1      ; skip entire top row (34) + 1st cell (border)
+    COPYADDR (BoardB+35), r2
     LDX #22                     ; 22 rows of data
+@CopyStateLoopStart:
     LDY #0                     
 @CopyStateLoop:
     LDA (r0), Y
     STA (r1), Y
+    STA (r2), Y
     INY
     CPY #32
     BNE @CopyStateLoop
     ADD16 r0, 32
     ADD16 r1, 34
+    ADD16 r2, 34
     DEX
-    BNE @CopyStateLoop
+    BNE @CopyStateLoopStart
+    ; TODO: need to copy generations text!
 @Done:
     RTS
 
