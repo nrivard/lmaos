@@ -25,6 +25,11 @@ PSEUDOINSTRUCTIONS_INC = 1
     STA destination + 1
 .endmacro
 
+.macro COPY32 source, destination
+    COPY16 source, destination
+    COPY16 source + 2, destination + 2
+.endmacro
+
 .macro COPYADDR addr, destination
     LDA #(<addr)
     STA destination
@@ -47,10 +52,10 @@ PSEUDOINSTRUCTIONS_INC = 1
 .macro ADD16 addr, imm
     CLC
     LDA addr
-    ADC #<imm
+    ADC #<(imm)
     STA addr
     LDA addr + 1
-    ADC #>imm
+    ADC #>(imm)
     STA addr + 1
 .endmacro
 
@@ -69,6 +74,27 @@ PSEUDOINSTRUCTIONS_INC = 1
     STA result + 1
 .endmacro
 
+;; 32 bit ADC
+;;
+;; { PARAM } low-byte address of 32-bit value
+;; { PARAM } low-byte address of 32-bit value
+;; { PARAM } low-byte address of desired 32-bit result
+.macro ADC32 lhs, rhs, result
+    CLC
+    LDA lhs
+    ADC rhs
+    STA result
+    LDA lhs + 1
+    ADC rhs + 1
+    STA result + 1
+    LDA lhs + 2
+    ADC rhs + 2
+    STA result + 2
+    LDA lhs + 3
+    ADC rhs + 3
+    STA result + 3
+.endmacro
+
 ;; 16 bit SUB
 ;;
 ;; { PARAM } low-byte address of 16-bit value
@@ -84,6 +110,21 @@ PSEUDOINSTRUCTIONS_INC = 1
 	STA result + 1
 .endmacro
 
+;; 16 bit CMP where SR flags are correct
+;;
+;; { PARAM } low-byte address of 16 bit value
+;; { PARAM } low-byte address of 16 bit value
+.macro CMP16 lhs, rhs
+.local @Done
+    SEC
+    LDA lhs + 1
+    SBC rhs + 1
+    BNE @Done
+    LDA lhs
+    SBC rhs
+@Done:
+.endmacro
+
 ;; 16 bit INC
 ;;
 ;; {PARAM} low-byte address of 16-bit value
@@ -91,6 +132,7 @@ PSEUDOINSTRUCTIONS_INC = 1
 ;; NOTE: Caller can check for zero bit in SR as it will only be zero when _both_
 ;; high and low bytes are zero
 .macro INC16 addr
+.local @NoWrap
     INC addr
     BNE @NoWrap
     INC addr + 1
@@ -103,6 +145,7 @@ PSEUDOINSTRUCTIONS_INC = 1
 ;;
 ;; NOTE: SR status is based on lower byte only
 .macro DEC16 addr
+.local @NoWrap
     LDA addr
     BNE @NoWrap
     DEC addr + 1
@@ -130,10 +173,31 @@ PSEUDOINSTRUCTIONS_INC = 1
     ROR addr
 .endmacro
 
+.macro ASL32 addr
+    ASL addr
+    ROL addr + 1
+    ROL addr + 2
+    ROL addr + 3
+.endmacro
+
+.macro LSR32 addr
+    LSR addr + 3
+    ROR addr + 2
+    ROR addr + 1
+    ROR addr
+.endmacro
+
 ;; -A (negate accumulator)
-.macro NEG
+.macro NEG ignored ; allow a param to so you can write `NEG A` but it's ignored. only operates on A
     EOR #$FF
     INC A
+.endmacro
+
+;; Invert the carry bit. destroys `A`, and N, Z flags
+.macro INVC
+    ROL A
+    EOR #$01
+    ROR A
 .endmacro
 
 .endif

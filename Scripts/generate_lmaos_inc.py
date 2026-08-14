@@ -12,7 +12,7 @@ class ExportedSymbol:
 
     @classmethod
     def create_valid_export(klass, name, address, type):
-        if re.match("^__\w+__$", name):
+        if re.match(r"^__\w+__$", name):
             return None
         else:
             return klass(name, address, type)

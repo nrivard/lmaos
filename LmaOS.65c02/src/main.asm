@@ -8,17 +8,40 @@
 .include "vectors.inc"
 .include "zeropage.inc"
 
-.include "acia.asm"
+.include "serial.asm"
+.include "duart.asm"
+.include "vdp.asm"
 .include "via.asm"
-.include "interrupt.asm"
+; .include "psg.asm"
 .include "monitaur.asm"
-.include "lcd1602.asm"
+.include "interrupt.asm"
 
 .code
 
 Main:
+    SEI
     LDX #$FF
     TXS
+
+InitVDP:
+    LDA #<VDPDefaultRegisters
+    LDX #>VDPDefaultRegisters
+    JSR VDPInit
+    JSR VDPClearVRAM
+    JSR VDPCopyDefaultCharset
+    VDPRegisterSet CONTROL_2, (CONTROL_2_VRAM_16K | CONTROL_2_DISP_EN | CONTROL_2_MODE_TEXT)
+@BootString:
+    VDPVramAddrSet VDP_NAME_TABLE_START, 1
+    LDX #0
+@Loop:
+    LDA LmaOSBootText, X
+    BEQ @Done
+    VDPVramPut
+    INX
+    BRA @Loop
+@Done:
+    BIT VDP_BASE+REGISTERS      ; reset internal state
+
 
 ; do NOT JSR to this routine, it overwrites _all_ of RAM to test it, including the stack
 RamTestPointer := r0
@@ -39,37 +62,35 @@ RamTest:
     STA SystemRAMCapacity
     LDA RamTestPointer + 1
     STA SystemRAMCapacity + 1
-
-    ;;; initializes hardware
-    JSR VIAInit
-    JSR ACIAInit
-;     JSR LCDInit
-    
-;     LDA #<LmaOSBootText
-;     LDX #>LmaOSBootText
-;     JSR LCDPrintString
     
     ;;; initializes the system clock @100Hz (10 msec)
-@InitClock:
+InitClock:
     LDA #ClockRateHz
     STA SystemClockJiffies
     STZ SystemClockUptime
     STZ SystemClockUptime + 1
-    JSR VIASetupSystemClock
+    JSR DuartInit
 
-@SetupInterruptVector:
+SetupInterruptVector:
     ;;; copy system interrupt handler into the interrupt vector
     COPYADDR InterruptHandleSystemTimer, InterruptVector
 
     ;;; system clock is setup, turn on interrupts so they start firing
     CLI
 
-; @DisplayBootStatus:
-;     LDA #(LCD_LINE2_START)
-;     JSR LCDMoveCursor
-;     LDA #<LmaOSBootDone
-;     LDX #>LmaOSBootDone
-;     JSR LCDPrintString
+FinishBootString:
+    BIT VDP_BASE+REGISTERS      ; reset internal state
+    VDPVramAddrSet VDP_NAME_TABLE_START + (LmaosBootTextEnd - LmaOSBootText - 1), 1
+    LDX #0
+@Loop:
+    LDA LmaOSBootDone, X
+    BEQ @Done
+    VDPVramPut
+    INX
+    BRA @Loop
+@Done:
+    BIT VDP_BASE+REGISTERS
+
     
 StartMonitor:
     ;;; on startup, we jump into the monitor
@@ -77,5 +98,7 @@ StartMonitor:
 
 .segment "RODATA"
 
-; LmaOSBootText: .asciiz "Booting up..."
-; LmaOSBootDone: .asciiz "Done."
+LmaOSBootText: .asciiz "Booting up..."
+LmaosBootTextEnd:
+
+LmaOSBootDone: .asciiz "Done."

@@ -7,7 +7,7 @@ ACIA_ASM = 1
 
 .include "acia.inc"
 
-.export ACIAGetByte, ACIASendByte, ACIASendString
+.export ACIAGetByte, ACIASendByte
 
 .code
 
@@ -48,25 +48,6 @@ ACIASendByte:
     PLA				; restore param
     STA ACIA_DATA
 @Done:
-    RTS
-    
-;;; sends a string via the ACIA synchronously
-;;;
-;;; Params
-;;; r0: pointer to the null-terminated that should be sent.
-ACIASendString:
-    PHA
-    PHY
-    LDY #$00
-@SendChar:
-    LDA (r0), Y
-    BEQ @Done
-    JSR ACIASendByte
-    INY
-    BRA @SendChar
-@Done:
-    PLY
-    PLA
     RTS
 
 .endif

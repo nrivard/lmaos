@@ -22,12 +22,17 @@ r6: .res 2
 ; return values should start here and work backwards
 r7: .res 2
 
+;; the following ZP vars are located explictly to allow for
+;; EhBASIC to use it's full complement of ZP storage
+;; if needed, new var should grow upwards, up to $E2
+;; which is the start of the unused EhBASIC area
+
 ; system uptime
-SystemClockJiffies: .res 1
-SystemClockUptime: .res 2
+SystemClockJiffies := $E8
+SystemClockUptime := SystemClockJiffies + 1
 
 ; verified RAM capacity, as measured at startup
-SystemRAMCapacity: .res 2
+SystemRAMCapacity := SystemClockUptime + 2
 
 ; interrupt handler vector. you can overwrite this to handle your own interrupts.
 ;
@@ -46,6 +51,6 @@ SystemRAMCapacity: .res 2
 ;   RTI
 ; @Unhandled:
 ;   JMP InterruptHandleSystemTimer      ; let the system handle it
-InterruptVector: .res 2
+InterruptVector := SystemRAMCapacity + 2
 
 .endif

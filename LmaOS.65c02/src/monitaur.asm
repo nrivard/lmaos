@@ -14,24 +14,24 @@ MONITAUR_ASM = 1
 MonitorStart:
     STZ MonitorCommandDebugTokens   ; by default, don't send parsed tokens back
 @FlushLine:
-    JSR ACIAGetByte
-    LDA #(ASCII_CARRIAGE_RETURN)
-    JSR ACIASendByte
+    JSR MonitorReceiveAnyKey
+    SerialSendNewLine
 @SendGreeting:
     COPYADDR LMAOS_VERSION_STRING, r0
-    JSR ACIASendString
+    JSR SerialSendString
     COPYADDR LMAOS_GREETING, r0
-    JSR ACIASendString
+    JSR SerialSendString
 @MonitorGetCommandLoop:
     LDA #'>'
-    JSR ACIASendByte
+    JSR SerialSendByte
     LDY #0
 @WaitForInput:
-    JSR ACIAGetByte
-    JSR ACIASendByte				; echo received byte (already in A)
+    JSR SerialGetByte
+    JSR SerialSendByte				; echo received byte (already in A)
     STA MonitorCommandBuffer, Y
-    CMP #(ASCII_CARRIAGE_RETURN)
+    CMP #(ASCII_LINE_FEED)
     BEQ @ProcessCommand
+@SkipCharacter:
     INY
     BRA @WaitForInput
 @ProcessCommand:
@@ -68,7 +68,7 @@ MonitorTokenizeCommandBuffer:
     INC r0
 @TokenCharacterLoop:
     LDA MonitorCommandBuffer, X
-    CMP #(ASCII_CARRIAGE_RETURN)                  ; all done!
+    CMP #(ASCII_CARRIAGE_RETURN)            ; all done!
     BEQ @NullTerminateFinalToken
     CMP #' '                                ; end of token
     BEQ @NullTerminateToken
@@ -142,19 +142,18 @@ MonitorProcessReadCommand:
 @SendLoop:
     CPX #0
     BNE @LoadValue
-    LDA #(ASCII_CARRIAGE_RETURN)
-    JSR ACIASendByte
+    SerialSendNewLine
     LDX #$10
 @LoadValue:
     LDA (r5), Y                             ; load value at parsed address
 @SendASCII:
     JSR ByteToHexString
     LDA r7
-    JSR ACIASendByte
+    JSR SerialSendByte
     LDA r7 + 1
-    JSR ACIASendByte
+    JSR SerialSendByte
     LDA #' '
-    JSR ACIASendByte
+    JSR SerialSendByte
 @CheckLoopDone:
     INY
     CPY r6
@@ -162,8 +161,7 @@ MonitorProcessReadCommand:
     DEX
     BRA @SendLoop
 @Done:
-    LDA #(ASCII_CARRIAGE_RETURN)
-    JSR ACIASendByte
+    SerialSendNewLine
     JMP MonitorProcessCommandDone
 
 MonitorProcessWriteCommand:
@@ -180,14 +178,16 @@ MonitorProcessWriteCommand:
 
 MonitorProcessTransferCommand:
     COPYADDR MONITAUR_TRANSFER_WAITING, r0
-    JSR ACIASendString
+    JSR SerialSendString
 @StartTransfer:
     COPY16 r5, r0
     JSR HexStringToWord
     LDA r7
     LDX r7 + 1
     JSR XModemReceive
-    JSR ACIAGetByte                     ; wait for user to press a key. ideally this would be unnecessary
+    PHP                                 ; push processor status onto stack
+    JSR MonitorReceiveAnyKey            ; wait for user to press a key. ideally this would be unnecessary
+    PLP                                 ; restore processor status
 @CheckErrors:
     BCS @Error
     COPYADDR MONITAUR_TRANSFER_SUCCESS, r0
@@ -195,7 +195,7 @@ MonitorProcessTransferCommand:
 @Error:
     COPYADDR MONITAUR_TRANSFER_CANCELED, r0
 @Done:
-    JSR ACIASendString
+    JSR SerialSendString
     JMP MonitorProcessCommandDone
 
 MonitorProcessExecuteCommand:
@@ -210,29 +210,37 @@ MonitorProcessExecuteCommand:
 
 MonitorProcessIllegalCommand:
     COPYADDR MONITAUR_ILLEGAL_COMMAND_START, r0
-    JSR ACIASendString
+    JSR SerialSendString
 @EchoIllegalCommand:
     COPY16 r4, r0
-    JSR ACIASendString
+    JSR SerialSendString
 @TerminateIllegalCommand:
     COPYADDR MONITAUR_ILLEGAL_COMMAND_END, r0
-    JSR ACIASendString
+    JSR SerialSendString
 @Done:
     JMP MonitorProcessCommandDone
+
+MonitorReceiveAnyKey:
+    JSR SerialGetByte
+    CMP #(ASCII_CARRIAGE_RETURN)
+    BNE @Done
+    JSR SerialGetByte               ; eat the LF
+@Done:
+    RTS
 
 .include "strings.asm"
 .include "xmodem.asm"
 
 .segment "RODATA"
 
-LMAOS_VERSION_STRING: 			.asciiz "LmaOS v1.0\r"
-LMAOS_GREETING: 				.asciiz "Unauthorized access of this N8 Bit Special computer will result in prosecution!\r"
+LMAOS_VERSION_STRING: 			.asciiz "LmaOS v1.0\r\n"
+LMAOS_GREETING: 				.asciiz "Unauthorized access of this N8 Bit Special computer will result in prosecution!\r\n"
 
 MONITAUR_ILLEGAL_COMMAND_START: .asciiz "Illegal command: \""
-MONITAUR_ILLEGAL_COMMAND_END: 	.asciiz "\"\r"
-MONITAUR_TRANSFER_WAITING:      .asciiz "Waiting for XModem transfer...\r"
-MONITAUR_TRANSFER_CANCELED:     .asciiz "Transmission canceled. Try again.\r"
-MONITAUR_TRANSFER_SUCCESS:      .asciiz "Transmission successful.\r"
+MONITAUR_ILLEGAL_COMMAND_END: 	.asciiz "\"\r\n"
+MONITAUR_TRANSFER_WAITING:      .asciiz "Waiting for XModem transfer...\r\n"
+MONITAUR_TRANSFER_CANCELED:     .asciiz "Transmission canceled. Try again.\r\n"
+MONITAUR_TRANSFER_SUCCESS:      .asciiz "Transmission successful.\r\n"
 
 MonitorCommandLookupTable: .byte "rd", "wr", "tx", "ex"
 MonitorCommandLookupTableEnd:

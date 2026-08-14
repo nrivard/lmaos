@@ -1,0 +1,28 @@
+Modules list:
+-------------
+main.o:
+    CODE              Offs=000000  Size=0001A7  Align=00001  Fill=0000
+    BUFFERS           Offs=000000  Size=000400  Align=00001  Fill=0000
+
+
+Segment list:
+-------------
+Name                   Start     End    Size  Align
+----------------------------------------------------
+CODE                  000600  0007A6  0001A7  00001
+BUFFERS               002000  0023FF  000400  00001
+
+
+Exports list by name:
+---------------------
+
+
+
+Exports list by value:
+----------------------
+
+
+
+Imports list:
+-------------
+

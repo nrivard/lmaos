@@ -1,6 +1,8 @@
+
 obj/
 *.rom
 *.o
 *.listing
 .DS_Store
 *.PRG
+.vscode/

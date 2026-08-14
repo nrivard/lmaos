@@ -22,7 +22,7 @@ PrintStartMessage:
     STA r0
     LDA #>StartMessage
     STA r0 + 1
-    JSR ACIASendString
+    JSR SerialSendString
 
 Init:
     SEI
@@ -32,7 +32,7 @@ Init:
     CLI
 
 WaitForIt:
-    JSR ACIAGetByte                             ; the whole program is just waiting for a Q
+    JSR SerialGetByte                             ; the whole program is just waiting for a Q
     CMP #(ASCII_ESCAPE)
     BNE WaitForIt
 
@@ -42,50 +42,39 @@ RestoreInterrupt:
     CLI
 
 SendPrefix:
+    SerialSendNewLine
     LDA #<ResponseMessagePrefix
     STA r0
     LDA #>ResponseMessagePrefix
     STA r0 + 1
-    JSR ACIASendString
+    JSR SerialSendString
 SendWaitTime:
     SBC16 SystemClockUptime, StartTime, StartTime   ; subtract StartTime from the current time and store it back since we're done with this value
     LDA StartTime + 1
-    JSR PrintByte
+    JSR SerialSendByteAsString
     LDA StartTime
-    JSR PrintByte
+    JSR SerialSendByteAsString
 SendSuffix:
     LDA #<ResponseMessageSuffix
     STA r0
     LDA #>ResponseMessageSuffix
     STA r0 + 1
-    JSR ACIASendString
+    JSR SerialSendString
 Done:
-    RTS
-
-; byte to print in A
-PrintByte:
-    PHA
-    JSR ByteToHexString
-    LDA r7
-    JSR ACIASendByte
-    LDA r7 + 1
-    JSR ACIASendByte
-    PLA
     RTS
 
 FrameInterrupt:
     PHA
     LDA SystemClockJiffies
     CMP #(ClockRateHz)
-    BEQ @SendHeartbeat
-    JMP @Done
+    BNE @Done
 @SendHeartbeat:
     LDA #'*'
-    JSR ACIASendByte
+    JSR SerialSendByte
 @Done:
     PLA
     JMP (SystemInterrupt) 
 
-StartMessage: .asciiz "Press ESC when you can take no more suspense!\r"
+StartMessage: .asciiz "Press ESC when you can take no more suspense!\n"
 ResponseMessagePrefix: .asciiz "You waited for "
-ResponseMessageSuffix: .asciiz " seconds! Wow!\r"
+ResponseMessageSuffix: .asciiz " seconds! Wow!\n"
